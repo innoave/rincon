@@ -1,0 +1,15 @@
+[package]
+name = "arangodb-rust-driver"
+version = "0.1.0"
+authors = ["Harald Maida <harald.maida@innoave.com>"]
+description = "A typesafe and fast driver for ArangoDB"
+repository = "https://github.com/innoave/arangodb-rust-driver"
+readme = "README.md"
+keywords = ["database", "driver", "typesafe"]
+categories = ["database"]
+license = "MIT/Apache-2.0"
+
+[badges]
+maintenance = { status = "experimental" }
+
+[dependencies]

@@ -1,0 +1,16 @@
+# Rust Cargo
+target/
+**/*.rs.bk
+Cargo.lock
+
+# Eclipse
+.project
+.settings/
+/*.launch
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Sublime Text
+*.sublime-workspace
