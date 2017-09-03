@@ -1,0 +1,14 @@
+version: '3'
+
+volumes:
+  db-data:
+    external: false
+
+services:
+  arangodb:
+    image: arangodb
+    env_file: .env
+    ports:
+      - "8529:8529"
+    volumes:
+      - db-data:/var/lib/arangodb3
