@@ -8,12 +8,12 @@ pub const DEFAULT_USERNAME: &str = "root";
 pub const DEFAULT_PASSWORD: &str = "";
 pub const DEFAULT_DATABASE_NAME: &str = "_system";
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct DataSource {
     protocol: String,
     host: String,
     port: u16,
-    credentials: Credentials,
+    authentication: Authentication,
     use_explicit_database: bool,
     database_name: String,
 }
@@ -35,32 +35,46 @@ impl DataSource {
         Ok(DataSource {
             protocol: protocol.to_string(),
             host: host.to_string(),
-            port: port,
-            credentials: Credentials::Basic(
+            port,
+            authentication: Authentication::Basic(Credentials::new(
                 username.to_string(),
-                password.to_string()),
+                password.to_string())),
             use_explicit_database: false,
             database_name: database_name.to_string(),
         })
     }
 
-    pub fn use_database(&mut self, database_name: &str) {
-        self.database_name = database_name.to_string();
-        self.use_explicit_database = true;
+    pub fn use_database(&self, database_name: &str) -> Self {
+        let mut ds = self.clone();
+        ds.database_name = database_name.to_string();
+        ds.use_explicit_database = true;
+        ds
     }
 
-    pub fn use_default_database(&mut self) {
-        self.use_explicit_database = false;
+    pub fn use_default_database(&self) -> Self {
+        let mut ds = self.clone();
+        ds.use_explicit_database = false;
+        ds
     }
 
-    pub fn use_basic_auth(&mut self, username: &str, password: &str) {
-        self.credentials = Credentials::Basic(
+    pub fn with_basic_authentication(&self, username: &str, password: &str) -> Self {
+        let mut ds = self.clone();
+        ds.authentication = Authentication::Basic(Credentials::new(
             username.to_string(),
-            password.to_string());
+            password.to_string()));
+        ds
     }
 
-    pub fn without_auth(&mut self) {
-        self.credentials = Credentials::None;
+    pub fn without_authentication(&self) -> Self {
+        let mut ds = self.clone();
+        ds.authentication = Authentication::None;
+        ds
+    }
+
+    pub fn with_authentication(&self, authentication: Authentication) -> Self {
+        let mut ds = self.clone();
+        ds.authentication = authentication;
+        ds
     }
 
     pub fn protocol(&self) -> &str {
@@ -75,8 +89,8 @@ impl DataSource {
         self.port
     }
 
-    pub fn credentials(&self) -> &Credentials {
-        &self.credentials
+    pub fn authentication(&self) -> &Authentication {
+        &self.authentication
     }
 
     pub fn is_use_explicit_database(&self) -> bool {
@@ -94,9 +108,9 @@ impl Default for DataSource {
             protocol: DEFAULT_PROTOCOL.to_string(),
             host: DEFAULT_HOST.to_string(),
             port: DEFAULT_PORT,
-            credentials: Credentials::Basic(
+            authentication: Authentication::Basic(Credentials::new(
                 DEFAULT_USERNAME.to_string(),
-                DEFAULT_PASSWORD.to_string()),
+                DEFAULT_PASSWORD.to_string())),
             use_explicit_database: false,
             database_name: DEFAULT_DATABASE_NAME.to_string(),
         }
@@ -104,10 +118,33 @@ impl Default for DataSource {
 }
 
 //TODO support JWT authentication
-#[derive(Debug)]
-pub enum Credentials {
-    Basic(String, String),
+#[derive(Clone, Debug)]
+pub enum Authentication {
+    Basic(Credentials),
     None,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Credentials {
+    username: String,
+    password: String,
+}
+
+impl Credentials {
+    pub fn new(username: String, password: String) -> Self {
+        Credentials {
+            username,
+            password,
+        }
+    }
+
+    pub fn username(&self) -> &str {
+        &self.username
+    }
+
+    pub fn password(&self) -> &str {
+        &self.password
+    }
 }
 
 #[derive(Debug)]

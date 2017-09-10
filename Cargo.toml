@@ -8,7 +8,6 @@ readme = "README.md"
 keywords = ["arangodb", "aql", "nosql", "database", "client", "driver", "typesafe"]
 categories = ["database"]
 license = "Apache-2.0"
-license-file = "LICENSE"
 
 [badges]
 maintenance = { status = "experimental" }
@@ -16,9 +15,16 @@ maintenance = { status = "experimental" }
 [lib]
 name = "arangodb_client"
 
+[features]
+default = ["mmfiles"]
+cluster = []
+mmfiles = []
+rocksdb = []
+
 [dependencies]
 futures = "0.1"
 hyper = "0.11"
+hyper-tls = "0.1"
 regex = "0.2"
 serde = "1.0"
 serde_derive = "1.0"
