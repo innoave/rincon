@@ -1,4 +1,6 @@
 
+use std::time::Duration;
+
 use url::{ParseError, Url};
 
 pub const DEFAULT_PROTOCOL: &str = "https";
@@ -7,6 +9,7 @@ pub const DEFAULT_PORT: u16 = 8529;
 pub const DEFAULT_USERNAME: &str = "root";
 pub const DEFAULT_PASSWORD: &str = "";
 pub const DEFAULT_DATABASE_NAME: &str = "_system";
+pub const DEFAULT_TIMEOUT: u64 = 30;
 
 #[derive(Clone, Debug)]
 pub struct DataSource {
@@ -16,6 +19,7 @@ pub struct DataSource {
     authentication: Authentication,
     use_explicit_database: bool,
     database_name: String,
+    timeout: Duration,
 }
 
 impl DataSource {
@@ -33,35 +37,23 @@ impl DataSource {
         //TODO parse database name from url path segments
         let database_name = DEFAULT_DATABASE_NAME;
         Ok(DataSource {
-            protocol: protocol.to_string(),
-            host: host.to_string(),
+            protocol: protocol.to_owned(),
+            host: host.to_owned(),
             port,
             authentication: Authentication::Basic(Credentials::new(
-                username.to_string(),
-                password.to_string())),
+                username.to_owned(),
+                password.to_owned())),
             use_explicit_database: false,
-            database_name: database_name.to_string(),
+            database_name: database_name.to_owned(),
+            timeout: Duration::from_secs(DEFAULT_TIMEOUT),
         })
-    }
-
-    pub fn use_database(&self, database_name: &str) -> Self {
-        let mut ds = self.clone();
-        ds.database_name = database_name.to_string();
-        ds.use_explicit_database = true;
-        ds
-    }
-
-    pub fn use_default_database(&self) -> Self {
-        let mut ds = self.clone();
-        ds.use_explicit_database = false;
-        ds
     }
 
     pub fn with_basic_authentication(&self, username: &str, password: &str) -> Self {
         let mut ds = self.clone();
         ds.authentication = Authentication::Basic(Credentials::new(
-            username.to_string(),
-            password.to_string()));
+            username.to_owned(),
+            password.to_owned()));
         ds
     }
 
@@ -74,6 +66,25 @@ impl DataSource {
     pub fn with_authentication(&self, authentication: Authentication) -> Self {
         let mut ds = self.clone();
         ds.authentication = authentication;
+        ds
+    }
+
+    pub fn use_database(&self, database_name: &str) -> Self {
+        let mut ds = self.clone();
+        ds.database_name = database_name.to_owned();
+        ds.use_explicit_database = true;
+        ds
+    }
+
+    pub fn use_default_database(&self) -> Self {
+        let mut ds = self.clone();
+        ds.use_explicit_database = false;
+        ds
+    }
+
+    pub fn with_timeout(&self, timeout: Duration) -> Self {
+        let mut ds = self.clone();
+        ds.timeout = timeout;
         ds
     }
 
@@ -100,19 +111,24 @@ impl DataSource {
     pub fn database_name(&self) -> &str {
         &self.database_name
     }
+
+    pub fn timeout(&self) -> &Duration {
+        &self.timeout
+    }
 }
 
 impl Default for DataSource {
     fn default() -> Self {
         DataSource {
-            protocol: DEFAULT_PROTOCOL.to_string(),
-            host: DEFAULT_HOST.to_string(),
+            protocol: DEFAULT_PROTOCOL.to_owned(),
+            host: DEFAULT_HOST.to_owned(),
             port: DEFAULT_PORT,
             authentication: Authentication::Basic(Credentials::new(
-                DEFAULT_USERNAME.to_string(),
-                DEFAULT_PASSWORD.to_string())),
+                DEFAULT_USERNAME.to_owned(),
+                DEFAULT_PASSWORD.to_owned())),
             use_explicit_database: false,
-            database_name: DEFAULT_DATABASE_NAME.to_string(),
+            database_name: DEFAULT_DATABASE_NAME.to_owned(),
+            timeout: Duration::from_secs(DEFAULT_TIMEOUT),
         }
     }
 }

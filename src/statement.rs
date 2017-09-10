@@ -21,29 +21,38 @@ pub struct PreparedStatement<M>
     method: M,
     operation: Operation,
     path: String,
-    parameter: HashMap<String, String>,
-    document: Option<String>,
+    parameters: Parameters,
+    document: Option<Document>,
 }
 
 impl<M> PreparedStatement<M>
     where M: Method
 {
-    pub fn new(method: M, operation: Operation, path: String) -> Self {
+    pub fn new(method: M, operation: Operation, path: &str) -> Self {
         PreparedStatement {
             method,
             operation,
-            path,
-            parameter: HashMap::new(),
+            path: path.to_owned(),
+            parameters: Parameters::default(),
             document: None,
         }
     }
 
-    pub fn set_document(&mut self, document: String) {
-        self.document = Some(document);
+    pub fn with_parameters(method: M, operation: Operation, path: &str, parameters: Parameters)
+        -> Self
+    {
+        PreparedStatement {
+            method,
+            operation,
+            path: path.to_owned(),
+            parameters,
+            document: None,
+        }
     }
 
-    pub fn set_string(&mut self, name: String, value: String) {
-        self.parameter.insert(name, value);
+    pub fn with_document(mut self, document: Document) -> Self {
+        self.document = Some(document);
+        self
     }
 
     pub fn method(&self) -> &M {
@@ -58,12 +67,16 @@ impl<M> PreparedStatement<M>
         &self.path
     }
 
-    pub fn parameter(&self) -> &HashMap<String, String> {
-        &self.parameter
+    pub fn parameters(&self) -> &Parameters {
+        &self.parameters
     }
 
-    pub fn document(&self) -> &Option<String> {
-        &self.document
+    pub fn parameters_mut(&mut self) -> &mut Parameters {
+        &mut self.parameters
+    }
+
+    pub fn document(&self) -> Option<&Document> {
+        self.document.as_ref()
     }
 }
 
@@ -75,19 +88,73 @@ pub enum Operation {
     Delete,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
+pub struct Parameters {
+    map: HashMap<String, String>,
+}
+
+impl Parameters {
+    pub fn set_str(&mut self, name: &str, value: &str) {
+        self.map.insert(name.to_owned(), value.to_owned());
+    }
+
+    pub fn set_string(&mut self, name: String, value: String) {
+        self.map.insert(name, value);
+    }
+}
+
+impl Default for Parameters {
+    fn default() -> Self {
+        Parameters {
+            map: HashMap::new(),
+        }
+    }
+}
+
+impl From<HashMap<String, String>> for Parameters {
+    fn from(map: HashMap<String, String>) -> Self {
+        Parameters {
+            map,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Document {
+    text: String,
+}
+
+impl Document {
+    pub fn from_str(text: &str) -> Self {
+        Document {
+            text: text.to_owned(),
+        }
+    }
+
+    pub fn from_string(text: String) -> Self {
+        Document {
+            text,
+        }
+    }
+
+    pub fn text(&self) -> &str {
+        &self.text
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct StatementResult {
-    document: Option<String>,
+    document: Option<Document>,
 }
 
 impl StatementResult {
-    pub fn new(document: Option<String>) -> Self {
+    pub fn new(document: Option<Document>) -> Self {
         StatementResult {
             document,
         }
     }
 
-    pub fn document(&self) -> Option<&String> {
+    pub fn document(&self) -> Option<&Document> {
         self.document.as_ref()
     }
 }

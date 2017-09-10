@@ -2,26 +2,35 @@
 use std::io;
 use std::str::FromStr;
 use std::string::FromUtf8Error;
+use std::time::Duration;
 
 use futures::{future, Future, Stream};
-use hyper::{self, Client, Request, Uri};
+use hyper::{self, Client, HttpVersion, Request, Uri};
 use hyper::client::HttpConnector;
+use hyper::header::{Authorization, Basic, Bearer};
+use hyper_tls::HttpsConnector;
+use native_tls;
 use serde_json;
-use tokio_core::reactor::Core;
+use tokio_core::reactor;
+use tokio_timer::{Timer, TimeoutError, TimerError};
 
 use statement::{Method, Operation, Prepare, PreparedStatement};
-use datasource::DataSource;
+use datasource::{Authentication, DataSource};
 
 #[derive(Debug)]
 pub struct Connection {
     datasource: DataSource,
-    client: Client<HttpConnector>,
+    client: Client<HttpsConnector<HttpConnector>>,
 }
 
 impl Connection {
-    pub fn establish(datasource: DataSource) -> Result<Self, io::Error> {
-        let core = Core::new()?;
-        let client = Client::new(&core.handle());
+    pub fn establish(datasource: DataSource, reactor: &reactor::Handle)
+        -> Result<Self, self::Error>
+    {
+        let client = Client::configure()
+            .connector(HttpsConnector::new(4, &reactor)?)
+            .build(reactor);
+        debug!("Created connection for {:?}", &datasource);
         Ok(Connection {
             datasource,
             client,
@@ -31,12 +40,32 @@ impl Connection {
     pub fn execute<M>(&self, method: M) -> FutureResult<M>
         where M: Method + Prepare<M>
     {
+        let timeout = Timer::default().sleep(self.datasource.timeout().clone());
         let stmt = method.prepare();
-        let op = http_method_for_operation(stmt.operation());
-        let uri = self.build_request_uri(stmt);
-        let request = Request::new(op, uri);
-        Box::new(self.client.request(request)
-            .from_err()
+        let operation = stmt.operation();
+        let http_method = http_method_for_operation(operation);
+        let uri = self.build_request_uri(&stmt);
+        let mut request = Request::new(http_method, uri);
+        {
+            request.set_version(HttpVersion::Http11);
+            let mut headers = request.headers_mut();
+            match *operation {
+                Operation::Create => {},
+                Operation::Read => {},
+                Operation::Update => {},
+                Operation::Delete => {},
+            }
+            match *self.datasource.authentication() {
+                Authentication::Basic(ref credentials) =>
+                    headers.set(Authorization(Basic {
+                        username: credentials.username().to_owned(),
+                        password: Some(credentials.password().to_owned()),
+                    })),
+                Authentication::None => (),
+            }
+        }
+        debug!("Sending {:?}", &request);
+        Box::new(self.client.request(request).from_err()
             .and_then(|res|
                 res.body().concat2().from_err().and_then(|buffer| {
                     match serde_json::from_slice(&buffer) {
@@ -50,7 +79,7 @@ impl Connection {
         )
     }
 
-    fn build_request_uri<M>(&self, stmt: PreparedStatement<M>) -> Uri
+    fn build_request_uri<M>(&self, stmt: &PreparedStatement<M>) -> Uri
         where M: Method
     {
         Uri::from_str(&format!("{}://{}:{}/{}",
@@ -68,7 +97,11 @@ pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=self::Er
 pub enum Error {
     CommunicationFailed(hyper::Error),
     DeserializationFailed(serde_json::Error),
+    IoError(io::Error),
+    NativeTlsError(native_tls::Error),
     NotUtf8Content(FromUtf8Error),
+    Timeout(TimeoutError<hyper::Error>),
+    TimerError(TimerError),
 }
 
 impl From<FromUtf8Error> for Error {
@@ -77,9 +110,33 @@ impl From<FromUtf8Error> for Error {
     }
 }
 
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Self {
+        Error::IoError(err)
+    }
+}
+
 impl From<hyper::Error> for Error {
     fn from(err: hyper::Error) -> Self {
         Error::CommunicationFailed(err)
+    }
+}
+
+impl From<native_tls::Error> for Error {
+    fn from(err: native_tls::Error) -> Self {
+        Error::NativeTlsError(err)
+    }
+}
+
+impl From<TimeoutError<hyper::Error>> for Error {
+    fn from(err: TimeoutError<hyper::Error>) -> Self {
+        Error::Timeout(err)
+    }
+}
+
+impl From<TimerError> for Error {
+    fn from(err: TimerError) -> Self {
+        Error::TimerError(err)
     }
 }
 
