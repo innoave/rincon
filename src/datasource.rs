@@ -1,15 +1,18 @@
 
+use std::env;
 use std::time::Duration;
 
 use url::{ParseError, Url};
 
-pub const DEFAULT_PROTOCOL: &str = "https";
+pub const DEFAULT_PROTOCOL: &str = "http";
 pub const DEFAULT_HOST: &str = "localhost";
 pub const DEFAULT_PORT: u16 = 8529;
 pub const DEFAULT_USERNAME: &str = "root";
 pub const DEFAULT_PASSWORD: &str = "";
 pub const DEFAULT_DATABASE_NAME: &str = "_system";
 pub const DEFAULT_TIMEOUT: u64 = 30;
+
+pub const ENV_ROOT_PASSWORD: &str = "ARANGO_ROOT_PASSWORD";
 
 #[derive(Clone, Debug)]
 pub struct DataSource {
@@ -33,7 +36,13 @@ impl DataSource {
         } else {
             url.username()
         };
-        let password = url.password().unwrap_or(DEFAULT_PASSWORD);
+        let password = if let Some(passwd) = url.password() {
+            passwd.to_owned()
+        } else if let Ok(passwd) = env::var(ENV_ROOT_PASSWORD) {
+            passwd
+        } else {
+            DEFAULT_PASSWORD.to_owned()
+        };
         //TODO parse database name from url path segments
         let database_name = DEFAULT_DATABASE_NAME;
         Ok(DataSource {
@@ -42,7 +51,7 @@ impl DataSource {
             port,
             authentication: Authentication::Basic(Credentials::new(
                 username.to_owned(),
-                password.to_owned())),
+                password)),
             use_explicit_database: false,
             database_name: database_name.to_owned(),
             timeout: Duration::from_secs(DEFAULT_TIMEOUT),

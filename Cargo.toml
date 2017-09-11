@@ -36,5 +36,6 @@ tokio-timer = "0.1"
 url = "1.5"
 
 [dev-dependencies]
-quickcheck = "0.4"
+dotenv = "0.10"
 log4rs = "0.7"
+quickcheck = "0.4"

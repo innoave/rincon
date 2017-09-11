@@ -82,7 +82,7 @@ impl Connection {
     fn build_request_uri<M>(&self, stmt: &PreparedStatement<M>) -> Uri
         where M: Method
     {
-        Uri::from_str(&format!("{}://{}:{}/{}",
+        Uri::from_str(&format!("{}://{}:{}{}",
             self.datasource.protocol(),
             self.datasource.host(),
             self.datasource.port(),

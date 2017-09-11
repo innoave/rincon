@@ -1,25 +1,43 @@
 
+extern crate dotenv;
 extern crate futures;
 extern crate log4rs;
 extern crate tokio_core;
 
 extern crate arangodb_client;
 
+use std::env;
+
+use dotenv::dotenv;
 use tokio_core::reactor::Core;
 
 use arangodb_client::admin::*;
 use arangodb_client::connection::Connection;
 use arangodb_client::datasource::DataSource;
 
+fn config_test() {
+    init_logging();
+    init_env();
+}
+
 fn init_logging() {
     log4rs::init_file("tests/log4rs.yml", Default::default()).unwrap();
 }
 
+fn init_env() {
+    dotenv().ok();
+    println!("{}", env::var("ARANGO_ROOT_PASSWORD").unwrap());
+}
+
+fn init_datasource() -> DataSource {
+    DataSource::from_url("http://localhost:8529").unwrap()
+}
+
 #[test]
 fn get_target_version_of_arangodb_server() {
-    init_logging();
+    config_test();
     let mut core = Core::new().unwrap();
-    let datasource = DataSource::default();
+    let datasource = init_datasource();
     let conn = Connection::establish(datasource, &core.handle()).unwrap();
 
     let method = GetTargetVersion::new();
