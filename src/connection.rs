@@ -5,7 +5,7 @@ use std::string::FromUtf8Error;
 use std::time::Duration;
 
 use futures::{future, Future, Stream};
-use hyper::{self, Client, HttpVersion, Request, Uri};
+use hyper::{self, Client, HttpVersion, Request, StatusCode, Uri};
 use hyper::client::HttpConnector;
 use hyper::header::{Authorization, Basic, Bearer};
 use hyper_tls::HttpsConnector;
@@ -66,7 +66,58 @@ impl Connection {
         }
         debug!("Sending {:?}", &request);
         Box::new(self.client.request(request).from_err()
-            .and_then(|res|
+            .and_then(|res| {
+                let status_code = res.status();
+                match status_code {
+                    StatusCode::Ok
+                        | StatusCode::Accepted
+                        | StatusCode::Created
+                        => future::ok(res),
+                    StatusCode::BadRequest
+                        | StatusCode::Unauthorized
+                        | StatusCode::PaymentRequired
+                        | StatusCode::Forbidden
+                        | StatusCode::NotFound
+                        | StatusCode::MethodNotAllowed
+                        | StatusCode::NotAcceptable
+                        | StatusCode::ProxyAuthenticationRequired
+                        | StatusCode::RequestTimeout
+                        | StatusCode::Conflict
+                        | StatusCode::Gone
+                        | StatusCode::LengthRequired
+                        | StatusCode::PreconditionFailed
+                        | StatusCode::PayloadTooLarge
+                        | StatusCode::UriTooLong
+                        | StatusCode::UnsupportedMediaType
+                        | StatusCode::RangeNotSatisfiable
+                        | StatusCode::ExpectationFailed
+                        | StatusCode::ImATeapot
+                        | StatusCode::MisdirectedRequest
+                        | StatusCode::UnprocessableEntity
+                        | StatusCode::Locked
+                        | StatusCode::FailedDependency
+                        | StatusCode::UpgradeRequired
+                        | StatusCode::PreconditionRequired
+                        | StatusCode::TooManyRequests
+                        | StatusCode::RequestHeaderFieldsTooLarge
+                        | StatusCode::UnavailableForLegalReasons
+                        | StatusCode::InternalServerError
+                        | StatusCode::NotImplemented
+                        | StatusCode::BadGateway
+                        | StatusCode::ServiceUnavailable
+                        | StatusCode::GatewayTimeout
+                        | StatusCode::HttpVersionNotSupported
+                        | StatusCode::VariantAlsoNegotiates
+                        | StatusCode::InsufficientStorage
+                        | StatusCode::LoopDetected
+                        | StatusCode::NotExtended
+                        | StatusCode::NetworkAuthenticationRequired
+                        | StatusCode::Unregistered(_)
+                        => future::err(Error::from(status_code)),
+                    _ => future::err(Error::from(status_code)),
+                }
+            })
+            .and_then(|res| {
                 res.body().concat2().from_err().and_then(|buffer| {
                     match serde_json::from_slice(&buffer) {
                         Ok(value) =>
@@ -75,7 +126,7 @@ impl Connection {
                             future::err(Error::DeserializationFailed(err)),
                     }
                 })
-            )
+            })
         )
     }
 
@@ -97,6 +148,7 @@ pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=self::Er
 pub enum Error {
     CommunicationFailed(hyper::Error),
     DeserializationFailed(serde_json::Error),
+    HttpError(hyper::StatusCode),
     IoError(io::Error),
     NativeTlsError(native_tls::Error),
     NotUtf8Content(FromUtf8Error),
@@ -137,6 +189,12 @@ impl From<TimeoutError<hyper::Error>> for Error {
 impl From<TimerError> for Error {
     fn from(err: TimerError) -> Self {
         Error::TimerError(err)
+    }
+}
+
+impl From<StatusCode> for Error {
+    fn from(status_code: StatusCode) -> Self {
+        Error::HttpError(status_code)
     }
 }
 

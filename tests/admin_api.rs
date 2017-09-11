@@ -6,8 +6,6 @@ extern crate tokio_core;
 
 extern crate arangodb_client;
 
-use std::env;
-
 use dotenv::dotenv;
 use tokio_core::reactor::Core;
 
@@ -26,7 +24,6 @@ fn init_logging() {
 
 fn init_env() {
     dotenv().ok();
-    println!("{}", env::var("ARANGO_ROOT_PASSWORD").unwrap());
 }
 
 fn init_datasource() -> DataSource {
