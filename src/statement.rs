@@ -1,18 +1,7 @@
 
-use std::collections::HashMap;
-
 use futures::{Future, Poll};
-use serde::de::DeserializeOwned;
 
-pub trait Method {
-    type Result: DeserializeOwned + 'static;
-}
-
-pub trait Prepare<M>
-    where M: Method
-{
-    fn prepare(self) -> PreparedStatement<M>;
-}
+use api::{Document, Method, Operation, Parameters};
 
 #[derive(Debug)]
 pub struct PreparedStatement<M>
@@ -33,7 +22,7 @@ impl<M> PreparedStatement<M>
             method,
             operation,
             path: path.to_owned(),
-            parameters: Parameters::default(),
+            parameters: Parameters::empty(),
             document: None,
         }
     }
@@ -77,68 +66,6 @@ impl<M> PreparedStatement<M>
 
     pub fn document(&self) -> Option<&Document> {
         self.document.as_ref()
-    }
-}
-
-#[derive(Debug)]
-pub enum Operation {
-    Create,
-    Read,
-    Update,
-    Delete,
-}
-
-#[derive(Clone, Debug)]
-pub struct Parameters {
-    map: HashMap<String, String>,
-}
-
-impl Parameters {
-    pub fn set_str(&mut self, name: &str, value: &str) {
-        self.map.insert(name.to_owned(), value.to_owned());
-    }
-
-    pub fn set_string(&mut self, name: String, value: String) {
-        self.map.insert(name, value);
-    }
-}
-
-impl Default for Parameters {
-    fn default() -> Self {
-        Parameters {
-            map: HashMap::new(),
-        }
-    }
-}
-
-impl From<HashMap<String, String>> for Parameters {
-    fn from(map: HashMap<String, String>) -> Self {
-        Parameters {
-            map,
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct Document {
-    text: String,
-}
-
-impl Document {
-    pub fn from_str(text: &str) -> Self {
-        Document {
-            text: text.to_owned(),
-        }
-    }
-
-    pub fn from_string(text: String) -> Self {
-        Document {
-            text,
-        }
-    }
-
-    pub fn text(&self) -> &str {
-        &self.text
     }
 }
 

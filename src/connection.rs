@@ -14,7 +14,7 @@ use serde_json;
 use tokio_core::reactor;
 use tokio_timer::{Timer, TimeoutError, TimerError};
 
-use statement::{Method, Operation, Prepare, PreparedStatement};
+use api::{Method, Operation, Prepare};
 use datasource::{Authentication, DataSource};
 
 #[derive(Debug)]
@@ -38,32 +38,10 @@ impl Connection {
     }
 
     pub fn execute<M>(&self, method: M) -> FutureResult<M>
-        where M: Method + Prepare<M>
+        where M: Method + Prepare
     {
         let timeout = Timer::default().sleep(self.datasource.timeout().clone());
-        let stmt = method.prepare();
-        let operation = stmt.operation();
-        let http_method = http_method_for_operation(operation);
-        let uri = self.build_request_uri(&stmt);
-        let mut request = Request::new(http_method, uri);
-        {
-            request.set_version(HttpVersion::Http11);
-            let mut headers = request.headers_mut();
-            match *operation {
-                Operation::Create => {},
-                Operation::Read => {},
-                Operation::Update => {},
-                Operation::Delete => {},
-            }
-            match *self.datasource.authentication() {
-                Authentication::Basic(ref credentials) =>
-                    headers.set(Authorization(Basic {
-                        username: credentials.username().to_owned(),
-                        password: Some(credentials.password().to_owned()),
-                    })),
-                Authentication::None => (),
-            }
-        }
+        let request = self.prepare_request(method);
         debug!("Sending {:?}", &request);
         Box::new(self.client.request(request).from_err()
             .and_then(|res| {
@@ -130,19 +108,35 @@ impl Connection {
         )
     }
 
-    fn build_request_uri<M>(&self, stmt: &PreparedStatement<M>) -> Uri
-        where M: Method
+    pub fn prepare_request<M>(&self, method: M) -> Request
+        where M: Method + Prepare
     {
-        Uri::from_str(&format!("{}://{}:{}{}",
-            self.datasource.protocol(),
-            self.datasource.host(),
-            self.datasource.port(),
-            stmt.path(),
-        )).unwrap()
+        let operation = method.operation();
+        let http_method = http_method_for_operation(&operation);
+        let uri = build_request_uri(&self.datasource, &method);
+        let mut request = Request::new(http_method, uri);
+        request.set_version(HttpVersion::Http11);
+        {
+            let mut headers = request.headers_mut();
+            match *self.datasource.authentication() {
+                Authentication::Basic(ref credentials) => {
+                    headers.set(Authorization(Basic {
+                        username: credentials.username().to_owned(),
+                        password: Some(credentials.password().to_owned()),
+                    }))
+                },
+                Authentication::None => {},
+            }
+        }
+        request
     }
 }
 
 pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=self::Error>>;
+
+pub trait PreparedRequest<M> {}
+
+impl<M> PreparedRequest<M> for Request {}
 
 #[derive(Debug)]
 pub enum Error {
@@ -198,12 +192,24 @@ impl From<StatusCode> for Error {
     }
 }
 
-pub fn http_method_for_operation(operation: &Operation) -> hyper::Method {
+fn http_method_for_operation(operation: &Operation) -> hyper::Method {
     use self::hyper::Method;
     match *operation {
         Operation::Create => Method::Post,
         Operation::Read => Method::Get,
-        Operation::Update => Method::Patch,
+        Operation::Modify => Method::Patch,
+        Operation::Replace => Method::Put,
         Operation::Delete => Method::Delete,
     }
+}
+
+fn build_request_uri<P>(datasource: &DataSource, prepare: &P) -> Uri
+    where P: Prepare
+{
+    Uri::from_str(&format!("{}://{}:{}{}",
+        datasource.protocol(),
+        datasource.host(),
+        datasource.port(),
+        prepare.path(),
+    )).unwrap()
 }

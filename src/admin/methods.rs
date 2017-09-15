@@ -1,5 +1,5 @@
 
-use statement::{Method, Operation, Parameters, Prepare, PreparedStatement};
+use api::{Method, Operation, Parameters, Prepare};
 use super::types::*;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -15,10 +15,17 @@ impl Method for GetTargetVersion {
     type Result = TargetVersion;
 }
 
-impl Prepare<Self> for GetTargetVersion {
-    fn prepare(self) -> PreparedStatement<Self> {
-        let path = "/_admin/database/target-version";
-        PreparedStatement::new(self, Operation::Read, path)
+impl Prepare for GetTargetVersion {
+    fn operation(&self) -> Operation {
+        Operation::Read
+    }
+
+    fn path(&self) -> &str {
+        "/_admin/database/target-version"
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
     }
 }
 
@@ -45,13 +52,20 @@ impl Method for GetServerVersion {
     type Result = ServerVersion;
 }
 
-impl Prepare<Self> for GetServerVersion {
-    fn prepare(self) -> PreparedStatement<Self> {
-        let path = "/_api/version";
-        let mut params = Parameters::default();
+impl Prepare for GetServerVersion {
+    fn operation(&self) -> Operation {
+        Operation::Read
+    }
+
+    fn path(&self) -> &str {
+        "/_api/version"
+    }
+
+    fn parameters(&self) -> Parameters {
+        let mut params = Parameters::with_capacity(1);
         if self.details {
             params.set_str("details", "true");
         }
-        PreparedStatement::with_parameters(self, Operation::Read, path, params)
+        params
     }
 }
