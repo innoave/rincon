@@ -6,7 +6,7 @@ volumes:
 
 services:
   arangodb:
-    image: arangodb
+    image: arangodb:3.2.3
     env_file: .env
     ports:
       - "8529:8529"

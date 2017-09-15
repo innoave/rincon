@@ -6,24 +6,10 @@ extern crate tokio_core;
 
 extern crate arangodb_client;
 
-use dotenv::dotenv;
-use tokio_core::reactor::Core;
+mod test_fixture;
 
+use test_fixture::*;
 use arangodb_client::admin::*;
-use arangodb_client::connection::Connection;
-use arangodb_client::datasource::DataSource;
-
-fn init_logging() {
-    log4rs::init_file("tests/log4rs.yml", Default::default()).unwrap();
-}
-
-fn init_db_test() -> (Core, Connection) {
-    dotenv().ok();
-    let core = Core::new().unwrap();
-    let datasource = DataSource::from_url("http://localhost:8529").unwrap();
-    let conn = Connection::establish(datasource, &core.handle()).unwrap();
-    (core, conn)
-}
 
 #[test]
 fn get_target_version() {
@@ -33,7 +19,7 @@ fn get_target_version() {
     let work = conn.execute(method);
     let target_version = core.run(work).unwrap();
 
-    assert_eq!("30202", target_version.version());
+    assert_eq!("30203", target_version.version());
     assert_eq!(false, target_version.error());
     assert_eq!(200, target_version.code());
 }
@@ -48,7 +34,7 @@ fn get_server_version_without_details() {
 
     assert_eq!("arango", server_version.server());
     assert_eq!("community", server_version.license());
-    assert_eq!("3.2.2", server_version.version());
+    assert_eq!("3.2.3", server_version.version());
 }
 
 #[test]
@@ -81,5 +67,5 @@ fn get_server_version_sub_part() {
     let work = conn.execute(method);
     let server_version = core.run(work).unwrap();
 
-    assert_eq!("2", server_version.sub());
+    assert_eq!("3", server_version.sub());
 }
