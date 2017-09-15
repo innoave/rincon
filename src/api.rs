@@ -13,6 +13,29 @@ pub trait Prepare {
     fn parameters(&self) -> Parameters;
 }
 
+#[derive(Debug, PartialEq, Eq, Deserialize)]
+pub struct Result<T> {
+    error: bool,
+    code: ResultCode,
+    result: T,
+}
+
+impl<T> Result<T> {
+    pub fn is_error(&self) -> bool {
+        self.error
+    }
+
+    pub fn code(&self) -> ResultCode {
+        self.code
+    }
+
+    pub fn result(&self) -> &T {
+        &self.result
+    }
+}
+
+pub type ResultCode = i32;
+
 #[derive(Debug)]
 pub enum Operation {
     Create,
