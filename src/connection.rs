@@ -7,7 +7,7 @@ use std::time::Duration;
 use futures::{future, Future, Stream};
 use hyper::{self, Client, HttpVersion, Request, StatusCode, Uri};
 use hyper::client::HttpConnector;
-use hyper::header::{Authorization, Basic, Bearer};
+use hyper::header::{Authorization, Basic, Bearer, UserAgent};
 use hyper_tls::HttpsConnector;
 use native_tls;
 use serde_json;
@@ -17,10 +17,13 @@ use tokio_timer::{Timer, TimeoutError, TimerError};
 use api::{Method, Operation, Prepare};
 use datasource::{Authentication, DataSource};
 
+const DEFAULT_USER_AGENT: &str = "Mozilla/5.0 (compatible; ArangoDB-RustDriver/1.1)";
+
 #[derive(Debug)]
 pub struct Connection {
     datasource: DataSource,
     client: Client<HttpsConnector<HttpConnector>>,
+    user_agent: String,
 }
 
 impl Connection {
@@ -34,6 +37,7 @@ impl Connection {
         Ok(Connection {
             datasource,
             client,
+            user_agent: DEFAULT_USER_AGENT.to_owned(),
         })
     }
 
@@ -118,6 +122,7 @@ impl Connection {
         request.set_version(HttpVersion::Http11);
         {
             let mut headers = request.headers_mut();
+            headers.set(UserAgent::new(self.user_agent.clone()));
             match *self.datasource.authentication() {
                 Authentication::Basic(ref credentials) => {
                     headers.set(Authorization(Basic {
