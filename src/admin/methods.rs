@@ -64,7 +64,7 @@ impl Prepare for GetServerVersion {
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::with_capacity(1);
         if self.details {
-            params.set_str("details", "true");
+            params.push("details", "true");
         }
         params
     }

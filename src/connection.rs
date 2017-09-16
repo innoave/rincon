@@ -206,10 +206,147 @@ fn http_method_for_operation(operation: &Operation) -> hyper::Method {
 fn build_request_uri<P>(datasource: &DataSource, prepare: &P) -> Uri
     where P: Prepare
 {
-    Uri::from_str(&format!("{}://{}:{}{}",
-        datasource.protocol(),
-        datasource.host(),
-        datasource.port(),
-        prepare.path(),
-    )).unwrap()
+    let mut request_uri = String::new();
+    request_uri.push_str(datasource.protocol());
+    request_uri.push_str("://");
+    request_uri.push_str(datasource.host());
+    request_uri.push_str(":");
+    request_uri.push_str(&datasource.port().to_string());
+    if let Some(database_name) = datasource.database_name() {
+        request_uri.push_str("/_db/");
+        request_uri.push_str(database_name);
+    }
+    request_uri.push_str(prepare.path());
+    request_uri.push('?');
+    for &(ref key, ref value) in prepare.parameters().iter() {
+        request_uri.push_str(key);
+        request_uri.push('=');
+        request_uri.push_str(value);
+        request_uri.push('&');
+    }
+    request_uri.pop();
+    Uri::from_str(&request_uri).unwrap()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::iter::FromIterator;
+
+    use api::{Parameters, Prepare};
+    use datasource::{Authentication, Credentials};
+    use super::*;
+
+    struct Prepared<'a> {
+        operation: Operation,
+        path: &'a str,
+        params: Vec<(&'a str, &'a str)>,
+    }
+
+    impl<'a> Prepare for Prepared<'a> {
+        fn operation(&self) -> Operation {
+            self.operation.clone()
+        }
+
+        fn path(&self) -> &str {
+            &self.path
+        }
+
+        fn parameters(&self) -> Parameters {
+            Parameters::from_iter(self.params.iter())
+        }
+    }
+
+    #[test]
+    fn build_request_uri_for_http() {
+        let datasource = DataSource::from_url("http://localhost:8529").unwrap();
+        let prepared = Prepared {
+            operation: Operation::Read,
+            path: "/_api/user",
+            params: vec![],
+        };
+
+        let uri = build_request_uri(&datasource, &prepared);
+
+        assert_eq!("http://localhost:8529/_api/user", uri.to_string());
+    }
+
+    #[test]
+    fn build_request_uri_for_https_with_authentication() {
+        let datasource = DataSource::from_url("https://localhost:8529").unwrap()
+            .with_authentication(Authentication::Basic(
+                Credentials::new("micky".to_owned(), "pass".to_owned())));
+        let prepared = Prepared {
+            operation: Operation::Read,
+            path: "/_api/user",
+            params: vec![],
+        };
+
+        let uri = build_request_uri(&datasource, &prepared);
+
+        assert_eq!("https://localhost:8529/_api/user", uri.to_string());
+    }
+
+    #[test]
+    fn build_request_uri_for_specific_database() {
+        let datasource = DataSource::from_url("https://localhost:8529").unwrap()
+            .use_database("urltest");
+        let prepared = Prepared {
+            operation: Operation::Read,
+            path: "/_api/collection",
+            params: vec![],
+        };
+
+        let uri = build_request_uri(&datasource, &prepared);
+
+        assert_eq!("https://localhost:8529/_db/urltest/_api/collection", uri.to_string());
+    }
+
+    #[test]
+    fn build_request_uri_for_specific_database_with_one_param() {
+        let datasource = DataSource::from_url("https://localhost:8529").unwrap()
+            .use_database("thebigdata");
+        let prepared = Prepared {
+            operation: Operation::Read,
+            path: "/_api/document",
+            params: vec![("id", "25")],
+        };
+
+        let uri = build_request_uri(&datasource, &prepared);
+
+        assert_eq!("https://localhost:8529/_db/thebigdata/_api/document\
+                ?id=25", uri.to_string());
+    }
+
+    #[test]
+    fn build_request_uri_for_specific_database_with_two_params() {
+        let datasource = DataSource::from_url("https://localhost:8529").unwrap()
+            .use_database("thebigdata");
+        let prepared = Prepared {
+            operation: Operation::Read,
+            path: "/_api/document",
+            params: vec![("id", "25"), ("name", "JuneReport")],
+        };
+
+        let uri = build_request_uri(&datasource, &prepared);
+
+        assert_eq!("https://localhost:8529/_db/thebigdata/_api/document\
+                ?id=25&name=JuneReport", uri.to_string());
+    }
+
+    #[test]
+    fn build_request_uri_for_specific_database_with_three_params() {
+        let datasource = DataSource::from_url("https://localhost:8529").unwrap()
+            .use_database("thebigdata");
+        let prepared = Prepared {
+            operation: Operation::Read,
+            path: "/_api/document",
+            params: vec![("id", "25"), ("name", "JuneReport"), ("max", "42")],
+        };
+
+        let uri = build_request_uri(&datasource, &prepared);
+
+        assert_eq!("https://localhost:8529/_db/thebigdata/_api/document\
+                ?id=25&name=JuneReport&max=42", uri.to_string());
+    }
+
 }

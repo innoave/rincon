@@ -20,8 +20,7 @@ pub struct DataSource {
     host: String,
     port: u16,
     authentication: Authentication,
-    use_explicit_database: bool,
-    database_name: String,
+    database_name: Option<String>,
     timeout: Duration,
 }
 
@@ -44,7 +43,7 @@ impl DataSource {
             DEFAULT_PASSWORD.to_owned()
         };
         //TODO parse database name from url path segments
-        let database_name = DEFAULT_DATABASE_NAME;
+        let database_name = None;
         Ok(DataSource {
             protocol: protocol.to_owned(),
             host: host.to_owned(),
@@ -52,8 +51,7 @@ impl DataSource {
             authentication: Authentication::Basic(Credentials::new(
                 username.to_owned(),
                 password)),
-            use_explicit_database: false,
-            database_name: database_name.to_owned(),
+            database_name,
             timeout: Duration::from_secs(DEFAULT_TIMEOUT),
         })
     }
@@ -80,14 +78,17 @@ impl DataSource {
 
     pub fn use_database(&self, database_name: &str) -> Self {
         let mut ds = self.clone();
-        ds.database_name = database_name.to_owned();
-        ds.use_explicit_database = true;
+        ds.database_name = if database_name.is_empty() {
+            None
+        } else {
+            Some(database_name.to_owned())
+        };
         ds
     }
 
     pub fn use_default_database(&self) -> Self {
         let mut ds = self.clone();
-        ds.use_explicit_database = false;
+        ds.database_name = None;
         ds
     }
 
@@ -113,12 +114,8 @@ impl DataSource {
         &self.authentication
     }
 
-    pub fn is_use_explicit_database(&self) -> bool {
-        self.use_explicit_database
-    }
-
-    pub fn database_name(&self) -> &str {
-        &self.database_name
+    pub fn database_name(&self) -> Option<&String> {
+        self.database_name.as_ref()
     }
 
     pub fn timeout(&self) -> &Duration {
@@ -135,8 +132,7 @@ impl Default for DataSource {
             authentication: Authentication::Basic(Credentials::new(
                 DEFAULT_USERNAME.to_owned(),
                 DEFAULT_PASSWORD.to_owned())),
-            use_explicit_database: false,
-            database_name: DEFAULT_DATABASE_NAME.to_owned(),
+            database_name: None,
             timeout: Duration::from_secs(DEFAULT_TIMEOUT),
         }
     }

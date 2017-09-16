@@ -31,7 +31,7 @@ impl<T> Prepare for ListAvailableUsers<T> {
     }
 
     fn path(&self) -> &str {
-        "/_api/user/"
+        "/_api/user"
     }
 
     fn parameters(&self) -> Parameters {
