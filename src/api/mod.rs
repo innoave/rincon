@@ -1,4 +1,7 @@
 
+mod error_code;
+pub use self::error_code::ErrorCode;
+
 use std::fmt::{self, Debug};
 use std::iter::{ExactSizeIterator, FromIterator, Iterator};
 use std::slice::Iter;
@@ -7,6 +10,11 @@ use serde::de::DeserializeOwned;
 
 pub trait Method {
     type Result: DeserializeOwned + 'static;
+    const ERROR_TYPE: RpcErrorType;
+
+    fn error_type(&self) -> RpcErrorType {
+        Self::ERROR_TYPE
+    }
 }
 
 pub trait Prepare {
@@ -14,29 +22,6 @@ pub trait Prepare {
     fn path(&self) -> &str;
     fn parameters(&self) -> Parameters;
 }
-
-#[derive(Debug, PartialEq, Eq, Deserialize)]
-pub struct Result<T> {
-    error: bool,
-    code: ResultCode,
-    result: T,
-}
-
-impl<T> Result<T> {
-    pub fn is_error(&self) -> bool {
-        self.error
-    }
-
-    pub fn code(&self) -> ResultCode {
-        self.code
-    }
-
-    pub fn result(&self) -> &T {
-        &self.result
-    }
-}
-
-pub type ResultCode = i32;
 
 #[derive(Clone, Debug)]
 pub enum Operation {
@@ -132,6 +117,7 @@ impl<K, V> Extend<(K, V)> for Parameters
     }
 }
 
+#[derive(Debug)]
 pub struct ParameterIter<'a>(Iter<'a, (String, String)>);
 
 impl<'a> Iterator for ParameterIter<'a> {
@@ -152,25 +138,41 @@ impl<'a> ExactSizeIterator for ParameterIter<'a> {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Document {
-    text: String,
+    bytes: Vec<u8>,
 }
 
 impl Document {
-    pub fn from_str(text: &str) -> Self {
+    pub fn bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+}
+
+impl From<Vec<u8>> for Document {
+    fn from(bytes: Vec<u8>) -> Self {
         Document {
-            text: text.to_owned(),
+            bytes
         }
     }
+}
 
-    pub fn from_string(text: String) -> Self {
+impl FromIterator<u8> for Document {
+    fn from_iter<T: IntoIterator<Item=u8>>(iter: T) -> Self {
         Document {
-            text,
+            bytes: Vec::from_iter(iter),
         }
     }
+}
 
-    pub fn text(&self) -> &str {
-        &self.text
-    }
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RpcErrorType {
+    pub result_field: Option<&'static str>,
+    pub code_field: Option<&'static str>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Error {
+    code: ErrorCode,
+    message: String,
 }

@@ -4,20 +4,89 @@ use std::str::FromStr;
 use std::string::FromUtf8Error;
 use std::time::Duration;
 
-use futures::{future, Future, Stream};
+use futures::{Future, Stream};
 use hyper::{self, Client, HttpVersion, Request, StatusCode, Uri};
 use hyper::client::HttpConnector;
 use hyper::header::{Authorization, Basic, Bearer, UserAgent};
 use hyper_tls::HttpsConnector;
 use native_tls;
-use serde_json;
+use serde_json::{self, Value};
 use tokio_core::reactor;
 use tokio_timer::{Timer, TimeoutError, TimerError};
 
-use api::{Method, Operation, Prepare};
+use api::{self, Method, Operation, Prepare, RpcErrorType};
 use datasource::{Authentication, DataSource};
 
 const DEFAULT_USER_AGENT: &str = "Mozilla/5.0 (compatible; ArangoDB-RustDriver/1.1)";
+
+pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=self::Error>>;
+
+#[derive(Debug)]
+pub enum Error {
+    ApiError(api::ErrorCode),
+    CommunicationFailed(hyper::Error),
+    JsonError(serde_json::Error),
+    HttpError(hyper::StatusCode),
+    IoError(io::Error),
+    NativeTlsError(native_tls::Error),
+    NotUtf8Content(FromUtf8Error),
+    Timeout(TimeoutError<hyper::Error>),
+    TimerError(TimerError),
+}
+
+impl From<api::ErrorCode> for Error {
+    fn from(code: api::ErrorCode) -> Self {
+        Error::ApiError(code)
+    }
+}
+
+impl From<FromUtf8Error> for Error {
+    fn from(err: FromUtf8Error) -> Self {
+        Error::NotUtf8Content(err)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Self {
+        Error::JsonError(err)
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Self {
+        Error::IoError(err)
+    }
+}
+
+impl From<hyper::Error> for Error {
+    fn from(err: hyper::Error) -> Self {
+        Error::CommunicationFailed(err)
+    }
+}
+
+impl From<native_tls::Error> for Error {
+    fn from(err: native_tls::Error) -> Self {
+        Error::NativeTlsError(err)
+    }
+}
+
+impl From<StatusCode> for Error {
+    fn from(status_code: StatusCode) -> Self {
+        Error::HttpError(status_code)
+    }
+}
+
+impl From<TimeoutError<hyper::Error>> for Error {
+    fn from(err: TimeoutError<hyper::Error>) -> Self {
+        Error::Timeout(err)
+    }
+}
+
+impl From<TimerError> for Error {
+    fn from(err: TimerError) -> Self {
+        Error::TimerError(err)
+    }
+}
 
 #[derive(Debug)]
 pub struct Connection {
@@ -42,86 +111,31 @@ impl Connection {
     }
 
     pub fn execute<M>(&self, method: M) -> FutureResult<M>
-        where M: Method + Prepare
+        where M: Method + Prepare + 'static
     {
-        let timeout = Timer::default().sleep(self.datasource.timeout().clone());
-        let request = self.prepare_request(method);
+        let timeout = Timer::default().sleep(*self.datasource.timeout());
+        let request = self.prepare_request(&method);
         debug!("Sending {:?}", &request);
         Box::new(self.client.request(request).from_err()
-            .and_then(|res| {
-                let status_code = res.status();
-                match status_code {
-                    StatusCode::Ok
-                        | StatusCode::Accepted
-                        | StatusCode::Created
-                        => future::ok(res),
-                    StatusCode::BadRequest
-                        | StatusCode::Unauthorized
-                        | StatusCode::PaymentRequired
-                        | StatusCode::Forbidden
-                        | StatusCode::NotFound
-                        | StatusCode::MethodNotAllowed
-                        | StatusCode::NotAcceptable
-                        | StatusCode::ProxyAuthenticationRequired
-                        | StatusCode::RequestTimeout
-                        | StatusCode::Conflict
-                        | StatusCode::Gone
-                        | StatusCode::LengthRequired
-                        | StatusCode::PreconditionFailed
-                        | StatusCode::PayloadTooLarge
-                        | StatusCode::UriTooLong
-                        | StatusCode::UnsupportedMediaType
-                        | StatusCode::RangeNotSatisfiable
-                        | StatusCode::ExpectationFailed
-                        | StatusCode::ImATeapot
-                        | StatusCode::MisdirectedRequest
-                        | StatusCode::UnprocessableEntity
-                        | StatusCode::Locked
-                        | StatusCode::FailedDependency
-                        | StatusCode::UpgradeRequired
-                        | StatusCode::PreconditionRequired
-                        | StatusCode::TooManyRequests
-                        | StatusCode::RequestHeaderFieldsTooLarge
-                        | StatusCode::UnavailableForLegalReasons
-                        | StatusCode::InternalServerError
-                        | StatusCode::NotImplemented
-                        | StatusCode::BadGateway
-                        | StatusCode::ServiceUnavailable
-                        | StatusCode::GatewayTimeout
-                        | StatusCode::HttpVersionNotSupported
-                        | StatusCode::VariantAlsoNegotiates
-                        | StatusCode::InsufficientStorage
-                        | StatusCode::LoopDetected
-                        | StatusCode::NotExtended
-                        | StatusCode::NetworkAuthenticationRequired
-                        | StatusCode::Unregistered(_)
-                        => future::err(Error::from(status_code)),
-                    _ => future::err(Error::from(status_code)),
-                }
-            })
-            .and_then(|res| {
-                res.body().concat2().from_err().and_then(|buffer| {
-                    match serde_json::from_slice(&buffer) {
-                        Ok(value) =>
-                            future::ok(value),
-                        Err(err) =>
-                            future::err(Error::DeserializationFailed(err)),
-                    }
-                })
+            .and_then(move |response| {
+                let status_code = response.status();
+                response.body().concat2().from_err()
+                    .and_then(move |buffer|
+                        parse_return_type::<M>(&method.error_type(), status_code, &buffer))
             })
         )
     }
 
-    pub fn prepare_request<M>(&self, method: M) -> Request
-        where M: Method + Prepare
+    pub fn prepare_request<P>(&self, prepare: &P) -> Request
+        where P: Prepare
     {
-        let operation = method.operation();
+        let operation = prepare.operation();
         let http_method = http_method_for_operation(&operation);
-        let uri = build_request_uri(&self.datasource, &method);
+        let uri = build_request_uri(&self.datasource, prepare);
         let mut request = Request::new(http_method, uri);
         request.set_version(HttpVersion::Http11);
         {
-            let mut headers = request.headers_mut();
+            let headers = request.headers_mut();
             headers.set(UserAgent::new(self.user_agent.clone()));
             match *self.datasource.authentication() {
                 Authentication::Basic(ref credentials) => {
@@ -134,66 +148,6 @@ impl Connection {
             }
         }
         request
-    }
-}
-
-pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=self::Error>>;
-
-pub trait PreparedRequest<M> {}
-
-impl<M> PreparedRequest<M> for Request {}
-
-#[derive(Debug)]
-pub enum Error {
-    CommunicationFailed(hyper::Error),
-    DeserializationFailed(serde_json::Error),
-    HttpError(hyper::StatusCode),
-    IoError(io::Error),
-    NativeTlsError(native_tls::Error),
-    NotUtf8Content(FromUtf8Error),
-    Timeout(TimeoutError<hyper::Error>),
-    TimerError(TimerError),
-}
-
-impl From<FromUtf8Error> for Error {
-    fn from(err: FromUtf8Error) -> Self {
-        Error::NotUtf8Content(err)
-    }
-}
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Error::IoError(err)
-    }
-}
-
-impl From<hyper::Error> for Error {
-    fn from(err: hyper::Error) -> Self {
-        Error::CommunicationFailed(err)
-    }
-}
-
-impl From<native_tls::Error> for Error {
-    fn from(err: native_tls::Error) -> Self {
-        Error::NativeTlsError(err)
-    }
-}
-
-impl From<TimeoutError<hyper::Error>> for Error {
-    fn from(err: TimeoutError<hyper::Error>) -> Self {
-        Error::Timeout(err)
-    }
-}
-
-impl From<TimerError> for Error {
-    fn from(err: TimerError) -> Self {
-        Error::TimerError(err)
-    }
-}
-
-impl From<StatusCode> for Error {
-    fn from(status_code: StatusCode) -> Self {
-        Error::HttpError(status_code)
     }
 }
 
@@ -222,15 +176,45 @@ fn build_request_uri<P>(datasource: &DataSource, prepare: &P) -> Uri
         request_uri.push_str(database_name);
     }
     request_uri.push_str(prepare.path());
-    request_uri.push('?');
-    for &(ref key, ref value) in prepare.parameters().iter() {
-        request_uri.push_str(key);
-        request_uri.push('=');
-        request_uri.push_str(value);
-        request_uri.push('&');
+    if !prepare.parameters().is_empty() {
+        request_uri.push('?');
+        for &(ref key, ref value) in prepare.parameters().iter() {
+            request_uri.push_str(key);
+            request_uri.push('=');
+            request_uri.push_str(value);
+            request_uri.push('&');
+        }
+        request_uri.pop();
     }
-    request_uri.pop();
     Uri::from_str(&request_uri).unwrap()
+}
+
+fn parse_return_type<M>(error_type: &RpcErrorType, status_code: StatusCode, payload: &[u8])
+    -> Result<<M as Method>::Result, Error>
+    where M: Method
+{
+    let mut payload_value = serde_json::from_slice(payload)?;
+    if status_code.is_success() {
+        let result_field = match payload_value {
+            Value::Object(ref mut obj) =>
+                error_type.result_field.and_then(|result| obj.remove(result)),
+            _ => None,
+        };
+        let result_value = result_field.unwrap_or(payload_value);
+        serde_json::from_value(result_value).map_err(Error::from)
+    } else {
+        let code_field = match payload_value {
+            Value::Object(ref mut obj) =>
+                error_type.code_field.and_then(|code| obj.remove(code)),
+            _ => None,
+        };
+        if let Some(code_value) = code_field {
+            serde_json::from_value(code_value).map_err(Error::from)
+                .and_then(|code| Err(Error::from(api::ErrorCode::from_u16(code))))
+        } else {
+            Err(Error::from(status_code))
+        }
+    }
 }
 
 #[cfg(test)]

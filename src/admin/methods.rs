@@ -1,5 +1,5 @@
 
-use api::{Method, Operation, Parameters, Prepare};
+use api::{Method, Operation, Parameters, Prepare, RpcErrorType};
 use super::types::*;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -13,6 +13,10 @@ impl GetTargetVersion {
 
 impl Method for GetTargetVersion {
     type Result = TargetVersion;
+    const ERROR_TYPE: RpcErrorType = RpcErrorType {
+        result_field: None,
+        code_field: Some("code"),
+    };
 }
 
 impl Prepare for GetTargetVersion {
@@ -50,6 +54,10 @@ impl GetServerVersion {
 
 impl Method for GetServerVersion {
     type Result = ServerVersion;
+    const ERROR_TYPE: RpcErrorType = RpcErrorType {
+        result_field: None,
+        code_field: None,
+    };
 }
 
 impl Prepare for GetServerVersion {

@@ -13,11 +13,10 @@ extern crate tokio_timer;
 extern crate url;
 
 pub mod api;
+pub mod connection;
 pub mod datasource;
-pub mod database;
-pub mod statement;
 
 pub mod admin;
 pub mod collection;
-pub mod connection;
+pub mod database;
 pub mod user;

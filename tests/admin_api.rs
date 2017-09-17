@@ -20,8 +20,6 @@ fn get_target_version() {
     let target_version = core.run(work).unwrap();
 
     assert_eq!("30203", target_version.version());
-    assert_eq!(false, target_version.error());
-    assert_eq!(200, target_version.code());
 }
 
 #[test]

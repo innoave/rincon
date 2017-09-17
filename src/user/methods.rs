@@ -3,18 +3,18 @@ use std::marker::PhantomData;
 
 use serde::de::DeserializeOwned;
 
-use api::{Method, Operation, Parameters, Prepare, Result};
+use api::{Method, Operation, Parameters, Prepare, RpcErrorType};
 use super::types::*;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct ListAvailableUsers<T> {
-    _t: PhantomData<T>,
+    user_info_type: PhantomData<T>,
 }
 
 impl<T> ListAvailableUsers<T> {
     pub fn new() -> Self {
         ListAvailableUsers {
-            _t: PhantomData,
+            user_info_type: PhantomData,
         }
     }
 }
@@ -22,7 +22,11 @@ impl<T> ListAvailableUsers<T> {
 impl<T> Method for ListAvailableUsers<T>
     where T: UserInfo + DeserializeOwned + 'static
 {
-    type Result = Result<Vec<User<T>>>;
+    type Result = Vec<User<T>>;
+    const ERROR_TYPE: RpcErrorType = RpcErrorType {
+        result_field: Some("result"),
+        code_field: Some("code"),
+    };
 }
 
 impl<T> Prepare for ListAvailableUsers<T> {

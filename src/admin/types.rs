@@ -1,28 +1,16 @@
 
 use serde_json::Value;
 
-use api::ResultCode;
-
 /// Represents the database-version that this server requires.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TargetVersion {
     version: String,
-    error: bool,
-    code: ResultCode,
 }
 
 impl TargetVersion {
     pub fn version(&self) -> &str {
         &self.version
-    }
-
-    pub fn error(&self) -> bool {
-        self.error
-    }
-
-    pub fn code(&self) -> ResultCode {
-        self.code
     }
 }
 
