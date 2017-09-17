@@ -1,5 +1,5 @@
 [package]
-name = "arangodb-rust-driver"
+name = "arangodb_client"
 version = "0.1.0"
 authors = ["Harald Maida <harald.maida@innoave.com>"]
 description = "A typesafe and fast client for ArangoDB"
@@ -24,6 +24,7 @@ rocksdb = []
 [dependencies]
 futures = "0.1"
 hyper = "0.11"
+hyper-timeout = "0.1"
 hyper-tls = "0.1"
 log = "0.3"
 native-tls = "0.1"
