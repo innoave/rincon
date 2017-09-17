@@ -26,3 +26,33 @@
 
 An ArangoDB client for Rust. It enables low level access to ArangoDB in a
 typesafe and Rust idiomatic manner. 
+
+[Documentation](https://docs.rs/arangodb_client)
+
+## Usage
+
+First, add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+arangodb_client = "0.1"
+```
+
+Next, add this to your crate:
+
+```rust
+extern crate arangodb_client;
+```
+
+See the [client example](./examples/client.rs) for a working example.
+
+## License
+
+Licensed under Apache License, Version 2.0<br/>
+see [LICENSE](LICENSE) or http://www.apache.org/licenses/LICENSE-2.0) for details.
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be licensed as above, without any
+additional terms or conditions.
