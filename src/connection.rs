@@ -2,17 +2,16 @@
 use std::io;
 use std::str::FromStr;
 use std::string::FromUtf8Error;
-use std::time::Duration;
 
 use futures::{Future, Stream};
 use hyper::{self, Client, HttpVersion, Request, StatusCode, Uri};
 use hyper::client::HttpConnector;
 use hyper::header::{Authorization, Basic, Bearer, UserAgent};
+use hyper_timeout::TimeoutConnector;
 use hyper_tls::HttpsConnector;
 use native_tls;
 use serde_json::{self, Value};
 use tokio_core::reactor;
-use tokio_timer::{Timer, TimeoutError, TimerError};
 
 use api::{self, Method, Operation, Prepare, RpcErrorType};
 use datasource::{Authentication, DataSource};
@@ -30,8 +29,6 @@ pub enum Error {
     IoError(io::Error),
     NativeTlsError(native_tls::Error),
     NotUtf8Content(FromUtf8Error),
-    Timeout(TimeoutError<hyper::Error>),
-    TimerError(TimerError),
 }
 
 impl From<api::ErrorCode> for Error {
@@ -76,22 +73,10 @@ impl From<StatusCode> for Error {
     }
 }
 
-impl From<TimeoutError<hyper::Error>> for Error {
-    fn from(err: TimeoutError<hyper::Error>) -> Self {
-        Error::Timeout(err)
-    }
-}
-
-impl From<TimerError> for Error {
-    fn from(err: TimerError) -> Self {
-        Error::TimerError(err)
-    }
-}
-
 #[derive(Debug)]
 pub struct Connection {
     datasource: DataSource,
-    client: Client<HttpsConnector<HttpConnector>>,
+    client: Client<TimeoutConnector<HttpsConnector<HttpConnector>>>,
     user_agent: String,
 }
 
@@ -99,8 +84,11 @@ impl Connection {
     pub fn establish(datasource: DataSource, reactor: &reactor::Handle)
         -> Result<Self, self::Error>
     {
+        let https_connector = HttpsConnector::new(4, &reactor)?;
+        let mut timeout_connector = TimeoutConnector::new(https_connector, &reactor);
+        timeout_connector.set_connect_timeout(Some(*datasource.timeout()));
         let client = Client::configure()
-            .connector(HttpsConnector::new(4, &reactor)?)
+            .connector(timeout_connector)
             .build(reactor);
         debug!("Created connection for {:?}", &datasource);
         Ok(Connection {
@@ -113,7 +101,6 @@ impl Connection {
     pub fn execute<M>(&self, method: M) -> FutureResult<M>
         where M: Method + Prepare + 'static
     {
-        let timeout = Timer::default().sleep(*self.datasource.timeout());
         let request = self.prepare_request(&method);
         debug!("Sending {:?}", &request);
         Box::new(self.client.request(request).from_err()
