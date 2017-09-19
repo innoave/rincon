@@ -162,7 +162,7 @@ fn build_request_uri<P>(datasource: &DataSource, prepare: &P) -> Uri
         request_uri.push_str("/_db/");
         request_uri.push_str(database_name);
     }
-    request_uri.push_str(prepare.path());
+    request_uri.push_str(&prepare.path());
     if !prepare.parameters().is_empty() {
         request_uri.push('?');
         for &(ref key, ref value) in prepare.parameters().iter() {

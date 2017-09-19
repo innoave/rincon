@@ -1,34 +1,48 @@
 
 use user::{NewUser, UserInfo};
 
+/// `DatabaseInfo` contains information about a database.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DatabaseInfo {
+    /// the id of the database
     id: String,
+    /// the name of the database
     name: String,
+    /// the filesystem path of the database
     path: String,
+    /// whether or not the database is the `_system` database
     is_system: bool,
 }
 
 impl DatabaseInfo {
+    /// Returns the id of the database.
     pub fn id(&self) -> &str {
         &self.id
     }
 
+    /// Returns the name of the database.
     pub fn name(&self) -> &str {
         &self.name
     }
 
+    /// Returns the filesystem path of the database.
     pub fn path(&self) -> &str {
         &self.path
     }
 
+    /// Returns whether or not the database is the `_system` database.
+    ///
+    /// Returns `true` if the database is the `_system` database,
+    /// `false` otherwise.
     pub fn is_system(&self) -> bool {
         self.is_system
     }
 }
 
-#[derive(Debug, Serialize)]
+/// The `NewDatabase` struct specifies the attributes used when creating
+/// a new database.
+#[derive(Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewDatabase<'a, T>
     where T: 'a + UserInfo
@@ -46,6 +60,8 @@ pub struct NewDatabase<'a, T>
 impl<'a, T> NewDatabase<'a, T>
     where T: 'a + UserInfo
 {
+    /// Constructs a new instance of `NewDatabase` with the specified
+    /// database name.
     pub fn with_name(name: &'a str) -> Self {
         NewDatabase {
             name,
@@ -53,15 +69,21 @@ impl<'a, T> NewDatabase<'a, T>
         }
     }
 
-    pub fn for_users(mut self, users: &'a [NewUser<T>]) -> Self {
-        self.users = users;
-        self
+    /// Returns a new instance of `NewDatabase` with the name of `self`
+    /// and the given `users`.
+    pub fn for_users(&self, users: &'a [NewUser<T>]) -> Self {
+        NewDatabase {
+            name: self.name,
+            users,
+        }
     }
 
+    /// Returns the name of the database to be created.
     pub fn name(&self) -> &str {
         self.name
     }
 
+    /// Returns the
     pub fn users(&self) -> &[NewUser<T>] {
         self.users
     }

@@ -29,7 +29,7 @@ impl<T> User<T>
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewUser<'a, T>
     where T: 'a + UserInfo
@@ -76,14 +76,22 @@ impl<'a, T> NewUser<'a, T>
         }
     }
 
-    pub fn with_info(mut self, info: &'a T) -> Self {
-        self.extra = Some(Box::from(info));
-        self
+    pub fn with_info(&self, info: &'a T) -> Self {
+        NewUser {
+            user: self.user,
+            passwd: self.passwd,
+            active: self.active,
+            extra: Some(Box::new(info)),
+        }
     }
 
-    pub fn set_active(mut self, active: bool) -> Self {
-        self.active = Some(active);
-        self
+    pub fn set_active(&self, active: bool) -> Self {
+        NewUser {
+            user: self.user,
+            passwd: self.passwd,
+            active: Some(active),
+            extra: self.extra.clone(),
+        }
     }
 
     pub fn name(&self) -> &str {
@@ -98,8 +106,8 @@ impl<'a, T> NewUser<'a, T>
         self.active
     }
 
-    pub fn info(&self) -> &Option<Box<&T>> {
-        &self.extra
+    pub fn info(&self) -> Option<&Box<&T>> {
+        self.extra.as_ref()
     }
 }
 

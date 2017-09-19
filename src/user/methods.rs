@@ -34,8 +34,8 @@ impl<T> Prepare for ListAvailableUsers<T> {
         Operation::Read
     }
 
-    fn path(&self) -> &str {
-        "/_api/user"
+    fn path(&self) -> String {
+        String::from("/_api/user")
     }
 
     fn parameters(&self) -> Parameters {

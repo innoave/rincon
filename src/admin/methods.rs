@@ -24,8 +24,8 @@ impl Prepare for GetTargetVersion {
         Operation::Read
     }
 
-    fn path(&self) -> &str {
-        "/_admin/database/target-version"
+    fn path(&self) -> String {
+        String::from("/_admin/database/target-version")
     }
 
     fn parameters(&self) -> Parameters {
@@ -50,6 +50,10 @@ impl GetServerVersion {
             details: true,
         }
     }
+
+    pub fn details(&self) -> bool {
+        self.details
+    }
 }
 
 impl Method for GetServerVersion {
@@ -65,8 +69,8 @@ impl Prepare for GetServerVersion {
         Operation::Read
     }
 
-    fn path(&self) -> &str {
-        "/_api/version"
+    fn path(&self) -> String {
+        String::from("/_api/version")
     }
 
     fn parameters(&self) -> Parameters {

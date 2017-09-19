@@ -19,7 +19,7 @@ pub trait Method {
 
 pub trait Prepare {
     fn operation(&self) -> Operation;
-    fn path(&self) -> &str;
+    fn path(&self) -> String;
     fn parameters(&self) -> Parameters;
 }
 
