@@ -223,8 +223,8 @@ mod tests {
             self.operation.clone()
         }
 
-        fn path(&self) -> &str {
-            &self.path
+        fn path(&self) -> String {
+            String::from(self.path)
         }
 
         fn parameters(&self) -> Parameters {
