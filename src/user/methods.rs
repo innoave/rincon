@@ -135,6 +135,15 @@ pub struct GetUser<E>
 impl<E> GetUser<E>
     where E: UserExtra
 {
+    /// Constructs a new instance of the `GetUser` method with all attributes
+    /// explicitly set.
+    pub fn new(user_name: String) -> Self {
+        GetUser {
+            name: user_name,
+            user_info_type: PhantomData,
+        }
+    }
+
     /// Constructs a new `GetUser` method with the given user name.
     pub fn with_name<S>(user_name: S) -> Self
         where S: Into<String>
