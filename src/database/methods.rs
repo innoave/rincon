@@ -133,18 +133,18 @@ impl Prepare for ListAccessibleDatabases {
 /// *Note*: creating a new database is only possible from within the `_system`
 /// database.
 #[derive(Debug, PartialEq, Eq)]
-pub struct CreateDatabase<'a, T>
-    where T: 'a + UserExtra
+pub struct CreateDatabase<E>
+    where E: UserExtra
 {
-    database: NewDatabase<'a, T>,
+    database: NewDatabase<E>,
 }
 
-impl<'a, T> CreateDatabase<'a, T>
-    where T: 'a + UserExtra
+impl<E> CreateDatabase<E>
+    where E: UserExtra
 {
     /// Constructs a new `CreateDatabase` method with the parameters specified
     /// in the given `NewDatabase` struct.
-    pub fn new(database: NewDatabase<'a, T>) -> Self {
+    pub fn new(database: NewDatabase<E>) -> Self {
         CreateDatabase {
             database,
         }
@@ -152,13 +152,13 @@ impl<'a, T> CreateDatabase<'a, T>
 
     /// Returns the `NewDatabase` parameters of this `CreateDatabase`
     /// method.
-    pub fn database(&self) -> &NewDatabase<'a, T> {
+    pub fn database(&self) -> &NewDatabase<E> {
         &self.database
     }
 }
 
-impl<'a, T> Method for CreateDatabase<'a, T>
-    where T: 'a + UserExtra
+impl<E> Method for CreateDatabase<E>
+    where E: UserExtra
 {
     type Result = bool;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -167,10 +167,10 @@ impl<'a, T> Method for CreateDatabase<'a, T>
     };
 }
 
-impl<'a, T> Prepare for CreateDatabase<'a, T>
-    where T: 'a + UserExtra + Serialize
+impl<E> Prepare for CreateDatabase<E>
+    where E: UserExtra + Serialize
 {
-    type Content = NewDatabase<'a, T>;
+    type Content = NewDatabase<E>;
 
     fn operation(&self) -> Operation {
         Operation::Create

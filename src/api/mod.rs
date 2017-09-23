@@ -259,7 +259,7 @@ impl<'de> Deserialize<'de> for ErrorCode {
     }
 }
 
-pub struct ErrorCodeVisitor;
+struct ErrorCodeVisitor;
 
 impl<'de> Visitor<'de> for ErrorCodeVisitor {
     type Value = ErrorCode;

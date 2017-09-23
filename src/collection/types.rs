@@ -4,7 +4,7 @@ use std::fmt;
 use serde::de::{self, Deserialize, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Collection {
     id: String,
@@ -39,11 +39,11 @@ impl Collection {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct NewCollection<'a> {
+pub struct NewCollection {
     /// The name of the collection.
-    name: &'a str,
+    name: String,
 
     /// The type of the collection to create.
     /// (The default is 'Documents')
@@ -76,7 +76,7 @@ pub struct NewCollection<'a> {
     /// In a single server setup, this option is meaningless.
     #[cfg(feature = "cluster")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    number_of_shards: Option<u64>,
+    number_of_shards: Option<u16>,
 
     /// (The default is [ "_key" ])
     ///
@@ -106,7 +106,7 @@ pub struct NewCollection<'a> {
     /// In a single server setup, this option is meaningless.
     #[cfg(feature = "cluster")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    replication_factor: Option<u64>,
+    replication_factor: Option<u16>,
 
     /// If true then the collection data is kept in-memory only and not made persistent.
     /// (The default is false)
@@ -146,7 +146,7 @@ pub struct NewCollection<'a> {
     /// This option is meaningful for the MMFiles storage engine only.
     #[cfg(feature = "mmfiles")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    index_buckets: Option<u64>,
+    index_buckets: Option<u16>,
 
     /// The maximal size of a journal or datafile in bytes.
     /// (The default is a configuration parameter)
@@ -159,10 +159,12 @@ pub struct NewCollection<'a> {
     journal_size: Option<u64>,
 }
 
-impl<'a> NewCollection<'a> {
-    pub fn with_name(name: &'a str, kind: CollectionType) -> Self {
+impl NewCollection {
+    pub fn with_name<N>(name: N, kind: CollectionType) -> Self
+        where N: Into<String>
+    {
         NewCollection {
-            name,
+            name: name.into(),
             kind,
             is_system: None,
             key_options: None,
@@ -185,7 +187,7 @@ impl<'a> NewCollection<'a> {
     }
 
     pub fn name(&self) -> &str {
-        self.name
+        &self.name
     }
 
     pub fn kind(&self) -> &CollectionType {
@@ -217,7 +219,7 @@ pub struct NewKeyOptions {
     offset: Option<u64>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct CollectionProperties {
     id: String,
     name: String,
@@ -267,7 +269,7 @@ impl CollectionProperties {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct KeyOptions {
     /// If set to true, then it is allowed to supply own key values in the _key attribute of a
     /// document. If set to false, then the key generator will solely be responsible for generating
@@ -323,7 +325,7 @@ impl<'de> Deserialize<'de> for CollectionType {
     }
 }
 
-pub struct CollectionTypeVisitor;
+struct CollectionTypeVisitor;
 
 impl<'de> Visitor<'de> for CollectionTypeVisitor {
     type Value = CollectionType;
@@ -379,7 +381,7 @@ impl<'de> Deserialize<'de> for CollectionStatus {
     }
 }
 
-pub struct CollectionStatusVisitor;
+struct CollectionStatusVisitor;
 
 impl<'de> Visitor<'de> for CollectionStatusVisitor {
     type Value = CollectionStatus;
@@ -431,7 +433,7 @@ impl<'de> Deserialize<'de> for KeyGeneratorType {
     }
 }
 
-pub struct KeyGeneratorTypeVisitor;
+struct KeyGeneratorTypeVisitor;
 
 impl<'de> Visitor<'de> for KeyGeneratorTypeVisitor {
     type Value = KeyGeneratorType;

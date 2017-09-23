@@ -10,8 +10,8 @@ impl UserExtra for Empty {}
 ///
 /// The type parameter `T` specifies the type of the extra data about the
 /// user. If users are created without any extra data one can use the
-/// provided `EmptyUserInfo` type.
-#[derive(Debug, Deserialize)]
+/// provided `Empty` type.
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct User<T>
     where T: UserExtra
@@ -47,14 +47,14 @@ impl<T> User<T>
 ///
 /// The type parameter `T` defines the type of the extra data about the user.
 /// If users are created without any extra data one can use the provided
-/// `EmptyUserInfo` type.
+/// `Empty` type.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct NewUser<'a, T>
-    where T: 'a + UserExtra
+pub struct NewUser<T>
+    where T: UserExtra
 {
     /// The name of the user as a string. This is mandatory.
-    user: &'a str,
+    user: String,
 
     /// The user password as a string. If no password is specified, the empty string will be used.
     ///
@@ -62,7 +62,7 @@ pub struct NewUser<'a, T>
     /// the value stored in the environment variable ARANGODB_DEFAULT_ROOT_PASSWORD. This can be
     /// used to pass an instance variable into ArangoDB. For example, the instance identifier from
     /// Amazon.
-    passwd: &'a str,
+    passwd: String,
 
     /// Specifies whether the user is active. If not specified, this will
     /// default to true.
@@ -71,20 +71,33 @@ pub struct NewUser<'a, T>
 
     /// An optional object with arbitrary extra data about the user.
     #[serde(skip_serializing_if = "Option::is_none")]
-    extra: Option<Box<&'a T>>,
+    extra: Option<T>,
 }
 
-impl<'a, T> NewUser<'a, T>
+impl<T> NewUser<T>
     where T: UserExtra
 {
+    /// Constructs an new instance of `NewUser` with all attributes explicitly
+    /// set.
+    pub fn new(name: String, password: String, active: Option<bool>, extra: Option<T>) -> Self {
+        NewUser {
+            user: name,
+            passwd: password,
+            active,
+            extra,
+        }
+    }
+
     /// Constructs a new instance of `NewUser` with given name and password.
     ///
     /// The user will be active by default and will not have any extra data
     /// assigned.
-    pub fn with_name(name: &'a str, password: &'a str) -> Self {
+    pub fn with_name<N, P>(name: N, password: P) -> Self
+        where N: Into<String>, P: Into<String>
+    {
         NewUser {
-            user: name,
-            passwd: password,
+            user: name.into(),
+            passwd: password.into(),
             active: None,
             extra: None,
         }
@@ -95,44 +108,35 @@ impl<'a, T> NewUser<'a, T>
     ///
     /// The user will be active by default and will not have any extra data
     /// assigned.
-    pub fn with_default_root_password(name: &'a str) -> Self {
+    pub fn with_default_root_password<N>(name: N) -> Self
+        where N: Into<String>
+    {
         NewUser {
-            user: name,
-            passwd: DEFAULT_ROOT_PASSWORD,
+            user: name.into(),
+            passwd: DEFAULT_ROOT_PASSWORD.to_owned(),
             active: None,
             extra: None,
         }
     }
 
-    /// Returns a copy of this `NewUser` but with given extra data.
-    pub fn with_extra(&self, extra: &'a T) -> Self {
-        NewUser {
-            user: self.user,
-            passwd: self.passwd,
-            active: self.active,
-            extra: Some(Box::new(extra)),
-        }
+    /// Sets the extra data for this `NewUser`.
+    pub fn set_extra(&mut self, extra: Option<T>) {
+        self.extra = extra;
     }
 
-    /// Returns a copy of this `NewUser` but its `active` attribute will be
-    /// set to the given value.
-    pub fn set_active(&self, active: bool) -> Self {
-        NewUser {
-            user: self.user,
-            passwd: self.passwd,
-            active: Some(active),
-            extra: self.extra.clone(),
-        }
+    /// Sets the active flag for this `NewUser`.
+    pub fn set_active(&mut self, active: Option<bool>) {
+        self.active = active;
     }
 
     /// Returns the name of the user to be created.
     pub fn name(&self) -> &str {
-        self.user
+        &self.user
     }
 
     /// Returns the password of the user to be created.
     pub fn password(&self) -> &str {
-        self.passwd
+        &self.passwd
     }
 
     /// Returns whether the user will be created as active or inactive.
@@ -142,7 +146,7 @@ impl<'a, T> NewUser<'a, T>
 
     /// Returns the extra data that will be stored with the user to be
     /// created.
-    pub fn extra(&self) -> Option<&Box<&T>> {
+    pub fn extra(&self) -> Option<&T> {
         self.extra.as_ref()
     }
 }
@@ -173,7 +177,8 @@ mod tests {
 
     #[test]
     fn serialize_inactive_new_user_to_json() {
-        let new_user: NewUser<Empty> = NewUser::with_name("cesar", "s3cr3t").set_active(false);
+        let mut new_user: NewUser<Empty> = NewUser::with_name("cesar", "s3cr3t");
+        new_user.set_active(Some(false));
         let json_str = serde_json::to_string(&new_user).unwrap();
         assert_eq!(r#"{"user":"cesar","passwd":"s3cr3t","active":false}"#, &json_str);
     }

@@ -12,42 +12,42 @@ use super::types::*;
 /// You need 'Administrate server' access level in order to execute this
 /// method call.
 #[derive(Debug, PartialEq, Eq)]
-pub struct CreateUser<'a, T>
-    where T: UserExtra + 'a
+pub struct CreateUser<E>
+    where E: UserExtra
 {
-    user: NewUser<'a, T>,
+    user: NewUser<E>,
 }
 
-impl<'a, T> CreateUser<'a, T>
-    where T: UserExtra
+impl<E> CreateUser<E>
+    where E: UserExtra
 {
     /// Constructs a new `CreateUser` method with the given user parameter.
-    pub fn new(user: NewUser<'a, T>) -> Self {
+    pub fn new(user: NewUser<E>) -> Self {
         CreateUser {
             user,
         }
     }
 
     /// Returns the user parameter of this `CreateUser` method.
-    pub fn user(&self) -> &NewUser<'a, T> {
+    pub fn user(&self) -> &NewUser<E> {
         &self.user
     }
 }
 
-impl<'a, T> Method for CreateUser<'a, T>
-    where T: UserExtra + DeserializeOwned + 'static
+impl<E> Method for CreateUser<E>
+    where E: UserExtra + DeserializeOwned
 {
-    type Result = User<T>;
+    type Result = User<E>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
         code_field: Some("code"),
     };
 }
 
-impl<'a, T> Prepare for CreateUser<'a, T>
-    where T: UserExtra + Serialize + 'a
+impl<E> Prepare for CreateUser<E>
+    where E: UserExtra + Serialize
 {
-    type Content = NewUser<'a, T>;
+    type Content = NewUser<E>;
 
     fn operation(&self) -> Operation {
         Operation::Create
@@ -71,14 +71,14 @@ impl<'a, T> Prepare for CreateUser<'a, T>
 /// You need the Administrate server access level in order to execute this REST
 /// call. Otherwise, you will only get information about yourself.
 #[derive(Debug, PartialEq, Eq)]
-pub struct ListAvailableUsers<T>
-    where T: UserExtra
+pub struct ListAvailableUsers<E>
+    where E: UserExtra
 {
-    user_info_type: PhantomData<T>,
+    user_info_type: PhantomData<E>,
 }
 
-impl<T> ListAvailableUsers<T>
-    where T: UserExtra
+impl<E> ListAvailableUsers<E>
+    where E: UserExtra
 {
     /// Constructs a new `ListAvailableUsers` method.
     pub fn new() -> Self {
@@ -88,18 +88,18 @@ impl<T> ListAvailableUsers<T>
     }
 }
 
-impl<T> Method for ListAvailableUsers<T>
-    where T: UserExtra + DeserializeOwned + 'static
+impl<E> Method for ListAvailableUsers<E>
+    where E: UserExtra + DeserializeOwned
 {
-    type Result = Vec<User<T>>;
+    type Result = Vec<User<E>>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: Some("result"),
         code_field: Some("code"),
     };
 }
 
-impl<T> Prepare for ListAvailableUsers<T>
-    where T: UserExtra
+impl<E> Prepare for ListAvailableUsers<E>
+    where E: UserExtra
 {
     type Content = ();
 
@@ -125,15 +125,15 @@ impl<T> Prepare for ListAvailableUsers<T>
 /// You can fetch information about yourself or you need the 'Administrate
 /// server' access level in order to execute this method.
 #[derive(Debug, PartialEq, Eq)]
-pub struct GetUser<T>
-    where T: UserExtra
+pub struct GetUser<E>
+    where E: UserExtra
 {
     name: String,
-    user_info_type: PhantomData<T>,
+    user_info_type: PhantomData<E>,
 }
 
-impl<T> GetUser<T>
-    where T: UserExtra
+impl<E> GetUser<E>
+    where E: UserExtra
 {
     /// Constructs a new `GetUser` method with the given user name.
     pub fn with_name<S>(user_name: S) -> Self
@@ -151,18 +151,18 @@ impl<T> GetUser<T>
     }
 }
 
-impl<T> Method for GetUser<T>
-    where T: UserExtra + DeserializeOwned + 'static
+impl<E> Method for GetUser<E>
+    where E: UserExtra + DeserializeOwned
 {
-    type Result = User<T>;
+    type Result = User<E>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
         code_field: Some("code"),
     };
 }
 
-impl<T> Prepare for GetUser<T>
-    where T: UserExtra
+impl<E> Prepare for GetUser<E>
+    where E: UserExtra
 {
     type Content = ();
 

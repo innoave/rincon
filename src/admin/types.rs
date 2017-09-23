@@ -2,7 +2,7 @@
 use serde_json::Value;
 
 /// Represents the database-version that this server requires.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TargetVersion {
     version: String,
@@ -15,7 +15,7 @@ impl TargetVersion {
 }
 
 /// Represents the server name and version number.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ServerVersion {
     /// Will always contain arango.
