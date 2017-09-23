@@ -1,5 +1,5 @@
 
-use user::{NewUser, UserInfo};
+use user::{NewUser, UserExtra};
 
 /// `DatabaseInfo` contains information about a database.
 #[derive(Debug, Deserialize)]
@@ -45,7 +45,7 @@ impl DatabaseInfo {
 #[derive(Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewDatabase<'a, T>
-    where T: 'a + UserInfo
+    where T: 'a + UserExtra
 {
     /// Has to contain a valid database name.
     name: &'a str,
@@ -60,7 +60,7 @@ pub struct NewDatabase<'a, T>
 }
 
 impl<'a, T> NewDatabase<'a, T>
-    where T: 'a + UserInfo
+    where T: 'a + UserExtra
 {
     /// Constructs a new instance of `NewDatabase` with the specified
     /// database name.

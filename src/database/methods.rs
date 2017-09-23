@@ -1,8 +1,8 @@
 
 use serde::ser::Serialize;
 
-use api::{Method, Operation, Parameters, Prepare, RpcErrorType};
-use user::UserInfo;
+use api::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use user::UserExtra;
 use super::types::*;
 
 /// Retrieves information about the current database.
@@ -18,7 +18,7 @@ impl GetCurrentDatabase {
 
 impl Method for GetCurrentDatabase {
     type Result = DatabaseInfo;
-    const ERROR_TYPE: RpcErrorType = RpcErrorType {
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: Some("result"),
         code_field: Some("code"),
     };
@@ -62,7 +62,7 @@ impl ListOfDatabases {
 
 impl Method for ListOfDatabases {
     type Result = Vec<String>;
-    const ERROR_TYPE: RpcErrorType = RpcErrorType {
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: Some("result"),
         code_field: Some("code"),
     };
@@ -102,7 +102,7 @@ impl ListAccessibleDatabases {
 
 impl Method for ListAccessibleDatabases {
     type Result = Vec<String>;
-    const ERROR_TYPE: RpcErrorType = RpcErrorType {
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: Some("result"),
         code_field: Some("code"),
     };
@@ -134,13 +134,13 @@ impl Prepare for ListAccessibleDatabases {
 /// database.
 #[derive(Debug, PartialEq, Eq)]
 pub struct CreateDatabase<'a, T>
-    where T: 'a + UserInfo
+    where T: 'a + UserExtra
 {
     database: NewDatabase<'a, T>,
 }
 
 impl<'a, T> CreateDatabase<'a, T>
-    where T: 'a + UserInfo
+    where T: 'a + UserExtra
 {
     /// Constructs a new `CreateDatabase` method with the parameters specified
     /// in the given `NewDatabase` struct.
@@ -158,17 +158,17 @@ impl<'a, T> CreateDatabase<'a, T>
 }
 
 impl<'a, T> Method for CreateDatabase<'a, T>
-    where T: 'a + UserInfo
+    where T: 'a + UserExtra
 {
     type Result = bool;
-    const ERROR_TYPE: RpcErrorType = RpcErrorType {
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: Some("result"),
         code_field: Some("code"),
     };
 }
 
 impl<'a, T> Prepare for CreateDatabase<'a, T>
-    where T: 'a + UserInfo + Serialize
+    where T: 'a + UserExtra + Serialize
 {
     type Content = NewDatabase<'a, T>;
 
@@ -217,7 +217,7 @@ impl DropDatabase {
 
 impl Method for DropDatabase {
     type Result = bool;
-    const ERROR_TYPE: RpcErrorType = RpcErrorType {
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: Some("result"),
         code_field: Some("code"),
     };

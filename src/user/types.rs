@@ -1,7 +1,10 @@
 
+use api::{Empty};
 use super::DEFAULT_ROOT_PASSWORD;
 
-pub trait UserInfo {}
+pub trait UserExtra {}
+
+impl UserExtra for Empty {}
 
 /// The `User` struct contains information about a user.
 ///
@@ -11,7 +14,7 @@ pub trait UserInfo {}
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct User<T>
-    where T: UserInfo
+    where T: UserExtra
 {
     /// The name of the user as a string.
     user: String,
@@ -22,7 +25,7 @@ pub struct User<T>
 }
 
 impl<T> User<T>
-    where T: UserInfo
+    where T: UserExtra
 {
     /// Returns the name of the user.
     pub fn name(&self) -> &str {
@@ -48,7 +51,7 @@ impl<T> User<T>
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewUser<'a, T>
-    where T: 'a + UserInfo
+    where T: 'a + UserExtra
 {
     /// The name of the user as a string. This is mandatory.
     user: &'a str,
@@ -72,7 +75,7 @@ pub struct NewUser<'a, T>
 }
 
 impl<'a, T> NewUser<'a, T>
-    where T: UserInfo
+    where T: UserExtra
 {
     /// Constructs a new instance of `NewUser` with given name and password.
     ///
@@ -144,24 +147,17 @@ impl<'a, T> NewUser<'a, T>
     }
 }
 
-/// The `EmptyUserInfo` struct is an empty struct that can be used to create
-/// users with no extra data.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct EmptyUserInfo {}
-
-impl UserInfo for EmptyUserInfo {}
-
-
 #[cfg(test)]
 mod tests {
 
     use serde_json;
 
+    use api::EMPTY;
     use super::*;
 
     #[test]
     fn serialize_new_user_without_info_to_json() {
-        let new_user: NewUser<EmptyUserInfo> = NewUser::with_name("cesar", "s3cr3t");
+        let new_user: NewUser<Empty> = NewUser::with_name("cesar", "s3cr3t");
         let json_str = serde_json::to_string(&new_user).unwrap();
         assert_eq!(r#"{"user":"cesar","passwd":"s3cr3t"}"#, &json_str);
     }
@@ -169,15 +165,15 @@ mod tests {
     #[test]
     fn deserialize_user_without_info_from_json() {
         let json_str = r#"{"user":"cesar","active":true,"extra":{}}"#;
-        let user: User<EmptyUserInfo> = serde_json::from_str(json_str).unwrap();
+        let user: User<Empty> = serde_json::from_str(json_str).unwrap();
         assert_eq!("cesar", user.name());
         assert!(user.is_active());
-        assert_eq!(&EmptyUserInfo {}, user.extra());
+        assert_eq!(&EMPTY, user.extra());
     }
 
     #[test]
     fn serialize_inactive_new_user_to_json() {
-        let new_user: NewUser<EmptyUserInfo> = NewUser::with_name("cesar", "s3cr3t").set_active(false);
+        let new_user: NewUser<Empty> = NewUser::with_name("cesar", "s3cr3t").set_active(false);
         let json_str = serde_json::to_string(&new_user).unwrap();
         assert_eq!(r#"{"user":"cesar","passwd":"s3cr3t","active":false}"#, &json_str);
     }

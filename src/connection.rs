@@ -14,7 +14,7 @@ use serde::ser::Serialize;
 use serde_json::{self, Value};
 use tokio_core::reactor;
 
-use api::{self, Method, Operation, Prepare, RpcErrorType};
+use api::{self, Method, Operation, Prepare, RpcReturnType};
 use datasource::{Authentication, DataSource};
 
 const DEFAULT_USER_AGENT: &str = "Mozilla/5.0 (compatible; ArangoDB-RustDriver/1.1)";
@@ -23,19 +23,13 @@ pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=Error>>;
 
 #[derive(Debug)]
 pub enum Error {
-    ApiError(api::ErrorCode),
+    ApiError(api::Error),
     CommunicationFailed(hyper::Error),
     JsonError(serde_json::Error),
     HttpError(hyper::StatusCode),
     IoError(io::Error),
     NativeTlsError(native_tls::Error),
     NotUtf8Content(FromUtf8Error),
-}
-
-impl From<api::ErrorCode> for Error {
-    fn from(code: api::ErrorCode) -> Self {
-        Error::ApiError(code)
-    }
 }
 
 impl From<FromUtf8Error> for Error {
@@ -71,6 +65,12 @@ impl From<native_tls::Error> for Error {
 impl From<StatusCode> for Error {
     fn from(status_code: StatusCode) -> Self {
         Error::HttpError(status_code)
+    }
+}
+
+impl From<StatusCode> for api::ErrorCode {
+    fn from(status_code: StatusCode) -> Self {
+        api::ErrorCode::from_u16(status_code.as_u16())
     }
 }
 
@@ -110,7 +110,7 @@ impl Connection {
                         let status_code = response.status();
                         response.body().concat2().from_err()
                             .and_then(move |buffer|
-                                parse_return_type::<M>(&method.error_type(), status_code, &buffer))
+                                parse_return_type::<M>(&method.return_type(), status_code, &buffer))
                     })
                 )
             },
@@ -150,31 +150,27 @@ impl Connection {
     }
 }
 
-fn parse_return_type<M>(error_type: &RpcErrorType, status_code: StatusCode, payload: &[u8])
+fn parse_return_type<M>(return_type: &RpcReturnType, status_code: StatusCode, payload: &[u8])
     -> Result<<M as Method>::Result, Error>
     where M: Method
 {
     let mut payload_value = serde_json::from_slice(payload)?;
+    debug!("Received response with code {:?}", status_code);
     if status_code.is_success() {
         let result_field = match payload_value {
             Value::Object(ref mut obj) =>
-                error_type.result_field.and_then(|result| obj.remove(result)),
+                return_type.result_field.and_then(|result| obj.remove(result)),
             _ => None,
         };
         let result_value = result_field.unwrap_or(payload_value);
         serde_json::from_value(result_value).map_err(Error::from)
     } else {
-        let code_field = match payload_value {
-            Value::Object(ref mut obj) =>
-                error_type.code_field.and_then(|code| obj.remove(code)),
-            _ => None,
-        };
-        if let Some(code_value) = code_field {
-            serde_json::from_value(code_value).map_err(Error::from)
-                .and_then(|code| Err(Error::from(api::ErrorCode::from_u16(code))))
-        } else {
-            Err(Error::from(status_code))
-        }
+        debug!("| response body: {}", String::from_utf8_lossy(payload));
+        let api_error = serde_json::from_value(payload_value).unwrap_or_else(|_| {
+            let message = String::from_utf8_lossy(payload).to_string();
+            api::Error::new(status_code.as_u16(), api::ErrorCode::from(status_code), message)
+        });
+        Err(Error::ApiError(api_error))
     }
 }
 

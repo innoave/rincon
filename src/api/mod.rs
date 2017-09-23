@@ -2,19 +2,19 @@
 mod error_code;
 pub use self::error_code::ErrorCode;
 
-use std::fmt::{self, Debug};
+use std::fmt::{self, Debug, Display};
 use std::iter::{ExactSizeIterator, FromIterator, Iterator};
 use std::slice::Iter;
 
-use serde::de::DeserializeOwned;
+use serde::de::{self, Deserialize, Deserializer, DeserializeOwned, Visitor};
 use serde::ser::Serialize;
 
 pub trait Method {
     type Result: DeserializeOwned;
-    const ERROR_TYPE: RpcErrorType;
+    const RETURN_TYPE: RpcReturnType;
 
-    fn error_type(&self) -> RpcErrorType {
-        Self::ERROR_TYPE
+    fn return_type(&self) -> RpcReturnType {
+        Self::RETURN_TYPE
     }
 }
 
@@ -80,6 +80,26 @@ impl Debug for Parameters {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str("Parameters")
             .and_then(|_| f.debug_list().entries(self.list.iter()).finish())
+    }
+}
+
+impl Display for Parameters {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut display = String::new();
+        display.push_str("Parameters[");
+        if !self.list.is_empty() {
+            for &(ref key, ref value) in self.list.iter() {
+                display.push_str(key);
+                display.push('=');
+                display.push_str(value);
+                display.push(',');
+                display.push(' ');
+            }
+            display.pop();
+            display.pop();
+        }
+        display.push(']');
+        f.write_str(&display)
     }
 }
 
@@ -168,14 +188,89 @@ impl FromIterator<u8> for Document {
     }
 }
 
+pub const EMPTY: Empty = Empty {};
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Empty {}
+
+impl Default for Empty {
+    fn default() -> Self {
+        Empty {}
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct RpcErrorType {
+pub struct RpcReturnType {
     pub result_field: Option<&'static str>,
     pub code_field: Option<&'static str>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Deserialize)]
 pub struct Error {
-    code: ErrorCode,
+    #[serde(rename = "code")]
+    status_code: u16,
+    #[serde(rename = "errorNum")]
+    error_code: ErrorCode,
+    #[serde(rename = "errorMessage")]
     message: String,
+}
+
+impl Error {
+    pub fn new(status_code: u16, error_code: ErrorCode, message: String) -> Self {
+        Error {
+            status_code,
+            error_code,
+            message,
+        }
+    }
+
+    pub fn status_code(&self) -> &u16 {
+        &self.status_code
+    }
+
+    pub fn error_code(&self) -> &ErrorCode {
+        &self.error_code
+    }
+
+    pub fn message(&self) -> &str {
+        &self.message
+    }
+}
+
+impl Debug for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(&format!("Error {}: {} (Status: {})",
+            &self.error_code.as_u16(), &self.message, &self.status_code))
+    }
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(&format!("Error {}: {} (Status: {})",
+            &self.error_code.as_u16(), &self.message, &self.status_code))
+    }
+}
+
+impl<'de> Deserialize<'de> for ErrorCode {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        deserializer.deserialize_u64(ErrorCodeVisitor)
+    }
+}
+
+pub struct ErrorCodeVisitor;
+
+impl<'de> Visitor<'de> for ErrorCodeVisitor {
+    type Value = ErrorCode;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("an u16 integer")
+    }
+
+    fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
+        where E: de::Error
+    {
+        Ok(ErrorCode::from_u16(value as u16))
+    }
 }
