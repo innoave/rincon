@@ -3,32 +3,48 @@ use super::DEFAULT_ROOT_PASSWORD;
 
 pub trait UserInfo {}
 
+/// The `User` struct contains information about a user.
+///
+/// The type parameter `T` specifies the type of the extra data about the
+/// user. If users are created without any extra data one can use the
+/// provided `EmptyUserInfo` type.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct User<T>
     where T: UserInfo
 {
+    /// The name of the user as a string.
     user: String,
+    /// A flag that specifies whether the user is active.
     active: bool,
+    /// An object with arbitrary extra data about the user.
     extra: T,
 }
 
 impl<T> User<T>
     where T: UserInfo
 {
+    /// Returns the name of the user.
     pub fn name(&self) -> &str {
         &self.user
     }
 
+    /// Returns whether the user is active or not.
     pub fn is_active(&self) -> bool {
         self.active
     }
 
-    pub fn info(&self) -> &T {
+    /// Returns the extra data assigned to this user.
+    pub fn extra(&self) -> &T {
         &self.extra
     }
 }
 
+/// The `NewUser` struct specifies the attributes used for creating a new user.
+///
+/// The type parameter `T` defines the type of the extra data about the user.
+/// If users are created without any extra data one can use the provided
+/// `EmptyUserInfo` type.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewUser<'a, T>
@@ -58,6 +74,10 @@ pub struct NewUser<'a, T>
 impl<'a, T> NewUser<'a, T>
     where T: UserInfo
 {
+    /// Constructs a new instance of `NewUser` with given name and password.
+    ///
+    /// The user will be active by default and will not have any extra data
+    /// assigned.
     pub fn with_name(name: &'a str, password: &'a str) -> Self {
         NewUser {
             user: name,
@@ -67,6 +87,11 @@ impl<'a, T> NewUser<'a, T>
         }
     }
 
+    /// Constructs a new instance of `NewUser` with given name and the default
+    /// root password configured for the ArangoDB-Server.
+    ///
+    /// The user will be active by default and will not have any extra data
+    /// assigned.
     pub fn with_default_root_password(name: &'a str) -> Self {
         NewUser {
             user: name,
@@ -76,15 +101,18 @@ impl<'a, T> NewUser<'a, T>
         }
     }
 
-    pub fn with_info(&self, info: &'a T) -> Self {
+    /// Returns a copy of this `NewUser` but with given extra data.
+    pub fn with_extra(&self, extra: &'a T) -> Self {
         NewUser {
             user: self.user,
             passwd: self.passwd,
             active: self.active,
-            extra: Some(Box::new(info)),
+            extra: Some(Box::new(extra)),
         }
     }
 
+    /// Returns a copy of this `NewUser` but its `active` attribute will be
+    /// set to the given value.
     pub fn set_active(&self, active: bool) -> Self {
         NewUser {
             user: self.user,
@@ -94,23 +122,30 @@ impl<'a, T> NewUser<'a, T>
         }
     }
 
+    /// Returns the name of the user to be created.
     pub fn name(&self) -> &str {
         self.user
     }
 
+    /// Returns the password of the user to be created.
     pub fn password(&self) -> &str {
         self.passwd
     }
 
+    /// Returns whether the user will be created as active or inactive.
     pub fn is_active(&self) -> Option<bool> {
         self.active
     }
 
-    pub fn info(&self) -> Option<&Box<&T>> {
+    /// Returns the extra data that will be stored with the user to be
+    /// created.
+    pub fn extra(&self) -> Option<&Box<&T>> {
         self.extra.as_ref()
     }
 }
 
+/// The `EmptyUserInfo` struct is an empty struct that can be used to create
+/// users with no extra data.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct EmptyUserInfo {}
 
@@ -137,7 +172,7 @@ mod tests {
         let user: User<EmptyUserInfo> = serde_json::from_str(json_str).unwrap();
         assert_eq!("cesar", user.name());
         assert!(user.is_active());
-        assert_eq!(&EmptyUserInfo {}, user.info());
+        assert_eq!(&EmptyUserInfo {}, user.extra());
     }
 
     #[test]

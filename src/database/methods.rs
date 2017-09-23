@@ -1,4 +1,6 @@
 
+use serde::ser::Serialize;
+
 use api::{Method, Operation, Parameters, Prepare, RpcErrorType};
 use user::UserInfo;
 use super::types::*;
@@ -8,6 +10,7 @@ use super::types::*;
 pub struct GetCurrentDatabase {}
 
 impl GetCurrentDatabase {
+    /// Constructs a new `GetCurrentDatabase` method.
     pub fn new() -> Self {
         GetCurrentDatabase {}
     }
@@ -22,6 +25,8 @@ impl Method for GetCurrentDatabase {
 }
 
 impl Prepare for GetCurrentDatabase {
+    type Content = ();
+
     fn operation(&self) -> Operation {
         Operation::Read
     }
@@ -32,6 +37,10 @@ impl Prepare for GetCurrentDatabase {
 
     fn parameters(&self) -> Parameters {
         Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
     }
 }
 
@@ -45,6 +54,7 @@ impl Prepare for GetCurrentDatabase {
 pub struct ListOfDatabases {}
 
 impl ListOfDatabases {
+    /// Constructs a new `ListOfDatabases` method.
     pub fn new() -> Self {
         ListOfDatabases {}
     }
@@ -59,6 +69,8 @@ impl Method for ListOfDatabases {
 }
 
 impl Prepare for ListOfDatabases {
+    type Content = ();
+
     fn operation(&self) -> Operation {
         Operation::Read
     }
@@ -70,6 +82,10 @@ impl Prepare for ListOfDatabases {
     fn parameters(&self) -> Parameters {
         Parameters::empty()
     }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
+    }
 }
 
 /// Retrieves the list of all databases the current user can access without
@@ -78,6 +94,7 @@ impl Prepare for ListOfDatabases {
 pub struct ListAccessibleDatabases {}
 
 impl ListAccessibleDatabases {
+    /// Constructs a new `ListAccessibleDatabases` method.
     pub fn new() -> Self {
         ListAccessibleDatabases {}
     }
@@ -92,6 +109,8 @@ impl Method for ListAccessibleDatabases {
 }
 
 impl Prepare for ListAccessibleDatabases {
+    type Content = ();
+
     fn operation(&self) -> Operation {
         Operation::Read
     }
@@ -102,6 +121,10 @@ impl Prepare for ListAccessibleDatabases {
 
     fn parameters(&self) -> Parameters {
         Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
     }
 }
 
@@ -119,12 +142,16 @@ pub struct CreateDatabase<'a, T>
 impl<'a, T> CreateDatabase<'a, T>
     where T: 'a + UserInfo
 {
+    /// Constructs a new `CreateDatabase` method with the parameters specified
+    /// in the given `NewDatabase` struct.
     pub fn new(database: NewDatabase<'a, T>) -> Self {
         CreateDatabase {
             database,
         }
     }
 
+    /// Returns the `NewDatabase` parameters of this `CreateDatabase`
+    /// method.
     pub fn database(&self) -> &NewDatabase<'a, T> {
         &self.database
     }
@@ -141,8 +168,10 @@ impl<'a, T> Method for CreateDatabase<'a, T>
 }
 
 impl<'a, T> Prepare for CreateDatabase<'a, T>
-    where T: 'a + UserInfo
+    where T: 'a + UserInfo + Serialize
 {
+    type Content = NewDatabase<'a, T>;
+
     fn operation(&self) -> Operation {
         Operation::Create
     }
@@ -153,6 +182,10 @@ impl<'a, T> Prepare for CreateDatabase<'a, T>
 
     fn parameters(&self) -> Parameters {
         Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        Some(&self.database)
     }
 }
 
@@ -166,14 +199,17 @@ pub struct DropDatabase {
 }
 
 impl DropDatabase {
-    pub fn new<N>(database_name: N) -> Self
-        where N: Into<String>
+    /// Constructs a new `DropDatabase` method with the given database name
+    /// as parameter.
+    pub fn new<S>(database_name: S) -> Self
+        where S: Into<String>
     {
         DropDatabase {
             database_name: database_name.into(),
         }
     }
 
+    /// Returns the database name parameter of this `DropDatabase` method.
     pub fn database_name(&self) -> &str {
         &self.database_name
     }
@@ -188,6 +224,8 @@ impl Method for DropDatabase {
 }
 
 impl Prepare for DropDatabase {
+    type Content = ();
+
     fn operation(&self) -> Operation {
         Operation::Delete
     }
@@ -198,5 +236,9 @@ impl Prepare for DropDatabase {
 
     fn parameters(&self) -> Parameters {
         Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
     }
 }

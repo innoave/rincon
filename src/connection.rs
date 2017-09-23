@@ -3,13 +3,14 @@ use std::io;
 use std::str::FromStr;
 use std::string::FromUtf8Error;
 
-use futures::{Future, Stream};
+use futures::{future, Future, Stream};
 use hyper::{self, Client, HttpVersion, Request, StatusCode, Uri};
 use hyper::client::HttpConnector;
-use hyper::header::{Authorization, Basic, Bearer, UserAgent};
+use hyper::header::{Authorization, Basic, Bearer, ContentLength, ContentType, UserAgent};
 use hyper_timeout::TimeoutConnector;
 use hyper_tls::HttpsConnector;
 use native_tls;
+use serde::ser::Serialize;
 use serde_json::{self, Value};
 use tokio_core::reactor;
 
@@ -18,7 +19,7 @@ use datasource::{Authentication, DataSource};
 
 const DEFAULT_USER_AGENT: &str = "Mozilla/5.0 (compatible; ArangoDB-RustDriver/1.1)";
 
-pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=self::Error>>;
+pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=Error>>;
 
 #[derive(Debug)]
 pub enum Error {
@@ -101,19 +102,24 @@ impl Connection {
     pub fn execute<M>(&self, method: M) -> FutureResult<M>
         where M: Method + Prepare + 'static
     {
-        let request = self.prepare_request(&method);
-        debug!("Sending {:?}", &request);
-        Box::new(self.client.request(request).from_err()
-            .and_then(move |response| {
-                let status_code = response.status();
-                response.body().concat2().from_err()
-                    .and_then(move |buffer|
-                        parse_return_type::<M>(&method.error_type(), status_code, &buffer))
-            })
-        )
+        match self.prepare_request(&method) {
+            Ok(request) => {
+                debug!("Sending {:?}", &request);
+                Box::new(self.client.request(request).from_err()
+                    .and_then(move |response| {
+                        let status_code = response.status();
+                        response.body().concat2().from_err()
+                            .and_then(move |buffer|
+                                parse_return_type::<M>(&method.error_type(), status_code, &buffer))
+                    })
+                )
+            },
+            Err(error) =>
+                Box::new(future::err(error)),
+        }
     }
 
-    pub fn prepare_request<P>(&self, prepare: &P) -> Request
+    pub fn prepare_request<P>(&self, prepare: &P) -> Result<Request, Error>
         where P: Prepare
     {
         let operation = prepare.operation();
@@ -134,8 +140,48 @@ impl Connection {
                 Authentication::None => {},
             }
         }
-        request
+        if let Some(content) = prepare.content() {
+            let json = serialize_payload(content)?;
+            request.headers_mut().set(ContentType::json());
+            request.headers_mut().set(ContentLength(json.len() as u64));
+            request.set_body(json);
+        }
+        Ok(request)
     }
+}
+
+fn parse_return_type<M>(error_type: &RpcErrorType, status_code: StatusCode, payload: &[u8])
+    -> Result<<M as Method>::Result, Error>
+    where M: Method
+{
+    let mut payload_value = serde_json::from_slice(payload)?;
+    if status_code.is_success() {
+        let result_field = match payload_value {
+            Value::Object(ref mut obj) =>
+                error_type.result_field.and_then(|result| obj.remove(result)),
+            _ => None,
+        };
+        let result_value = result_field.unwrap_or(payload_value);
+        serde_json::from_value(result_value).map_err(Error::from)
+    } else {
+        let code_field = match payload_value {
+            Value::Object(ref mut obj) =>
+                error_type.code_field.and_then(|code| obj.remove(code)),
+            _ => None,
+        };
+        if let Some(code_value) = code_field {
+            serde_json::from_value(code_value).map_err(Error::from)
+                .and_then(|code| Err(Error::from(api::ErrorCode::from_u16(code))))
+        } else {
+            Err(Error::from(status_code))
+        }
+    }
+}
+
+fn serialize_payload<T>(content: &T) -> Result<Vec<u8>, Error>
+    where T: Serialize
+{
+    serde_json::to_vec(content).map_err(Error::from)
 }
 
 fn http_method_for_operation(operation: &Operation) -> hyper::Method {
@@ -176,34 +222,6 @@ fn build_request_uri<P>(datasource: &DataSource, prepare: &P) -> Uri
     Uri::from_str(&request_uri).unwrap()
 }
 
-fn parse_return_type<M>(error_type: &RpcErrorType, status_code: StatusCode, payload: &[u8])
-    -> Result<<M as Method>::Result, Error>
-    where M: Method
-{
-    let mut payload_value = serde_json::from_slice(payload)?;
-    if status_code.is_success() {
-        let result_field = match payload_value {
-            Value::Object(ref mut obj) =>
-                error_type.result_field.and_then(|result| obj.remove(result)),
-            _ => None,
-        };
-        let result_value = result_field.unwrap_or(payload_value);
-        serde_json::from_value(result_value).map_err(Error::from)
-    } else {
-        let code_field = match payload_value {
-            Value::Object(ref mut obj) =>
-                error_type.code_field.and_then(|code| obj.remove(code)),
-            _ => None,
-        };
-        if let Some(code_value) = code_field {
-            serde_json::from_value(code_value).map_err(Error::from)
-                .and_then(|code| Err(Error::from(api::ErrorCode::from_u16(code))))
-        } else {
-            Err(Error::from(status_code))
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::iter::FromIterator;
@@ -216,9 +234,12 @@ mod tests {
         operation: Operation,
         path: &'a str,
         params: Vec<(&'a str, &'a str)>,
+        content: Option<Value>
     }
 
     impl<'a> Prepare for Prepared<'a> {
+        type Content = Value;
+
         fn operation(&self) -> Operation {
             self.operation.clone()
         }
@@ -230,6 +251,10 @@ mod tests {
         fn parameters(&self) -> Parameters {
             Parameters::from_iter(self.params.iter())
         }
+
+        fn content(&self) -> Option<&Self::Content> {
+            self.content.as_ref()
+        }
     }
 
     #[test]
@@ -239,6 +264,7 @@ mod tests {
             operation: Operation::Read,
             path: "/_api/user",
             params: vec![],
+            content: None,
         };
 
         let uri = build_request_uri(&datasource, &prepared);
@@ -255,6 +281,7 @@ mod tests {
             operation: Operation::Read,
             path: "/_api/user",
             params: vec![],
+            content: None,
         };
 
         let uri = build_request_uri(&datasource, &prepared);
@@ -270,6 +297,7 @@ mod tests {
             operation: Operation::Read,
             path: "/_api/collection",
             params: vec![],
+            content: None,
         };
 
         let uri = build_request_uri(&datasource, &prepared);
@@ -285,6 +313,7 @@ mod tests {
             operation: Operation::Read,
             path: "/_api/document",
             params: vec![("id", "25")],
+            content: None,
         };
 
         let uri = build_request_uri(&datasource, &prepared);
@@ -301,6 +330,7 @@ mod tests {
             operation: Operation::Read,
             path: "/_api/document",
             params: vec![("id", "25"), ("name", "JuneReport")],
+            content: None,
         };
 
         let uri = build_request_uri(&datasource, &prepared);
@@ -317,6 +347,7 @@ mod tests {
             operation: Operation::Read,
             path: "/_api/document",
             params: vec![("id", "25"), ("name", "JuneReport"), ("max", "42")],
+            content: None,
         };
 
         let uri = build_request_uri(&datasource, &prepared);

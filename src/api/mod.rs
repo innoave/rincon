@@ -7,9 +7,10 @@ use std::iter::{ExactSizeIterator, FromIterator, Iterator};
 use std::slice::Iter;
 
 use serde::de::DeserializeOwned;
+use serde::ser::Serialize;
 
 pub trait Method {
-    type Result: DeserializeOwned + 'static;
+    type Result: DeserializeOwned;
     const ERROR_TYPE: RpcErrorType;
 
     fn error_type(&self) -> RpcErrorType {
@@ -18,9 +19,11 @@ pub trait Method {
 }
 
 pub trait Prepare {
+    type Content: Serialize;
     fn operation(&self) -> Operation;
     fn path(&self) -> String;
     fn parameters(&self) -> Parameters;
+    fn content(&self) -> Option<&Self::Content>;
 }
 
 #[derive(Clone, Debug)]

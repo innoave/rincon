@@ -20,6 +20,8 @@ impl Method for GetTargetVersion {
 }
 
 impl Prepare for GetTargetVersion {
+    type Content = ();
+
     fn operation(&self) -> Operation {
         Operation::Read
     }
@@ -30,6 +32,10 @@ impl Prepare for GetTargetVersion {
 
     fn parameters(&self) -> Parameters {
         Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
     }
 }
 
@@ -65,6 +71,8 @@ impl Method for GetServerVersion {
 }
 
 impl Prepare for GetServerVersion {
+    type Content = ();
+
     fn operation(&self) -> Operation {
         Operation::Read
     }
@@ -79,5 +87,9 @@ impl Prepare for GetServerVersion {
             params.push("details", "true");
         }
         params
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
     }
 }

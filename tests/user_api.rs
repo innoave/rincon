@@ -33,5 +33,5 @@ fn list_available_users_should_return_the_root_user() {
     let user1 = &available_users[0];
     assert_eq!("root", user1.name());
     assert!(user1.is_active());
-    assert_eq!(&EmptyUserInfo{}, user1.info())
+    assert_eq!(&EmptyUserInfo{}, user1.extra())
 }

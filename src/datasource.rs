@@ -152,10 +152,12 @@ pub struct Credentials {
 }
 
 impl Credentials {
-    pub fn new(username: String, password: String) -> Self {
+    pub fn new<S>(username: S, password: S) -> Self
+        where S: Into<String>
+    {
         Credentials {
-            username,
-            password,
+            username: username.into(),
+            password: password.into(),
         }
     }
 

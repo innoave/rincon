@@ -49,11 +49,13 @@ pub struct NewDatabase<'a, T>
 {
     /// Has to contain a valid database name.
     name: &'a str,
-    /// Has to be an array of user objects to initially create for the new database.
+    /// Has to be an array of user objects to initially create for the new
+    /// database.
     ///
-    /// User information will not be changed for users that already exist. If users is not specified
-    /// or does not contain any users, a default user root will be created with an empty string
-    /// password. This ensures that the new database will be accessible after it is created.
+    /// User information will not be changed for users that already exist. If
+    /// users is not specified or does not contain any users, a default user
+    /// root will be created with an empty string password. This ensures that
+    /// the new database will be accessible after it is created.
     users: &'a [NewUser<'a, T>],
 }
 
@@ -83,7 +85,8 @@ impl<'a, T> NewDatabase<'a, T>
         self.name
     }
 
-    /// Returns the
+    /// Returns a slice of users that will be assigned to the newly created
+    /// database.
     pub fn users(&self) -> &[NewUser<T>] {
         self.users
     }
