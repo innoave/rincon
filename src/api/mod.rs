@@ -35,7 +35,7 @@ pub enum Operation {
     Delete,
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq)]
 pub struct Parameters {
     list: Vec<(String, String)>,
 }
@@ -161,7 +161,7 @@ impl<'a> ExactSizeIterator for ParameterIter<'a> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Document {
     bytes: Vec<u8>,
 }
@@ -190,7 +190,7 @@ impl FromIterator<u8> for Document {
 
 pub const EMPTY: Empty = Empty {};
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Empty {}
 
 impl Default for Empty {
@@ -199,13 +199,13 @@ impl Default for Empty {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct RpcReturnType {
     pub result_field: Option<&'static str>,
     pub code_field: Option<&'static str>,
 }
 
-#[derive(Clone, PartialEq, Eq, Deserialize)]
+#[derive(Clone, PartialEq, Deserialize)]
 pub struct Error {
     #[serde(rename = "code")]
     status_code: u16,

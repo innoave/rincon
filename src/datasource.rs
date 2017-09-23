@@ -145,7 +145,7 @@ pub enum Authentication {
     None,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Hash)]
 pub struct Credentials {
     username: String,
     password: String,

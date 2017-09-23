@@ -6,7 +6,7 @@ use user::UserExtra;
 use super::types::*;
 
 /// Retrieves information about the current database.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct GetCurrentDatabase {}
 
 impl GetCurrentDatabase {
@@ -50,7 +50,7 @@ impl Prepare for GetCurrentDatabase {
 /// `_system` database.
 /// *Note*: You should use the `user::ListAccessibleDatabases` to fetch the
 /// list of the available databases now.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ListOfDatabases {}
 
 impl ListOfDatabases {
@@ -90,7 +90,7 @@ impl Prepare for ListOfDatabases {
 
 /// Retrieves the list of all databases the current user can access without
 /// specifying a different username or password.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ListAccessibleDatabases {}
 
 impl ListAccessibleDatabases {
@@ -132,7 +132,7 @@ impl Prepare for ListAccessibleDatabases {
 ///
 /// *Note*: creating a new database is only possible from within the `_system`
 /// database.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct CreateDatabase<E>
     where E: UserExtra
 {
@@ -193,7 +193,7 @@ impl<E> Prepare for CreateDatabase<E>
 ///
 /// *Note*: dropping a database is only possible from within the `_system`
 /// database. The `_system` database itself cannot be dropped.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct DropDatabase {
     database_name: String,
 }
@@ -201,11 +201,18 @@ pub struct DropDatabase {
 impl DropDatabase {
     /// Constructs a new `DropDatabase` method with the given database name
     /// as parameter.
-    pub fn new<S>(database_name: S) -> Self
-        where S: Into<String>
+    pub fn new(database_name: String) -> Self
     {
         DropDatabase {
-            database_name: database_name.into(),
+            database_name,
+        }
+    }
+
+    pub fn with_name<N>(name: N) -> Self
+        where N: Into<String>
+    {
+        DropDatabase {
+            database_name: name.into(),
         }
     }
 

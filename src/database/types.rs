@@ -42,7 +42,7 @@ impl DatabaseInfo {
 
 /// The `NewDatabase` struct specifies the attributes used when creating
 /// a new database.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewDatabase<E>
     where E: UserExtra

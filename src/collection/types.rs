@@ -39,7 +39,7 @@ impl Collection {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewCollection {
     /// The name of the collection.
@@ -195,7 +195,7 @@ impl NewCollection {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct NewKeyOptions {
     /// If set to true, then it is allowed to supply own key values in the _key attribute of a
     /// document. If set to false, then the key generator will solely be responsible for generating
@@ -298,7 +298,7 @@ impl KeyOptions {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum CollectionType {
     Documents,
     Edges,
@@ -346,7 +346,7 @@ impl<'de> Visitor<'de> for CollectionTypeVisitor {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum CollectionStatus {
     NewBorn,
     Unloaded,
@@ -406,7 +406,7 @@ impl<'de> Visitor<'de> for CollectionStatusVisitor {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum KeyGeneratorType {
     Traditional,
     AutoIncrement,

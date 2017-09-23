@@ -2,7 +2,7 @@
 use api::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use super::types::*;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct GetTargetVersion {}
 
 impl GetTargetVersion {
@@ -39,7 +39,7 @@ impl Prepare for GetTargetVersion {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct GetServerVersion {
     details: bool,
 }

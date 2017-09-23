@@ -11,31 +11,18 @@ mod test_fixture;
 
 use test_fixture::*;
 use arangodb_client::api::{Empty, EMPTY};
+use arangodb_client::database::*;
 use arangodb_client::user::*;
-
-#[test]
-fn list_available_users_should_return_1_user() {
-    let (mut core, conn) = init_db_test();
-
-    let method = ListAvailableUsers::<Empty>::new();
-    let work = conn.execute(method);
-    let available_users = core.run(work).unwrap();
-
-    assert_eq!(1, available_users.len());
-}
 
 #[test]
 fn list_available_users_should_return_the_root_user() {
     let (mut core, conn) = init_db_test();
 
-    let method = ListAvailableUsers::new();
+    let method: ListAvailableUsers<Empty> = ListAvailableUsers::new();
     let work = conn.execute(method);
     let available_users = core.run(work).unwrap();
 
-    let user1 = &available_users[0];
-    assert_eq!("root", user1.name());
-    assert!(user1.is_active());
-    assert_eq!(&Empty{}, user1.extra())
+    assert!(available_users.iter().any(|user| user.name() == "root"));
 }
 
 #[test]
@@ -100,4 +87,28 @@ fn create_user_with_extra_should_return_newly_created_user_with_extra() {
     let method = RemoveUser::with_name("testuser2");
     let work = conn.execute(method);
     core.run(work).unwrap();
+}
+
+#[test]
+fn list_databases_for_user_testuser3() {
+    let (mut core, conn) = init_db_test();
+
+    let new_user: NewUser<Empty> = NewUser::with_name("testuser3", "");
+
+    let new_database1 = NewDatabase::new("testbase31".to_owned(), vec![new_user.clone()]);
+    let _ = core.run(conn.execute(CreateDatabase::new(new_database1))).unwrap();
+    let new_database2 = NewDatabase::new("testbase32".to_owned(), vec![new_user.clone()]);
+    let _ = core.run(conn.execute(CreateDatabase::new(new_database2))).unwrap();
+
+    let method = ListDatabasesForUser::for_user("testuser3");
+    let work = conn.execute(method);
+    let databases = core.run(work).unwrap();
+
+    assert!(databases.contains_key("testbase31"));
+    assert_eq!(&Permission::ReadWrite, databases.get("testbase31").unwrap());
+    assert!(databases.contains_key("testbase32"));
+    assert_eq!(&Permission::ReadWrite, databases.get("testbase32").unwrap());
+
+    let _ = core.run(conn.execute(DropDatabase::with_name("testbase32"))).unwrap();
+    let _ = core.run(conn.execute(DropDatabase::with_name("testbase31"))).unwrap();
 }
