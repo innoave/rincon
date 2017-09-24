@@ -1,86 +1,13 @@
 
+use std::collections::HashMap;
 use std::fmt::{self, Display};
 
 use serde::de::{self, Deserialize, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
+use serde_json::Value;
 
 use api::{Empty};
 use super::DEFAULT_ROOT_PASSWORD;
-
-pub trait UserExtra {}
-
-impl UserExtra for Empty {}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum Permission {
-    ReadWrite,
-    ReadOnly,
-    None,
-}
-
-impl Permission {
-    pub fn from_str(value: &str) -> Result<Self, String> {
-        use self::Permission::*;
-        match value {
-            "rw"   => Ok(ReadWrite),
-            "ro"   => Ok(ReadOnly),
-            "none" => Ok(None),
-            _      => Err(format!("Not a valid permission string: {}", value)),
-        }
-    }
-
-    pub fn as_str(&self) -> &'static str {
-        use self::Permission::*;
-        match *self {
-            ReadWrite => "rw",
-            ReadOnly  => "ro",
-            None      => "none",
-        }
-    }
-}
-
-impl Serialize for Permission {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        serializer.serialize_str(self.as_str())
-    }
-}
-
-impl<'de> Deserialize<'de> for Permission {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
-    {
-        deserializer.deserialize_str(PermissionVisitor)
-    }
-}
-
-struct PermissionVisitor;
-
-impl<'de> Visitor<'de> for PermissionVisitor {
-    type Value = Permission;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a valid permission string")
-    }
-
-    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-        where E: de::Error
-    {
-        Permission::from_str(value).map_err(|err| E::custom(err))
-    }
-}
-
-impl Display for Permission {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use self::Permission::*;
-        f.write_str(match *self {
-            ReadWrite => "Read/Write",
-            ReadOnly  => "Read Only",
-            None      => "No access",
-        })
-    }
-}
 
 /// The `User` struct contains information about a user.
 ///
@@ -118,6 +45,16 @@ impl<E> User<E>
         &self.extra
     }
 }
+
+/// The `UserExtra' trait marks a type for being used as extra information
+/// in the `User`, `NewUser` and `UserUpdate` structs.
+pub trait UserExtra {}
+
+impl UserExtra for Empty {}
+
+impl<K, V> UserExtra for HashMap<K, V> {}
+
+impl UserExtra for Value {}
 
 /// The `NewUser` struct specifies the attributes used for creating a new user.
 ///
@@ -258,8 +195,8 @@ pub struct UserUpdate<E>
 impl<E> UserUpdate<E>
     where E: UserExtra
 {
-    /// Constructs an new instance of `UserUpdate` with all attributes explicitly
-    /// set.
+    /// Constructs an new instance of `UserUpdate` with all attributes
+    /// explicitly set.
     pub fn new(password: Option<String>, active: Option<bool>, extra: Option<E>) -> Self {
         UserUpdate {
             passwd: password,
@@ -339,6 +276,81 @@ impl NewAccessLevel {
     /// Returns the access level to be granted.
     pub fn grant(&self) -> &Permission {
         &self.grant
+    }
+}
+
+/// The `Permission` enum defines the possible access levels.
+#[derive(Clone, Debug, PartialEq)]
+pub enum Permission {
+    /// The 'Administrate' access level.
+    ReadWrite,
+    /// The 'Access' access level.
+    ReadOnly,
+    /// The 'No access' access level.
+    None,
+}
+
+impl Permission {
+    pub fn from_str(value: &str) -> Result<Self, String> {
+        use self::Permission::*;
+        match value {
+            "rw"   => Ok(ReadWrite),
+            "ro"   => Ok(ReadOnly),
+            "none" => Ok(None),
+            _      => Err(format!("Not a valid permission string: {}", value)),
+        }
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        use self::Permission::*;
+        match *self {
+            ReadWrite => "rw",
+            ReadOnly  => "ro",
+            None      => "none",
+        }
+    }
+}
+
+impl Serialize for Permission {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for Permission {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        deserializer.deserialize_str(PermissionVisitor)
+    }
+}
+
+struct PermissionVisitor;
+
+impl<'de> Visitor<'de> for PermissionVisitor {
+    type Value = Permission;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("a valid permission string")
+    }
+
+    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where E: de::Error
+    {
+        Permission::from_str(value).map_err(|err| E::custom(err))
+    }
+}
+
+impl Display for Permission {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::Permission::*;
+        f.write_str(match *self {
+            ReadWrite => "Read/Write",
+            ReadOnly  => "Read Only",
+            None      => "No access",
+        })
     }
 }
 
