@@ -96,9 +96,9 @@ fn list_databases_for_user_testuser3() {
 
     let new_user: NewUser<Empty> = NewUser::with_name("testuser3", "");
 
-    let new_database1 = NewDatabase::new("testbase31".into(), vec![new_user.clone()]);
+    let new_database1 = NewDatabase::new("testbase31", vec![new_user.clone()]);
     let _ = core.run(conn.execute(CreateDatabase::new(new_database1))).unwrap();
-    let new_database2 = NewDatabase::new("testbase32".into(), vec![new_user.clone()]);
+    let new_database2 = NewDatabase::new("testbase32", vec![new_user.clone()]);
     let _ = core.run(conn.execute(CreateDatabase::new(new_database2))).unwrap();
 
     let method = ListDatabasesForUser::for_user("testuser3");
@@ -121,7 +121,7 @@ fn get_database_access_level_for_testuser_and_testdatabase() {
 
     let new_user: NewUser<Empty> = NewUser::with_name("testuser4", "");
 
-    let new_database = NewDatabase::new("testbase41".into(), vec![new_user.clone()]);
+    let new_database = NewDatabase::new("testbase41", vec![new_user.clone()]);
     let _ = core.run(conn.execute(CreateDatabase::new(new_database))).unwrap();
 
     let method = GetDatabaseAccessLevel::new("testuser4".into(), "testbase41".into());
@@ -140,7 +140,7 @@ fn set_database_access_level_for_testuser_and_testdatabase() {
 
     let new_user: NewUser<Empty> = NewUser::with_name("testuser5", "");
 
-    let new_database = NewDatabase::new("testbase51".into(), vec![new_user.clone()]);
+    let new_database = NewDatabase::new("testbase51", vec![new_user.clone()]);
     let _ = core.run(conn.execute(CreateDatabase::new(new_database))).unwrap();
 
     let method = SetDatabaseAccessLevel::new("testuser5".into(),
@@ -163,7 +163,7 @@ fn get_collection_access_level_for_testuser_and_testcollection() {
 
     let new_user: NewUser<Empty> = NewUser::with_name("testuser6", "");
 
-    let new_database = NewDatabase::new("testbase61".into(), vec![new_user.clone()]);
+    let new_database = NewDatabase::new("testbase61", vec![new_user.clone()]);
     let _ = core.run(conn.execute(CreateDatabase::new(new_database))).unwrap();
 
     let _ = core.run(conn.execute(CreateCollection::with_name("testcollection611"))).unwrap();
@@ -186,7 +186,7 @@ fn set_collection_access_level_for_testuser_and_testcollection() {
 
     let new_user: NewUser<Empty> = NewUser::with_name("testuser7", "");
 
-    let new_database = NewDatabase::new("testbase71".into(), vec![new_user.clone()]);
+    let new_database = NewDatabase::new("testbase71", vec![new_user.clone()]);
     let _ = core.run(conn.execute(CreateDatabase::new(new_database))).unwrap();
 
     let _ = core.run(conn.execute(CreateCollection::with_name("testcollection711"))).unwrap();

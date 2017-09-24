@@ -1,3 +1,11 @@
+//!
+//! Some attributes are only meaningful in a certain server configuration, like
+//! using RocksDB instead of MMFiles or the server is setup in a cluster. Those
+//! attributes are only available in the API of this crate if the crate is
+//! compiled with the related feature enabled. The crate feature `mmfiles`
+//! enables MMFiles related attributes, the crate feature `rocksdb` enables
+//! RocksDB related attributes and the crate feature `cluster` enables cluster
+//! related attributes.
 
 extern crate futures;
 extern crate hyper;

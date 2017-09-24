@@ -282,3 +282,235 @@ impl Prepare for DropCollection {
         None
     }
 }
+
+/// Fetch information about the collection identified by the given name.
+#[derive(Clone, Debug, PartialEq)]
+pub struct GetCollection {
+    name: String,
+}
+
+impl GetCollection {
+    /// Constructs a new instance of the `GetCollection` method.
+    pub fn new(name: String) -> Self {
+        GetCollection {
+            name,
+        }
+    }
+
+    /// Constructs a new instance of the `GetCollection` method to get
+    /// information about the collection with the given name.
+    pub fn with_name<N>(name: N) -> Self
+        where N: Into<String>
+    {
+        GetCollection {
+            name: name.into(),
+        }
+    }
+
+    /// Returns the name of the collection for which the information shall
+    /// be fetched.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+}
+
+impl Method for GetCollection {
+    type Result = Collection;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some("code"),
+    };
+}
+
+impl Prepare for GetCollection {
+    type Content = ();
+
+    fn operation(&self) -> Operation {
+        Operation::Read
+    }
+
+    fn path(&self) -> String {
+        String::from("/_api/collection/") + &self.name
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
+    }
+}
+
+/// Fetch the properties of the collection identified by the given name.
+#[derive(Clone, Debug, PartialEq)]
+pub struct GetCollectionProperties {
+    name: String,
+}
+
+impl GetCollectionProperties {
+    /// Constructs a new instance of the `GetCollectionProperties` method.
+    pub fn new(name: String) -> Self {
+        GetCollectionProperties {
+            name,
+        }
+    }
+
+    /// Constructs a new instance of the `GetCollectionProperties` method to
+    /// get properties about the collection with the given name.
+    pub fn with_name<N>(name: N) -> Self
+        where N: Into<String>
+    {
+        GetCollectionProperties {
+            name: name.into(),
+        }
+    }
+
+    /// Returns the name of the collection for which the properties shall
+    /// be fetched.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+}
+
+impl Method for GetCollectionProperties {
+    type Result = CollectionProperties;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some("code"),
+    };
+}
+
+impl Prepare for GetCollectionProperties {
+    type Content = ();
+
+    fn operation(&self) -> Operation {
+        Operation::Read
+    }
+
+    fn path(&self) -> String {
+        String::from("/_api/collection/") + &self.name + "/properties"
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
+    }
+}
+
+/// Change the properties of a collection identified by name.
+///
+/// **Note:** except for `wait_for_sync`, `journal_size` (for MMFiles DB) and
+/// name, collection properties cannot be changed once a collection is created.
+/// To rename a collection, the `RenameCollection` method must be used.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ChangeCollectionProperties {
+    name: String,
+    updates: CollectionPropertiesUpdate,
+}
+
+impl ChangeCollectionProperties {
+    /// Constructs a new instance of the `ChangeCollectionProperties` method.
+    ///
+    /// The `name` parameter must contain the name of the collection for which
+    /// the properties shall be changed. The `updates` parameter contains the
+    /// actual changes that shall be applied.
+    pub fn new(name: String, updates: CollectionPropertiesUpdate) -> Self {
+        ChangeCollectionProperties {
+            name,
+            updates,
+        }
+    }
+
+    /// Returns the name of the collection for which the properties shall be
+    /// changed.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Returns the updates that shall be applied to the collection's
+    /// properties.
+    pub fn updates(&self) -> &CollectionPropertiesUpdate {
+        &self.updates
+    }
+}
+
+impl Method for ChangeCollectionProperties {
+    type Result = CollectionProperties;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some("code"),
+    };
+}
+
+impl Prepare for ChangeCollectionProperties {
+    type Content = CollectionPropertiesUpdate;
+
+    fn operation(&self) -> Operation {
+        Operation::Replace
+    }
+
+    fn path(&self) -> String {
+        String::from("/_api/collection/") + &self.name + "/properties"
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        Some(&self.updates)
+    }
+}
+
+/// Renames a collection.
+///
+/// ***Note:** this method is not available in a cluster.
+#[derive(Clone, Debug, PartialEq)]
+pub struct RenameCollection {
+    name: String,
+    rename_to: RenameTo,
+}
+
+impl RenameCollection {
+    /// Constructs a new instance of the `RenameCollection` method with all
+    /// parameters specified.
+    pub fn new(name: String, rename_to: RenameTo) -> Self {
+        RenameCollection {
+            name,
+            rename_to,
+        }
+    }
+
+    /// Returns a builder to construct a new instance of the `RenameCollection`
+    /// method that will rename the collection identified by the given name.
+    pub fn with_name<N>(name: N) -> RenameCollectionBuilder
+        where N: Into<String>
+    {
+        RenameCollectionBuilder {
+            collection_name: name.into(),
+        }
+    }
+}
+
+/// The `RenameCollectionBuilder` struct helps to implement an efficient
+/// fluent API to build a new instance of the `RenameCollection` method.
+pub struct RenameCollectionBuilder {
+    collection_name: String,
+}
+
+impl RenameCollectionBuilder {
+    /// Constructs a new instance of the `RenameCollection` method for the
+    /// collection name of this builder and the given new name.
+    pub fn to_name<N>(self, name: N) -> RenameCollection
+        where N: Into<String>
+    {
+        RenameCollection {
+            name: self.collection_name,
+            rename_to: RenameTo::new(name),
+        }
+    }
+}
