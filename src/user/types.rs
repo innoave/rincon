@@ -321,6 +321,27 @@ impl<E> From<User<E>> for UserUpdate<E>
     }
 }
 
+/// The `NewAccessLevel` struct specifies an access level to be granted.
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewAccessLevel {
+    grant: Permission,
+}
+
+impl NewAccessLevel {
+    /// Contructs a new instance of `NewAccessLevel`.
+    pub fn new(grant: Permission) -> Self {
+        NewAccessLevel {
+            grant,
+        }
+    }
+
+    /// Returns the access level to be granted.
+    pub fn grant(&self) -> &Permission {
+        &self.grant
+    }
+}
+
 #[cfg(test)]
 mod tests {
 

@@ -475,3 +475,412 @@ impl Prepare for ListDatabasesForUser {
         None
     }
 }
+
+/// Fetch the database access level for a specific database.
+#[derive(Clone, Debug, PartialEq)]
+pub struct GetDatabaseAccessLevel {
+    user_name: String,
+    database: String,
+}
+
+impl GetDatabaseAccessLevel {
+    /// Constructs a new instance of the `GetDatabaseAccessLevel` method.
+    pub fn new(user_name: String, database: String) -> Self {
+        GetDatabaseAccessLevel {
+            user_name,
+            database,
+        }
+    }
+
+    /// Returns the user name of for which the database access level should
+    /// be fetched.
+    pub fn user_name(&self) -> &str {
+        &self.user_name
+    }
+
+    /// Returns the name of the database for which the database access level
+    /// should be fetched.
+    pub fn database(&self) -> &str {
+        &self.database
+    }
+}
+
+impl Method for GetDatabaseAccessLevel {
+    type Result = Permission;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: Some("result"),
+        code_field: Some("code"),
+    };
+}
+
+impl Prepare for GetDatabaseAccessLevel {
+    type Content = ();
+
+    fn operation(&self) -> Operation {
+        Operation::Read
+    }
+
+    fn path(&self) -> String {
+        String::from("/_api/user/") + &self.user_name
+            + "/database/" + &self.database
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
+    }
+}
+
+/// Set the database access level for an user.
+///
+/// You need permission to the _system database in order to execute this method
+/// call.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SetDatabaseAccessLevel {
+    user_name: String,
+    database: String,
+    access_level: NewAccessLevel,
+}
+
+impl SetDatabaseAccessLevel {
+    /// Constructs a new instance of the `SetDatabaseAccessLevel` method.
+    pub fn new(user_name: String, database: String, grant: Permission) -> Self {
+        SetDatabaseAccessLevel {
+            user_name,
+            database,
+            access_level: NewAccessLevel::new(grant),
+        }
+    }
+
+    /// Returns the user name for which the database access level should
+    /// be set.
+    pub fn user_name(&self) -> &str {
+        &self.user_name
+    }
+
+    /// Returns the name of the database for which the database access level
+    /// should be set.
+    pub fn database(&self) -> &str {
+        &self.database
+    }
+
+    /// Returns the access level that should be set.
+    pub fn access_level(&self) -> &NewAccessLevel {
+        &self.access_level
+    }
+}
+
+impl Method for SetDatabaseAccessLevel {
+    type Result = Empty;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some("code"),
+    };
+}
+
+impl Prepare for SetDatabaseAccessLevel {
+    type Content = NewAccessLevel;
+
+    fn operation(&self) -> Operation {
+        Operation::Replace
+    }
+
+    fn path(&self) -> String {
+        String::from("/_api/user/") + &self.user_name
+            + "/database/" + &self.database
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        Some(&self.access_level)
+    }
+}
+
+/// Reset the database access level for an user. As consequence the default
+/// database access level is applied. If there is no defined default database
+/// access level, it defaults to 'No access'.
+///
+/// You need permission to the _system database in order to execute this method
+/// call.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ResetDatabaseAccessLevel {
+    user_name: String,
+    database: String,
+}
+
+impl ResetDatabaseAccessLevel {
+    /// Constructs a new instance of the `ResetDatabaseAccessLevel` method.
+    pub fn new(user_name: String, database: String) -> Self {
+        ResetDatabaseAccessLevel {
+            user_name,
+            database,
+        }
+    }
+
+    /// Returns the user name for which the database access level should
+    /// be reset.
+    pub fn user_name(&self) -> &str {
+        &self.user_name
+    }
+
+    /// Returns the name of the database for which the database access level
+    /// should be reset.
+    pub fn database(&self) -> &str {
+        &self.database
+    }
+}
+
+impl Method for ResetDatabaseAccessLevel {
+    type Result = Empty;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some("code"),
+    };
+}
+
+impl Prepare for ResetDatabaseAccessLevel {
+    type Content = ();
+
+    fn operation(&self) -> Operation {
+        Operation::Delete
+    }
+
+    fn path(&self) -> String {
+        String::from("/_api/user/") + &self.user_name
+            + "/database/" + &self.database
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
+    }
+}
+
+/// Fetch the collection access level for a specific collection.
+#[derive(Clone, Debug, PartialEq)]
+pub struct GetCollectionAccessLevel {
+    user_name: String,
+    database: String,
+    collection: String,
+}
+
+impl GetCollectionAccessLevel {
+    /// Constructs a new instance of the `GetCollectionAccessLevel` method.
+    pub fn new(user_name: String, database: String, collection: String) -> Self {
+        GetCollectionAccessLevel {
+            user_name,
+            database,
+            collection,
+        }
+    }
+
+    /// Returns the user name for which the collection access level should
+    /// be fetched.
+    pub fn user_name(&self) -> &str {
+        &self.user_name
+    }
+
+    /// Returns the name of the database for which the collection access level
+    /// should be fetched.
+    pub fn database(&self) -> &str {
+        &self.database
+    }
+
+    /// Returns the name of the collection for which the collection access level
+    /// should be fetched.
+    pub fn collection(&self) -> &str {
+        &self.collection
+    }
+}
+
+impl Method for GetCollectionAccessLevel {
+    type Result = Permission;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: Some("result"),
+        code_field: Some("code"),
+    };
+}
+
+impl Prepare for GetCollectionAccessLevel {
+    type Content = Empty;
+
+    fn operation(&self) -> Operation {
+        Operation::Read
+    }
+
+    fn path(&self) -> String {
+        String::from("/_api/user/") + &self.user_name
+            + "/database/" + &self.database
+            + "/" + &self.collection
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
+    }
+}
+
+/// Set the collection access level for an user.
+///
+/// You need permission to the _system database in order to execute this method
+/// call.
+#[derive(Clone, Debug, PartialEq)]
+pub struct SetCollectionAccessLevel {
+    user_name: String,
+    database: String,
+    collection: String,
+    access_level: NewAccessLevel,
+}
+
+impl SetCollectionAccessLevel {
+    /// Constructs a new instance of the `SetCollectionAccessLevel` method.
+    pub fn new(user_name: String,
+        database: String,
+        collection: String,
+        grant: Permission
+    ) -> Self {
+        SetCollectionAccessLevel {
+            user_name,
+            database,
+            collection,
+            access_level: NewAccessLevel::new(grant),
+        }
+    }
+
+    /// Returns the user name for which the collection access level should
+    /// be set.
+    pub fn user_name(&self) -> &str {
+        &self.user_name
+    }
+
+    /// Returns the name of the database for which the collection access level
+    /// should be set.
+    pub fn database(&self) -> &str {
+        &self.database
+    }
+
+    /// Returns the name of the collection for which the collection access level
+    /// should be set.
+    pub fn collection(&self) -> &str {
+        &self.collection
+    }
+
+    /// Returns the access level that should be set.
+    pub fn access_level(&self) -> &NewAccessLevel {
+        &self.access_level
+    }
+}
+
+impl Method for SetCollectionAccessLevel {
+    type Result = Empty;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some("code"),
+    };
+}
+
+impl Prepare for SetCollectionAccessLevel {
+    type Content = NewAccessLevel;
+
+    fn operation(&self) -> Operation {
+        Operation::Replace
+    }
+
+    fn path(&self) -> String {
+        String::from("/_api/user/") + &self.user_name
+            + "/database/" + &self.database
+            + "/" + &self.collection
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        Some(&self.access_level)
+    }
+}
+
+/// Reset the collection access level for an user. As consequence the default
+/// collection access level is applied. If there is no defined default
+/// collection access level, it defaults to 'No access'.
+///
+/// You need permission to the _system database in order to execute this method
+/// call.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ResetCollectionAccessLevel {
+    user_name: String,
+    database: String,
+    collection: String,
+}
+
+impl ResetCollectionAccessLevel {
+    /// Constructs a new instance of the `ResetCollectionAccessLevel` method.
+    pub fn new(user_name: String, database: String, collection: String) -> Self {
+        ResetCollectionAccessLevel {
+            user_name,
+            database,
+            collection,
+        }
+    }
+
+    /// Returns the user name for which the collection access level should
+    /// be reset.
+    pub fn user_name(&self) -> &str {
+        &self.user_name
+    }
+
+    /// Returns the name of the database for which the collection access level
+    /// should be reset.
+    pub fn database(&self) -> &str {
+        &self.database
+    }
+
+    /// Returns the name of the collection for which the collection access level
+    /// should be reset.
+    pub fn collection(&self) -> &str {
+        &self.collection
+    }
+}
+
+impl Method for ResetCollectionAccessLevel {
+    type Result = Empty;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some("code"),
+    };
+}
+
+impl Prepare for ResetCollectionAccessLevel {
+    type Content = ();
+
+    fn operation(&self) -> Operation {
+        Operation::Delete
+    }
+
+    fn path(&self) -> String {
+        String::from("/_api/user/") + &self.user_name
+            + "/database/" + &self.database
+            + "/" + &self.collection
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
+    }
+}

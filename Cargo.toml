@@ -2,7 +2,7 @@
 name = "arangodb_client"
 version = "0.1.0"
 authors = ["Harald Maida <harald.maida@innoave.com>"]
-description = "A typesafe and fast client for ArangoDB"
+description = "A typesafe and fast driver for ArangoDB"
 repository = "https://github.com/innoave/arangodb-rust-driver"
 readme = "README.md"
 keywords = ["arangodb", "aql", "nosql", "database", "client", "driver", "typesafe"]

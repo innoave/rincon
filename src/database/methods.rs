@@ -44,11 +44,11 @@ impl Prepare for GetCurrentDatabase {
     }
 }
 
-/// Retrieves the list of all existing databases.
+/// Retrieves a list of all existing databases.
 ///
-/// *Note*: retrieving the list of databases is only possible from within the
+/// **Note**: retrieving the list of databases is only possible from within the
 /// `_system` database.
-/// *Note*: You should use the `user::ListAccessibleDatabases` to fetch the
+/// **Note**: You should use the `user::ListDatabasesForUser` to fetch the
 /// list of the available databases now.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ListOfDatabases {}
@@ -130,7 +130,7 @@ impl Prepare for ListAccessibleDatabases {
 
 /// Creates a new database.
 ///
-/// *Note*: creating a new database is only possible from within the `_system`
+/// **Note**: creating a new database is only possible from within the `_system`
 /// database.
 #[derive(Clone, Debug, PartialEq)]
 pub struct CreateDatabase<E>
@@ -191,7 +191,7 @@ impl<E> Prepare for CreateDatabase<E>
 
 /// Drops the database along with all data stored in it.
 ///
-/// *Note*: dropping a database is only possible from within the `_system`
+/// **Note**: dropping a database is only possible from within the `_system`
 /// database. The `_system` database itself cannot be dropped.
 #[derive(Clone, Debug, PartialEq)]
 pub struct DropDatabase {
@@ -199,8 +199,8 @@ pub struct DropDatabase {
 }
 
 impl DropDatabase {
-    /// Constructs a new `DropDatabase` method with the given database name
-    /// as parameter.
+    /// Constructs a new `DropDatabase` method with the given name of the
+    /// database to be dropped.
     pub fn new(database_name: String) -> Self
     {
         DropDatabase {
@@ -208,6 +208,8 @@ impl DropDatabase {
         }
     }
 
+    /// Constructs a new `DropDatabase` method with the given name of the
+    /// database to be dropped.
     pub fn with_name<N>(name: N) -> Self
         where N: Into<String>
     {
@@ -216,7 +218,7 @@ impl DropDatabase {
         }
     }
 
-    /// Returns the database name parameter of this `DropDatabase` method.
+    /// Returns the name of the database to be dropped.
     pub fn database_name(&self) -> &str {
         &self.database_name
     }

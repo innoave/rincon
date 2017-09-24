@@ -48,7 +48,8 @@ pub struct NewCollection {
     /// The type of the collection to create.
     /// (The default is 'Documents')
     #[serde(rename = "type")]
-    kind: CollectionType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    kind: Option<CollectionType>,
 
     /// If true, create a system collection. In this case collection-name should start with an
     /// underscore.
@@ -160,11 +161,9 @@ pub struct NewCollection {
 }
 
 impl NewCollection {
-    pub fn with_name<N>(name: N, kind: CollectionType) -> Self
-        where N: Into<String>
-    {
+    fn _new(name: String, kind: Option<CollectionType>) -> Self {
         NewCollection {
-            name: name.into(),
+            name,
             kind,
             is_system: None,
             key_options: None,
@@ -186,12 +185,30 @@ impl NewCollection {
         }
     }
 
+    pub fn with_name<N>(name: N) -> Self
+        where N: Into<String>
+    {
+        NewCollection::_new(name.into(), None)
+    }
+
+    pub fn documents_with_name<N>(name: N) -> Self
+        where N: Into<String>
+    {
+        NewCollection::_new(name.into(), Some(CollectionType::Documents))
+    }
+
+    pub fn edges_with_name<N>(name: N) -> Self
+        where N: Into<String>
+    {
+        NewCollection::_new(name.into(), Some(CollectionType::Edges))
+    }
+
     pub fn name(&self) -> &str {
         &self.name
     }
 
-    pub fn kind(&self) -> &CollectionType {
-        &self.kind
+    pub fn kind(&self) -> Option<&CollectionType> {
+        self.kind.as_ref()
     }
 }
 

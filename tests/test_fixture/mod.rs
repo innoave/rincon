@@ -18,3 +18,17 @@ pub fn init_db_test() -> (Core, Connection) {
     let conn = Connection::establish(datasource, &core.handle()).unwrap();
     (core, conn)
 }
+//
+//pub fn arangodb_test<T>(test: T) -> ()
+//    where T: FnOnce(Core, Connection) -> () + panic::UnwindSafe
+//{
+//    dotenv().ok();
+//    let core = Core::new().unwrap();
+//    let datasource = DataSource::from_url("http://localhost:8529").unwrap();
+//    let conn = Connection::establish(datasource, &core.handle()).unwrap();
+//
+//    let result = panic::catch_unwind(|| {
+//        test(core, conn)
+//    });
+//    assert!(result.is_ok())
+//}
