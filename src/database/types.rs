@@ -1,10 +1,12 @@
 
+use std::iter::{FromIterator, IntoIterator};
+
 use user::{NewUser, UserExtra};
 
-/// `DatabaseInfo` contains information about a database.
+/// The `Database` struct holds the attributes of a database.
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DatabaseInfo {
+pub struct Database {
     /// the id of the database
     id: String,
     /// the name of the database
@@ -15,7 +17,7 @@ pub struct DatabaseInfo {
     is_system: bool,
 }
 
-impl DatabaseInfo {
+impl Database {
     /// Returns the id of the database.
     pub fn id(&self) -> &str {
         &self.id
@@ -64,10 +66,12 @@ impl<E> NewDatabase<E>
 {
     /// Constructs a new instance of `NewDatabase` with all attributes
     /// set explicitly.
-    pub fn new(name: String, users: Vec<NewUser<E>>) -> Self {
+    pub fn new<N, U>(name: N, users: U) -> Self
+        where N: Into<String>, U: IntoIterator<Item=NewUser<E>>
+    {
         NewDatabase {
-            name,
-            users,
+            name: name.into(),
+            users: Vec::from_iter(users.into_iter()),
         }
     }
 
@@ -86,8 +90,10 @@ impl<E> NewDatabase<E>
 
     /// Sets the users for this `NewDatabase` that should be assigned to the
     /// newly created database.
-    pub fn set_users(&mut self, users: Vec<NewUser<E>>) {
-        self.users = users;
+    pub fn set_users<U>(&mut self, users: U)
+        where U: IntoIterator<Item=NewUser<E>>
+    {
+        self.users = Vec::from_iter(users.into_iter());
     }
 
     /// Returns the name of the database to be created.

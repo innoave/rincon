@@ -17,7 +17,7 @@ impl GetCurrentDatabase {
 }
 
 impl Method for GetCurrentDatabase {
-    type Result = DatabaseInfo;
+    type Result = Database;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: Some("result"),
         code_field: Some("code"),
@@ -147,6 +147,18 @@ impl<E> CreateDatabase<E>
     pub fn new(database: NewDatabase<E>) -> Self {
         CreateDatabase {
             database,
+        }
+    }
+
+    /// Constructs a new `CreateDatabase` method with the given name used as
+    /// the name of the database that is going to be created.
+    ///
+    /// All other parameters are left to their defaults.
+    pub fn with_name<N>(name: N) -> Self
+        where N: Into<String>
+    {
+        CreateDatabase {
+            database: NewDatabase::with_name(name),
         }
     }
 
