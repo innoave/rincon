@@ -496,7 +496,7 @@ impl RenameCollection {
     }
 }
 
-/// The `RenameCollectionBuilder` struct helps to implement an efficient
+/// The `RenameCollectionBuilder` struct helps to provide an efficient
 /// fluent API to build a new instance of the `RenameCollection` method.
 pub struct RenameCollectionBuilder {
     collection_name: String,

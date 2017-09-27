@@ -19,7 +19,7 @@ fn get_target_version() {
     let work = conn.execute(method);
     let target_version = core.run(work).unwrap();
 
-    assert_eq!("30203", target_version.version());
+    assert_eq!("30204", target_version.version());
 }
 
 #[test]
@@ -32,7 +32,7 @@ fn get_server_version_without_details() {
 
     assert_eq!("arango", server_version.server());
     assert_eq!("community", server_version.license());
-    assert_eq!("3.2.3", server_version.version());
+    assert_eq!("3.2.4", server_version.version());
 }
 
 #[test]
@@ -65,5 +65,5 @@ fn get_server_version_sub_part() {
     let work = conn.execute(method);
     let server_version = core.run(work).unwrap();
 
-    assert_eq!("3", server_version.sub());
+    assert_eq!("4", server_version.sub());
 }
