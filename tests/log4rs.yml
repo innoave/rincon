@@ -3,6 +3,11 @@ appenders:
   stdout:
     kind: console
 root:
-  level: debug
+  level: info
   appenders:
     - stdout
+loggers:
+  arangodb_client:
+    level: trace
+  hyper:
+    level: debug

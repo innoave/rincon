@@ -148,27 +148,45 @@ impl Connection {
         }
         Ok(request)
     }
+
+    pub fn datasource(&self) -> &DataSource {
+        &self.datasource
+    }
+
+    pub fn user_agent(&self) -> &str {
+        &self.user_agent
+    }
 }
 
 fn parse_return_type<M>(return_type: &RpcReturnType, status_code: StatusCode, payload: &[u8])
     -> Result<<M as Method>::Result, Error>
     where M: Method
 {
-    let mut payload_value = serde_json::from_slice(payload)?;
     debug!("Received response with code {:?}", status_code);
     if status_code.is_success() {
-        let result_field = match payload_value {
-            Value::Object(ref mut obj) =>
-                return_type.result_field.and_then(|result| obj.remove(result)),
-            _ => None,
-        };
-        let result_value = result_field.unwrap_or(payload_value);
-        serde_json::from_value(result_value).map_err(Error::from)
+        match return_type.result_field {
+            Some(result_field) => match serde_json::from_slice(payload).map_err(Error::from) {
+                Ok(Value::Object(ref mut obj)) => match obj.remove(result_field) {
+                    Some(result_value) =>
+                        serde_json::from_value(result_value).map_err(Error::from),
+                    None =>
+                        serde_json::from_slice(payload).map_err(Error::from),
+                },
+                _ =>
+                    serde_json::from_slice(payload).map_err(Error::from),
+            },
+            None => serde_json::from_slice(payload).map_err(Error::from),
+        }
     } else {
         debug!("| response body: {}", String::from_utf8_lossy(payload));
-        let api_error = serde_json::from_value(payload_value).unwrap_or_else(|_| {
-            let message = String::from_utf8_lossy(payload).to_string();
-            api::Error::new(status_code.as_u16(), api::ErrorCode::from(status_code), message)
+        let api_error = serde_json::from_slice(payload).unwrap_or_else(|_| {
+            let error_code = api::ErrorCode::from(status_code);
+            let message = if payload.is_empty() {
+                error_code.description().to_owned()
+            } else {
+                String::from_utf8_lossy(payload).to_string()
+            };
+            api::Error::new(status_code.as_u16(), error_code, message)
         });
         Err(Error::ApiError(api_error))
     }

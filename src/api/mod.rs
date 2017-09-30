@@ -216,16 +216,18 @@ pub struct Error {
 }
 
 impl Error {
-    pub fn new(status_code: u16, error_code: ErrorCode, message: String) -> Self {
+    pub fn new<M>(status_code: u16, error_code: ErrorCode, message: M) -> Self
+        where M: Into<String>
+    {
         Error {
             status_code,
             error_code,
-            message,
+            message: message.into(),
         }
     }
 
-    pub fn status_code(&self) -> &u16 {
-        &self.status_code
+    pub fn status_code(&self) -> u16 {
+        self.status_code
     }
 
     pub fn error_code(&self) -> &ErrorCode {

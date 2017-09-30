@@ -10,8 +10,9 @@ extern crate arangodb_client;
 mod test_fixture;
 
 use test_fixture::*;
-use arangodb_client::api::{Empty, EMPTY};
+use arangodb_client::api::{self, Empty, EMPTY};
 use arangodb_client::collection::{CreateCollection, DropCollection};
+use arangodb_client::connection::{Connection, Error};
 use arangodb_client::database::{CreateDatabase, DropDatabase, NewDatabase};
 use arangodb_client::user::*;
 
@@ -107,7 +108,7 @@ fn list_databases_for_user_testuser3() {
 
         let new_database1 = NewDatabase::new("testbase31", vec![new_user.clone()]);
         let _ = core.run(conn.execute(CreateDatabase::new(new_database1))).unwrap();
-        let new_database2 = NewDatabase::new("testbase32", vec![new_user.clone()]);
+        let new_database2 = NewDatabase::new("testbase32", vec![new_user]);
         let _ = core.run(conn.execute(CreateDatabase::new(new_database2))).unwrap();
 
         let method = ListDatabasesForUser::for_user("testuser3");
@@ -132,7 +133,7 @@ fn get_database_access_level_for_testuser_and_testdatabase() {
 
         let new_user: NewUser<Empty> = NewUser::with_name("testuser4", "");
 
-        let new_database = NewDatabase::new("testbase41", vec![new_user.clone()]);
+        let new_database = NewDatabase::new("testbase41", vec![new_user]);
         let _ = core.run(conn.execute(CreateDatabase::new(new_database))).unwrap();
 
         let method = GetDatabaseAccessLevel::new("testuser4".into(), "testbase41".into());
@@ -153,7 +154,7 @@ fn set_database_access_level_for_testuser_and_testdatabase() {
 
         let new_user: NewUser<Empty> = NewUser::with_name("testuser5", "");
 
-        let new_database = NewDatabase::new("testbase51", vec![new_user.clone()]);
+        let new_database = NewDatabase::new("testbase51", vec![new_user]);
         let _ = core.run(conn.execute(CreateDatabase::new(new_database))).unwrap();
 
         let method = SetDatabaseAccessLevel::new("testuser5".into(),
@@ -178,7 +179,7 @@ fn get_collection_access_level_for_testuser_and_testcollection() {
 
         let new_user: NewUser<Empty> = NewUser::with_name("testuser6", "");
 
-        let new_database = NewDatabase::new("testbase61", vec![new_user.clone()]);
+        let new_database = NewDatabase::new("testbase61", vec![new_user]);
         let _ = core.run(conn.execute(CreateDatabase::new(new_database))).unwrap();
 
         let _ = core.run(conn.execute(CreateCollection::with_name("testcollection611"))).unwrap();
@@ -203,7 +204,7 @@ fn set_collection_access_level_for_testuser_and_testcollection() {
 
         let new_user: NewUser<Empty> = NewUser::with_name("testuser7", "");
 
-        let new_database = NewDatabase::new("testbase71", vec![new_user.clone()]);
+        let new_database = NewDatabase::new("testbase71", vec![new_user]);
         let _ = core.run(conn.execute(CreateDatabase::new(new_database))).unwrap();
 
         let _ = core.run(conn.execute(CreateCollection::with_name("testcollection711"))).unwrap();
@@ -222,5 +223,39 @@ fn set_collection_access_level_for_testuser_and_testcollection() {
         let _ = core.run(conn.execute(DropCollection::with_name("testcollection711"))).unwrap();
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase71"))).unwrap();
         let _ = core.run(conn.execute(RemoveUser::with_name("testuser7"))).unwrap();
+    });
+}
+
+#[test]
+fn create_collection_in_database_not_accessible_for_user() {
+    arango_system_db_test(|conn, ref mut core| {
+
+        let new_user: NewUser<Empty> = NewUser::with_name("testuser8", "");
+        let _ = core.run(conn.execute(CreateUser::new(new_user))).unwrap();
+
+        let new_database = NewDatabase::<Empty>::with_name("testbase81");
+        let _ = core.run(conn.execute(CreateDatabase::new(new_database))).unwrap();
+
+        let user_ds = conn.datasource()
+            .with_basic_authentication("testuser8", "")
+            .use_database("testbase81");
+        let user_conn = Connection::establish(user_ds, &core.handle()).unwrap();
+
+        let method = CreateCollection::with_name("testcollection811");
+        let work = user_conn.execute(method);
+        let result = core.run(work);
+
+        match result {
+            Err(Error::ApiError(error)) => {
+                assert_eq!(401, error.status_code());
+                assert_eq!(&api::ErrorCode::HttpUnauthorized, error.error_code());
+                assert_eq!("Will be raised when authorization is required but the user is not authorized.", error.message());
+            },
+            _ => panic!(format!("Unexpected result: {:?}", result)),
+        }
+
+    }, |conn, ref mut core| {
+        let _ = core.run(conn.execute(DropDatabase::with_name("testbase81"))).unwrap();
+        let _ = core.run(conn.execute(RemoveUser::with_name("testuser8"))).unwrap();
     });
 }

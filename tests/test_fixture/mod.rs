@@ -69,9 +69,9 @@ pub fn arango_user_db_test<T>(user: &str, database: &str, test: T) -> ()
 fn setup_database<U, D>(user: U, database: D, conn: &Connection, core: &mut Core)
     where U: Into<String>, D: Into<String>
 {
-    let new_user: NewUser<Empty> = NewUser::with_name(user, "");
+    let new_user = NewUser::<Empty>::with_name(user, "");
 
-    let new_database = NewDatabase::new(database, vec![new_user.clone()]);
+    let new_database = NewDatabase::new(database, vec![new_user]);
     let created = core.run(conn.execute(CreateDatabase::new(new_database))).unwrap();
 
     assert!(created, "Error on setting up test database");
