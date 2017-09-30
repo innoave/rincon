@@ -2,7 +2,7 @@
 use serde::ser::Serialize;
 
 use api::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use user::UserExtra;
+use user::{NewUser, UserExtra};
 use super::types::*;
 
 /// Retrieves information about the current database.
@@ -51,16 +51,16 @@ impl Prepare for GetCurrentDatabase {
 /// **Note**: You should use the `user::ListDatabasesForUser` to fetch the
 /// list of the available databases now.
 #[derive(Clone, Debug, PartialEq)]
-pub struct ListOfDatabases {}
+pub struct ListDatabases {}
 
-impl ListOfDatabases {
-    /// Constructs a new `ListOfDatabases` method.
+impl ListDatabases {
+    /// Constructs a new `ListDatabases` method.
     pub fn new() -> Self {
-        ListOfDatabases {}
+        ListDatabases {}
     }
 }
 
-impl Method for ListOfDatabases {
+impl Method for ListDatabases {
     type Result = Vec<String>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: Some("result"),
@@ -68,7 +68,7 @@ impl Method for ListOfDatabases {
     };
 }
 
-impl Prepare for ListOfDatabases {
+impl Prepare for ListDatabases {
     type Content = ();
 
     fn operation(&self) -> Operation {
@@ -159,6 +159,19 @@ impl<E> CreateDatabase<E>
     {
         CreateDatabase {
             database: NewDatabase::with_name(name),
+        }
+    }
+
+    /// Constructs a new `CreateDatabase` method with the given name used as
+    /// the name of the database that is going to be created and assigns it to
+    /// the given users.
+    ///
+    /// All other parameters are left to their defaults.
+    pub fn with_name_for_users<N>(name: N, users: Vec<NewUser<E>>) -> Self
+        where N: Into<String>
+    {
+        CreateDatabase {
+            database: NewDatabase::new(name, users),
         }
     }
 
