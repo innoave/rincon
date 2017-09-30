@@ -19,15 +19,7 @@ pub fn init_logging() {
     log4rs::init_file("tests/log4rs.yml", Default::default()).unwrap();
 }
 
-pub fn init_db_test() -> (Core, Connection) {
-    dotenv().ok();
-    let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
-    let core = Core::new().unwrap();
-    let datasource = DataSource::from_url(&db_url).unwrap();
-    let conn = Connection::establish(datasource, &core.handle()).unwrap();
-    (core, conn)
-}
-
+#[allow(dead_code)]
 pub fn arango_system_db_test<T>(test: T) -> ()
     where T: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe
 {
@@ -44,6 +36,7 @@ pub fn arango_system_db_test<T>(test: T) -> ()
     assert!(result.is_ok())
 }
 
+#[allow(dead_code)]
 pub fn arango_user_db_test<T>(user: &str, database: &str, test: T) -> ()
     where T: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe
 {
@@ -67,6 +60,7 @@ pub fn arango_user_db_test<T>(user: &str, database: &str, test: T) -> ()
     assert!(result.is_ok())
 }
 
+#[allow(dead_code)]
 fn setup_database<U, D>(user: U, database: D, conn: &Connection, core: &mut Core)
     where U: Into<String>, D: Into<String>
 {
@@ -78,6 +72,7 @@ fn setup_database<U, D>(user: U, database: D, conn: &Connection, core: &mut Core
     assert!(created, "Error on setting up test database");
 }
 
+#[allow(dead_code)]
 fn teardown_database<U, D>(user: U, database: D, conn: &Connection, core: &mut Core)
     where U: Into<String>, D: Into<String>
 {
