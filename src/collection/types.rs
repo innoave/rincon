@@ -413,8 +413,73 @@ pub struct NewKeyOptions {
     offset: Option<u64>,
 }
 
+/// The `BasicCollectionProperties` struct holds basic attributes of a
+/// collection. This struct is returned by the `CreateCollection` method.
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BasicCollectionProperties {
+    /// The id of the collection.
+    id: String,
+    /// The name of the collection.
+    name: String,
+    /// The type of the collection.
+    #[serde(rename = "type")]
+    kind: CollectionType,
+    /// The status of the collection.
+    status: CollectionStatus,
+    /// Whether the collection is system collection or regular collection.
+    is_system: bool,
+    /// Whether the server should wait until the collection is synchronized to
+    /// the file system before returning the response.
+    wait_for_sync: bool,
+    /// Whether this collection is volatile.
+    #[cfg(feature = "mmfiles")]
+    is_volatile: bool,
+}
+
+impl BasicCollectionProperties {
+    /// Returns the id of the collection.
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    /// Returns the name of the collection.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Returns the type of the collection.
+    pub fn kind(&self) -> &CollectionType {
+        &self.kind
+    }
+
+    /// Returns the status of the collection.
+    pub fn status(&self) -> &CollectionStatus {
+        &self.status
+    }
+
+    /// Returns whether the collection is a system or regular
+    /// collection.
+    pub fn is_system(&self) -> bool {
+        self.is_system
+    }
+
+    /// Returns whether the server waits for sync to the filesystem before
+    /// sending the response.
+    pub fn is_wait_for_sync(&self) -> bool {
+        self.wait_for_sync
+    }
+
+    /// Returns whether this collection is a volatile collection.
+    #[cfg(feature = "mmfiles")]
+    pub fn is_volatile(&self) -> bool {
+        self.is_volatile
+    }
+}
+
 /// The `CollectionProperties` struct holds the attributes of a collection.
 #[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CollectionProperties {
     /// The id of the collection.
     id: String,
@@ -469,6 +534,11 @@ impl CollectionProperties {
     /// Returns the type of the collection.
     pub fn kind(&self) -> &CollectionType {
         &self.kind
+    }
+
+    /// Returns the status of the collection.
+    pub fn status(&self) -> &CollectionStatus {
+        &self.status
     }
 
     /// Returns whether the collection is a system or regular
@@ -533,6 +603,7 @@ impl CollectionProperties {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CollectionPropertiesUpdate {
     /// Whether the server should wait until the collection is synchronized to
     /// the file system before returning the response.
@@ -604,6 +675,7 @@ impl RenameTo {
 
 /// The `KeyOptions` struct holds the key related attributes.
 #[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct KeyOptions {
     /// If set to true, then it is allowed to supply own key values in the _key attribute of a
     /// document. If set to false, then the key generator will solely be responsible for generating

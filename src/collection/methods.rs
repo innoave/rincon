@@ -154,7 +154,7 @@ impl CreateCollection {
 }
 
 impl Method for CreateCollection {
-    type Result = Collection;
+    type Result = BasicCollectionProperties;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
         code_field: Some("code"),
@@ -503,6 +503,7 @@ pub struct RenameCollectionBuilder {
 }
 
 impl RenameCollectionBuilder {
+    //noinspection RsSelfConvention
     /// Constructs a new instance of the `RenameCollection` method for the
     /// collection name of this builder and the given new name.
     pub fn to_name<N>(self, name: N) -> RenameCollection
