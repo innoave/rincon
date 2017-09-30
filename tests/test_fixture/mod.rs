@@ -20,8 +20,9 @@ pub fn init_logging() {
 }
 
 #[allow(dead_code)]
-pub fn arango_system_db_test<T>(test: T) -> ()
-    where T: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe
+pub fn arango_system_db_test<T, C>(test: T, clean_up: C) -> ()
+    where T: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe,
+          C: FnOnce(Connection, &mut Core) -> ()
 {
     dotenv().ok();
     let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
@@ -29,9 +30,13 @@ pub fn arango_system_db_test<T>(test: T) -> ()
 
     let result = panic::catch_unwind(|| {
         let mut core = Core::new().unwrap();
-        let conn = Connection::establish(system_ds, &core.handle()).unwrap();
+        let conn = Connection::establish(system_ds.clone(), &core.handle()).unwrap();
         test(conn, &mut core);
     });
+
+    let mut core = Core::new().unwrap();
+    let sys_conn = Connection::establish(system_ds, &core.handle()).unwrap();
+    clean_up(sys_conn, &mut core);
 
     assert!(result.is_ok())
 }
@@ -44,8 +49,8 @@ pub fn arango_user_db_test<T>(user: &str, database: &str, test: T) -> ()
     let mut core = Core::new().unwrap();
     let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
     let system_ds = DataSource::from_url(&db_url).unwrap();
-    let conn = Connection::establish(system_ds.clone(), &core.handle()).unwrap();
-    setup_database(user, database, &conn, &mut core);
+    let sys_conn = Connection::establish(system_ds.clone(), &core.handle()).unwrap();
+    setup_database(user, database, &sys_conn, &mut core);
 
     let result = panic::catch_unwind(|| {
         let mut core = Core::new().unwrap();
@@ -56,7 +61,7 @@ pub fn arango_user_db_test<T>(user: &str, database: &str, test: T) -> ()
         test(conn, &mut core);
     });
 
-    teardown_database(user, database, &conn, &mut core);
+    teardown_database(user, database, &sys_conn, &mut core);
     assert!(result.is_ok())
 }
 

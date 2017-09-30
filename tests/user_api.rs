@@ -24,6 +24,8 @@ fn list_available_users_should_return_the_root_user() {
         let available_users = core.run(work).unwrap();
 
         assert!(available_users.iter().any(|user| user.name() == "root"));
+
+    }, |_, _| {
     });
 }
 
@@ -38,14 +40,15 @@ fn get_user_should_return_active_root_user() {
         assert_eq!("root", user.name());
         assert!(user.is_active());
         assert_eq!(&EMPTY, user.extra())
+
+    }, |_, _| {
     });
 }
 
 #[test]
 fn create_user_with_name_should_return_newly_created_user_as_active() {
+    let user_name = String::from("testuser1");
     arango_system_db_test(|conn, ref mut core| {
-
-        let user_name = String::from("testuser1");
 
         let new_user = NewUser::with_name(user_name.as_ref(), "testpass1");
         let method = CreateUser::new(new_user);
@@ -56,7 +59,8 @@ fn create_user_with_name_should_return_newly_created_user_as_active() {
         assert!(user.is_active());
         assert_eq!(&EMPTY, user.extra());
 
-        let method = RemoveUser::with_name(user_name);
+    }, |conn, ref mut core| {
+        let method = RemoveUser::with_name(user_name.as_ref());
         let work = conn.execute(method);
         core.run(work).unwrap();
     });
@@ -88,6 +92,7 @@ fn create_user_with_extra_should_return_newly_created_user_with_extra() {
         assert!(user.is_active());
         assert_eq!(&CustomExtra { email: "testuser2@mail.rs".into(), age: 27 }, user.extra());
 
+    }, |conn, ref mut core| {
         let method = RemoveUser::with_name("testuser2");
         let work = conn.execute(method);
         core.run(work).unwrap();
@@ -114,6 +119,7 @@ fn list_databases_for_user_testuser3() {
         assert!(databases.contains_key("testbase32"));
         assert_eq!(&Permission::ReadWrite, databases.get("testbase32").unwrap());
 
+    }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase32"))).unwrap();
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase31"))).unwrap();
         let _ = core.run(conn.execute(RemoveUser::with_name("testuser3"))).unwrap();
@@ -135,6 +141,7 @@ fn get_database_access_level_for_testuser_and_testdatabase() {
 
         assert_eq!(Permission::ReadWrite, permission);
 
+    }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase41"))).unwrap();
         let _ = core.run(conn.execute(RemoveUser::with_name("testuser4"))).unwrap();
     });
@@ -159,6 +166,7 @@ fn set_database_access_level_for_testuser_and_testdatabase() {
 
         assert_eq!(Permission::ReadOnly, granted);
 
+    }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase51"))).unwrap();
         let _ = core.run(conn.execute(RemoveUser::with_name("testuser5"))).unwrap();
     });
@@ -182,6 +190,7 @@ fn get_collection_access_level_for_testuser_and_testcollection() {
 
         assert_eq!(Permission::ReadWrite, permission);
 
+    }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropCollection::with_name("testcollection611"))).unwrap();
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase61"))).unwrap();
         let _ = core.run(conn.execute(RemoveUser::with_name("testuser6"))).unwrap();
@@ -209,6 +218,7 @@ fn set_collection_access_level_for_testuser_and_testcollection() {
 
         assert_eq!(Permission::ReadOnly, granted);
 
+    }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropCollection::with_name("testcollection711"))).unwrap();
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase71"))).unwrap();
         let _ = core.run(conn.execute(RemoveUser::with_name("testuser7"))).unwrap();

@@ -20,6 +20,8 @@ fn get_target_version() {
         let target_version = core.run(work).unwrap();
 
         assert_eq!("30204", target_version.version());
+
+    }, |_, _| {
     });
 }
 
@@ -34,6 +36,8 @@ fn get_server_version_without_details() {
         assert_eq!("arango", server_version.server());
         assert_eq!("community", server_version.license());
         assert_eq!("3.2.4", server_version.version());
+
+    }, |_, _| {
     });
 }
 
@@ -46,6 +50,8 @@ fn get_server_version_major_part() {
         let server_version = core.run(work).unwrap();
 
         assert_eq!("3", server_version.major());
+
+    }, |_, _| {
     });
 }
 
@@ -58,6 +64,8 @@ fn get_server_version_minor_part() {
         let server_version = core.run(work).unwrap();
 
         assert_eq!("2", server_version.minor());
+
+    }, |_, _| {
     });
 }
 
@@ -70,5 +78,7 @@ fn get_server_version_sub_part() {
         let server_version = core.run(work).unwrap();
 
         assert_eq!("4", server_version.sub());
+
+    }, |_, _| {
     });
 }
