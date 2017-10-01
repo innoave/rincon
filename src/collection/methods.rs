@@ -497,6 +497,34 @@ impl RenameCollection {
     }
 }
 
+impl Method for RenameCollection {
+    type Result = Collection;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some("code"),
+    };
+}
+
+impl Prepare for RenameCollection {
+    type Content = RenameTo;
+
+    fn operation(&self) -> Operation {
+        Operation::Replace
+    }
+
+    fn path(&self) -> String {
+        String::from("/_api/collection/") + &self.name + "/rename"
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        Some(&self.rename_to)
+    }
+}
+
 /// A struct that helps to provide an efficient fluent API to build a new
 /// instance of the `RenameCollection` method.
 pub struct RenameCollectionBuilder {

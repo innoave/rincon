@@ -248,7 +248,7 @@ fn create_collection_in_database_not_accessible_for_user() {
         match result {
             Err(Error::ApiError(error)) => {
                 assert_eq!(401, error.status_code());
-                assert_eq!(&api::ErrorCode::HttpUnauthorized, error.error_code());
+                assert_eq!(api::ErrorCode::HttpUnauthorized, error.error_code());
                 assert_eq!("Will be raised when authorization is required but the user is not authorized.", error.message());
             },
             _ => panic!(format!("Unexpected result: {:?}", result)),

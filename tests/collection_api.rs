@@ -142,7 +142,7 @@ fn get_collection_should_return_an_error_if_collection_not_found() {
         match result {
             Err(Error::ApiError(error)) => {
                 assert_eq!(404, error.status_code());
-                assert_eq!(&api::ErrorCode::ArangoCollectionNotFound, error.error_code());
+                assert_eq!(api::ErrorCode::ArangoCollectionNotFound, error.error_code());
                 assert_eq!("unknown collection 'test_collection_not_existing'", error.message());
             },
             _ => panic!("Error::ApiError expected but got {:?}", result),
@@ -193,10 +193,100 @@ fn get_collection_properties_should_return_an_error_if_collection_not_found() {
         match result {
             Err(Error::ApiError(error)) => {
                 assert_eq!(404, error.status_code());
-                assert_eq!(&api::ErrorCode::ArangoCollectionNotFound, error.error_code());
+                assert_eq!(api::ErrorCode::ArangoCollectionNotFound, error.error_code());
                 assert_eq!("unknown collection 'test_collection_not_existing'", error.message());
             },
             _ => panic!("Error::ApiError expected but got {:?}", result),
         };
+    });
+}
+
+#[test]
+fn change_collection_properties_wait_for_sync() {
+    arango_user_db_test("test_coll_user10", "test_coll_db101", |conn, ref mut core| {
+
+        let _ = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
+        let original = core.run(conn.execute(GetCollectionProperties::with_name("test_collection1"))).unwrap();
+
+        assert_eq!("test_collection1", original.name());
+        assert!(!original.is_wait_for_sync());
+        #[cfg(feature = "mmfiles")]
+        assert_eq!(32 * 1024 * 1024, original.journal_size());
+
+        let mut updates = CollectionPropertiesUpdate::new();
+        updates.set_wait_for_sync(Some(true));
+        let method = ChangeCollectionProperties::new("test_collection1".into(), updates);
+        let work = conn.execute(method);
+        let updated = core.run(work).unwrap();
+
+        assert_eq!("test_collection1", updated.name());
+        assert!(updated.is_wait_for_sync());
+        #[cfg(feature = "mmfiles")]
+        assert_eq!(32 * 1024 * 1024, updated.journal_size());
+    });
+}
+
+#[cfg(feature = "mmfiles")]
+#[test]
+fn change_collection_properties_journal_size() {
+    arango_user_db_test("test_coll_user11", "test_coll_db111", |conn, ref mut core| {
+
+        let _ = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
+        let original = core.run(conn.execute(GetCollectionProperties::with_name("test_collection1"))).unwrap();
+
+        assert_eq!("test_collection1", original.name());
+        assert!(!original.is_wait_for_sync());
+        assert_eq!(32 * 1024 * 1024, original.journal_size());
+
+        let mut updates = CollectionPropertiesUpdate::new();
+        updates.set_journal_size(Some(128 * 1024 * 1024));
+        let method = ChangeCollectionProperties::new("test_collection1".into(), updates);
+        let work = conn.execute(method);
+        let updated = core.run(work).unwrap();
+
+        assert_eq!("test_collection1", updated.name());
+        assert!(!updated.is_wait_for_sync());
+        assert_eq!(128 * 1024 * 1024, updated.journal_size());
+    });
+}
+
+#[test]
+fn rename_collection_to_new_name() {
+    arango_user_db_test("test_coll_user12", "test_coll_db121", |conn, ref mut core| {
+
+        let original = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
+
+        assert_eq!("test_collection1", original.name());
+
+        let method = RenameCollection::with_name("test_collection1")
+            .to_name("test_collection_renamed");
+        let work = conn.execute(method);
+        let updated = core.run(work).unwrap();
+
+        assert_eq!("test_collection_renamed", updated.name());
+    });
+}
+
+#[test]
+fn rename_collection_to_empty_name() {
+    arango_user_db_test("test_coll_user13", "test_coll_db131", |conn, ref mut core| {
+
+        let original = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
+
+        assert_eq!("test_collection1", original.name());
+
+        let method = RenameCollection::with_name("test_collection1")
+            .to_name("");
+        let work = conn.execute(method);
+        let result = core.run(work);
+
+        match result {
+            Err(Error::ApiError(error)) => {
+                assert_eq!(403, error.status_code());
+                assert_eq!(api::ErrorCode::Forbidden, error.error_code());
+                assert_eq!("forbidden", error.message());
+            },
+            _ => panic!("Error::ApiError expected but got {:?}", result),
+        }
     });
 }

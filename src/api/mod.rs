@@ -231,8 +231,8 @@ impl Error {
         self.status_code
     }
 
-    pub fn error_code(&self) -> &ErrorCode {
-        &self.error_code
+    pub fn error_code(&self) -> ErrorCode {
+        self.error_code
     }
 
     pub fn message(&self) -> &str {
