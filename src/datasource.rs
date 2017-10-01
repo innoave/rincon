@@ -25,7 +25,7 @@ pub struct DataSource {
 }
 
 impl DataSource {
-    pub fn from_url(url: &str) -> Result<Self, self::Error> {
+    pub fn from_url(url: &str) -> Result<Self, Error> {
         let url = Url::parse(url)?;
         let protocol = url.scheme();
         let host = url.host_str().unwrap_or(DEFAULT_HOST);
@@ -170,6 +170,7 @@ impl Credentials {
     }
 }
 
+#[allow(missing_copy_implementations)]
 #[derive(Debug)]
 pub enum Error {
     InvalidUrl(ParseError),

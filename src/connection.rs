@@ -26,7 +26,7 @@ pub enum Error {
     ApiError(api::Error),
     CommunicationFailed(hyper::Error),
     JsonError(serde_json::Error),
-    HttpError(hyper::StatusCode),
+    HttpError(StatusCode),
     IoError(io::Error),
     NativeTlsError(native_tls::Error),
     NotUtf8Content(FromUtf8Error),
@@ -83,7 +83,7 @@ pub struct Connection {
 
 impl Connection {
     pub fn establish(datasource: DataSource, reactor: &reactor::Handle)
-        -> Result<Self, self::Error>
+        -> Result<Self, Error>
     {
         let https_connector = HttpsConnector::new(4, &reactor)?;
         let mut timeout_connector = TimeoutConnector::new(https_connector, &reactor);

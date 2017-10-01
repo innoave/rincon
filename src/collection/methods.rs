@@ -3,25 +3,26 @@ use api::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use super::types::*;
 
 /// Retrieves a list of existing collections.
+#[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ListOfCollections {
+pub struct ListCollections {
     /// Whether or not to exclude system collections from the response.
     exclude_system: bool
 }
 
-impl ListOfCollections {
-    /// Constructs a new instance of the `ListOfCollections` method with
+impl ListCollections {
+    /// Constructs a new instance of the `ListCollections` method with
     /// the `exclude_system` parameter set to `true`.
     pub fn new() -> Self {
-        ListOfCollections {
+        ListCollections {
             exclude_system: true,
         }
     }
 
-    /// Constructs a new instance of the `ListOfCollections` method with
+    /// Constructs a new instance of the `ListCollections` method with
     /// the `exclude_system` parameter set to `false`.
     pub fn including_system() -> Self {
-        ListOfCollections {
+        ListCollections {
             exclude_system: false,
         }
     }
@@ -38,7 +39,7 @@ impl ListOfCollections {
     }
 }
 
-impl Method for ListOfCollections {
+impl Method for ListCollections {
     type Result = Vec<Collection>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: Some("result"),
@@ -46,7 +47,7 @@ impl Method for ListOfCollections {
     };
 }
 
-impl Prepare for ListOfCollections {
+impl Prepare for ListCollections {
     type Content = ();
 
     fn operation(&self) -> Operation {
@@ -112,7 +113,7 @@ impl CreateCollection {
         where N: Into<String>
     {
         CreateCollection {
-            collection: NewCollection::edges_with_name(name),
+            collection: NewCollection::documents_with_name(name),
             #[cfg(feature = "cluster")]
             wait_for_sync_replication: true,
         }

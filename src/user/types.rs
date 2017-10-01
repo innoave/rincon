@@ -6,7 +6,7 @@ use serde::de::{self, Deserialize, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
 use serde_json::Value;
 
-use api::{Empty};
+use api::Empty;
 use super::DEFAULT_ROOT_PASSWORD;
 
 /// The `User` struct contains information about a user.
@@ -259,6 +259,7 @@ impl<E> From<User<E>> for UserUpdate<E>
 }
 
 /// The `NewAccessLevel` struct specifies an access level to be granted.
+#[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewAccessLevel {
@@ -266,7 +267,7 @@ pub struct NewAccessLevel {
 }
 
 impl NewAccessLevel {
-    /// Contructs a new instance of `NewAccessLevel`.
+    /// Constructs a new instance of `NewAccessLevel`.
     pub fn new(grant: Permission) -> Self {
         NewAccessLevel {
             grant,
@@ -280,7 +281,7 @@ impl NewAccessLevel {
 }
 
 /// The `Permission` enum defines the possible access levels.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Permission {
     /// The 'Administrate' access level.
     ReadWrite,

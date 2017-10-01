@@ -7,6 +7,18 @@
 //! RocksDB related attributes and the crate feature `cluster` enables cluster
 //! related attributes.
 
+#![warn(
+    missing_copy_implementations,
+    missing_debug_implementations,
+//    missing_docs,
+    trivial_casts,
+    trivial_numeric_casts,
+    unsafe_code,
+    unstable_features,
+    unused_import_braces,
+    unused_qualifications,
+)]
+
 extern crate futures;
 extern crate hyper;
 extern crate hyper_timeout;

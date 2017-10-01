@@ -6,6 +6,7 @@ use user::{NewUser, UserExtra};
 use super::types::*;
 
 /// Retrieves information about the current database.
+#[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct GetCurrentDatabase {}
 
@@ -50,6 +51,7 @@ impl Prepare for GetCurrentDatabase {
 /// `_system` database.
 /// **Note**: You should use the `user::ListDatabasesForUser` to fetch the
 /// list of the available databases now.
+#[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ListDatabases {}
 
@@ -90,6 +92,7 @@ impl Prepare for ListDatabases {
 
 /// Retrieves the list of all databases the current user can access without
 /// specifying a different username or password.
+#[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ListAccessibleDatabases {}
 

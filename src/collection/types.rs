@@ -34,13 +34,13 @@ impl Collection {
     }
 
     /// Returns the type of this collection.
-    pub fn kind(&self) -> &CollectionType {
-        &self.kind
+    pub fn kind(&self) -> CollectionType {
+        self.kind
     }
 
     /// Returns the status of this collection.
-    pub fn status(&self) -> &CollectionStatus {
-        &self.status
+    pub fn status(&self) -> CollectionStatus {
+        self.status
     }
 
     /// Returns whether this collection is a system collection or regular
@@ -68,13 +68,13 @@ pub struct NewCollection {
     #[serde(skip_serializing_if = "Option::is_none")]
     kind: Option<CollectionType>,
 
-    /// If true, create a system collection. In this case collection-name should start with an
-    /// underscore.
+    /// If true, create a system collection. In this case collection-name
+    /// should start with an underscore.
     /// (The default is false)
     ///
-    /// End users should normally create non-system collections only. API implementors
-    /// may be required to create system collections in very special occasions, but normally a
-    /// regular collection will do.
+    /// End users should normally create non-system collections only. API
+    /// implementors may be required to create system collections in very
+    /// special occasions, but normally a regular collection will do.
     #[serde(skip_serializing_if = "Option::is_none")]
     is_system: Option<bool>,
 
@@ -82,13 +82,14 @@ pub struct NewCollection {
     #[serde(skip_serializing_if = "Option::is_none")]
     key_options: Option<NewKeyOptions>,
 
-    /// If true then the data is synchronized to disk before returning from a document create,
-    /// update, replace or removal operation.
-    /// (default: false)
+    /// If true then the data is synchronized to disk before returning from a
+    /// document create, update, replace or removal operation.
+    /// (The default is false)
     #[serde(skip_serializing_if = "Option::is_none")]
     wait_for_sync: Option<bool>,
 
-    /// In a cluster, this value determines the number of shards to create for the collection.
+    /// In a cluster, this value determines the number of shards to create for
+    /// the collection.
     /// (The default is 1)
     ///
     /// In a single server setup, this option is meaningless.
@@ -98,10 +99,11 @@ pub struct NewCollection {
 
     /// (The default is [ "_key" ])
     ///
-    /// In a cluster, this attribute determines which document attributes are used to determine
-    /// the target shard for documents. Documents are sent to shards based on the values of their
-    /// shard key attributes. The values of all shard key attributes in a document are hashed, and
-    /// the hash value is used to determine the target shard.
+    /// In a cluster, this attribute determines which document attributes are
+    /// used to determine the target shard for documents. Documents are sent to
+    /// shards based on the values of their shard key attributes. The values of
+    /// all shard key attributes in a document are hashed, and the hash value
+    /// is used to determine the target shard.
     ///
     /// Note: Values of shard key attributes cannot be changed once set.
     ///
@@ -113,28 +115,33 @@ pub struct NewCollection {
     /// The replication factor.
     /// (The default is 1)
     ///
-    /// In a cluster, this attribute determines how many copies of each shard are kept on different
-    /// DBServers. The value 1 means that only one copy (no synchronous replication) is kept. A
-    /// value of k means that k-1 replicas are kept. Any two copies reside on different DBServers.
-    /// Replication between them is synchronous, that is, every write operation to the "leader"
-    /// copy will be replicated to all "follower" replicas, before the write operation is reported
-    /// successful. If a server fails, this is detected automatically and one of the servers
-    /// holding copies take over, usually without an error being reported.
+    /// In a cluster, this attribute determines how many copies of each shard
+    /// are kept on different DBServers. The value 1 means that only one copy
+    /// (no synchronous replication) is kept. A value of k means that k-1
+    /// replicas are kept. Any two copies reside on different DBServers.
+    /// Replication between them is synchronous, that is, every write operation
+    /// to the "leader" copy will be replicated to all "follower" replicas,
+    /// before the write operation is reported successful. If a server fails,
+    /// this is detected automatically and one of the servers holding copies
+    /// take over, usually without an error being reported.
     ///
     /// In a single server setup, this option is meaningless.
     #[cfg(feature = "cluster")]
     #[serde(skip_serializing_if = "Option::is_none")]
     replication_factor: Option<u16>,
 
-    /// If true then the collection data is kept in-memory only and not made persistent.
+    /// If true then the collection data is kept in-memory only and not made
+    /// persistent.
     /// (The default is false)
     ///
-    /// Unloading the collection will cause the collection data to be discarded. Stopping or
-    /// re-starting the server will also cause full loss of data in the collection. Setting this
-    /// option will make the resulting collection be slightly faster than regular collections
-    /// because ArangoDB does not enforce any synchronization to disk and does not calculate any
-    /// CRC checksum for datafiles (as there are no datafiles). This option should therefore be
-    /// used for cache-type collections only, and not for data that cannot be re-created otherwise.
+    /// Unloading the collection will cause the collection data to be
+    /// discarded. Stopping or re-starting the server will also cause full
+    /// loss of data in the collection. Setting this option will make the
+    /// resulting collection be slightly faster than regular collections
+    /// because ArangoDB does not enforce any synchronization to disk and does
+    /// not calculate any CRC checksum for datafiles (as there are no
+    /// datafiles). This option should therefore be used for cache-type
+    /// collections only, and not for data that cannot be re-created otherwise.
     ///
     /// This option is meaningful for the MMFiles storage engine only.
     #[cfg(feature = "mmfiles")]
@@ -154,12 +161,14 @@ pub struct NewCollection {
     ///
     /// This number has to be a power of 2 and less than or equal to 1024.
     ///
-    /// For very large collections one should increase this to avoid long pauses when the hash table
-    /// has to be initially built or resized, since buckets are resized individually and can be
-    /// initially built in parallel. For example, 64 might be a sensible value for a collection with
-    /// 100 000 000 documents. Currently, only the edge index respects this value, but other index
-    /// types might follow in future ArangoDB versions. Changes (see below) are applied when the
-    /// collection is loaded the next time.
+    /// For very large collections one should increase this to avoid long
+    /// pauses when the hash table has to be initially built or resized, since
+    /// buckets are resized individually and can be initially built in
+    /// parallel. For example, 64 might be a sensible value for a collection
+    /// with 100 000 000 documents. Currently, only the edge index respects
+    /// this value, but other index types might follow in future ArangoDB
+    /// versions. Changes (see below) are applied when the collection is loaded
+    /// the next time.
     ///
     /// This option is meaningful for the MMFiles storage engine only.
     #[cfg(feature = "mmfiles")]
@@ -268,8 +277,8 @@ impl NewCollection {
     }
 
     /// Returns the type of the collection to be created.
-    pub fn kind(&self) -> Option<&CollectionType> {
-        self.kind.as_ref()
+    pub fn kind(&self) -> Option<CollectionType> {
+        self.kind
     }
 
     /// Returns whether the collection is going to be a system or regular
@@ -389,6 +398,7 @@ impl NewCollection {
 
 /// The `NewKeyOptions` struct holds the key options to be used for the
 /// collection that is going to be created.
+#[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct NewKeyOptions {
     /// If set to true, then it is allowed to supply own key values in the _key attribute of a
@@ -449,13 +459,13 @@ impl BasicCollectionProperties {
     }
 
     /// Returns the type of the collection.
-    pub fn kind(&self) -> &CollectionType {
-        &self.kind
+    pub fn kind(&self) -> CollectionType {
+        self.kind
     }
 
     /// Returns the status of the collection.
-    pub fn status(&self) -> &CollectionStatus {
-        &self.status
+    pub fn status(&self) -> CollectionStatus {
+        self.status
     }
 
     /// Returns whether the collection is a system or regular
@@ -532,13 +542,13 @@ impl CollectionProperties {
     }
 
     /// Returns the type of the collection.
-    pub fn kind(&self) -> &CollectionType {
-        &self.kind
+    pub fn kind(&self) -> CollectionType {
+        self.kind
     }
 
     /// Returns the status of the collection.
-    pub fn status(&self) -> &CollectionStatus {
-        &self.status
+    pub fn status(&self) -> CollectionStatus {
+        self.status
     }
 
     /// Returns whether the collection is a system or regular
@@ -602,6 +612,7 @@ impl CollectionProperties {
     }
 }
 
+#[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionPropertiesUpdate {
@@ -674,16 +685,19 @@ impl RenameTo {
 }
 
 /// The `KeyOptions` struct holds the key related attributes.
+#[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct KeyOptions {
-    /// If set to true, then it is allowed to supply own key values in the _key attribute of a
-    /// document. If set to false, then the key generator will solely be responsible for generating
-    /// keys and supplying own key values in the _key attribute of documents is considered an error.
+    /// If set to true, then it is allowed to supply own key values in the _key
+    /// attribute of a document. If set to false, then the key generator will
+    /// solely be responsible for generating keys and supplying own key values
+    /// in the _key attribute of documents is considered an error.
     allow_user_keys: bool,
     /// Specifies the type of the key generator.
     ///
-    /// The currently available generators are 'Traditional' and 'AutoIncrement'.
+    /// The currently available generators are 'Traditional' and
+    /// 'AutoIncrement'.
     #[serde(rename = "type")]
     kind: KeyGeneratorType,
     /// Last used key value.
@@ -697,8 +711,8 @@ impl KeyOptions {
     }
 
     /// Returns the type of the key generator.
-    pub fn kind(&self) -> &KeyGeneratorType {
-        &self.kind
+    pub fn kind(&self) -> KeyGeneratorType {
+        self.kind
     }
 
     /// Returns the last value assigned by the key generator.
@@ -708,7 +722,7 @@ impl KeyOptions {
 }
 
 /// The `CollectionType` enum defines the different types of collections.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CollectionType {
     /// Documents collection
     Documents,
@@ -760,7 +774,7 @@ impl<'de> Visitor<'de> for CollectionTypeVisitor {
 
 /// The `CollectionStatus` enum defines the possible states a collection can
 /// be in.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CollectionStatus {
     /// New born
     NewBorn,
@@ -831,7 +845,7 @@ impl<'de> Visitor<'de> for CollectionStatusVisitor {
 
 /// The `KeyGeneratorType` enum defines the types of key generators that are
 /// available.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum KeyGeneratorType {
     //TODO clarify what the `Traditional` key generator actually is.
     Traditional,

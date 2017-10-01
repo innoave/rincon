@@ -26,7 +26,7 @@ pub trait Prepare {
     fn content(&self) -> Option<&Self::Content>;
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Operation {
     Create,
     Read,
@@ -190,7 +190,7 @@ impl FromIterator<u8> for Document {
 
 pub const EMPTY: Empty = Empty {};
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Empty {}
 
 impl Default for Empty {
@@ -199,6 +199,7 @@ impl Default for Empty {
     }
 }
 
+#[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct RpcReturnType {
     pub result_field: Option<&'static str>,

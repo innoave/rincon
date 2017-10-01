@@ -18,13 +18,16 @@
 /// a short description of the error code as well as the `from_u16` function
 /// that maps `u16` values to `ErrorCode` variants.
 macro_rules! error_code_enum {
-    ( $($i:ident($n:expr, $s:expr)),*, ) => {
+    ( $($i:ident($c:expr, $d:expr)),*, ) => {
         /// An enumeration of all error codes that are defined for *ArangoDB*.
-        #[derive(Clone, PartialEq, Eq)]
+        #[derive(Clone, Copy, PartialEq, Eq)]
         pub enum ErrorCode {
             $(
+                /// $d
                 $i,
             )*
+            /// ArangoDB returned an error code that has not been added
+            /// to this enum yet.
             UnknownError,
         }
 
@@ -34,7 +37,7 @@ macro_rules! error_code_enum {
             pub fn from_u16(value: u16) -> Self {
                 match value {
                     $(
-                        $n => ErrorCode::$i,
+                        $c => ErrorCode::$i,
                     )*
                     _ => ErrorCode::UnknownError,
                 }
@@ -45,7 +48,7 @@ macro_rules! error_code_enum {
             pub fn as_u16(&self) -> u16 {
                 match *self {
                     $(
-                        ErrorCode::$i => $n,
+                        ErrorCode::$i => $c,
                     )*
                     _ => ::std::u16::MAX,
                 }
@@ -56,7 +59,7 @@ macro_rules! error_code_enum {
             pub fn description(&self) -> &str {
                 match *self {
                     $(
-                        ErrorCode::$i => $s,
+                        ErrorCode::$i => $d,
                     )*
                     ErrorCode::UnknownError => "An error occurred that is not known by the driver.",
                 }
@@ -108,7 +111,7 @@ error_code_enum! {
     FileNotFound(14, "Will be raised when a file is not found."),
     CannotWriteFile(15, "Will be raised when a file cannot be written."),
     CannotOverwriteFile(16, "Will be raised when an attempt is made to overwrite an existing file."),
-    TypeError(17, "Will be raised when a type error is unencountered."),
+    TypeError(17, "Will be raised when a type error is encountered."),
     LockTimeout(18, "Will be raised when there's a timeout waiting for a lock."),
     CannotCreateDirectory(19, "Will be raised when an attempt to create a directory fails."),
     CannotCreateTempFile(20, "Will be raised when an attempt to create a temporary file fails."),
