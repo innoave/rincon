@@ -3,7 +3,7 @@ use std::iter::{FromIterator, IntoIterator};
 
 use user::{NewUser, UserExtra};
 
-/// The `Database` struct holds the attributes of a database.
+/// This struct holds the properties of a database.
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Database {
@@ -42,8 +42,8 @@ impl Database {
     }
 }
 
-/// The `NewDatabase` struct specifies the attributes used when creating
-/// a new database.
+/// This struct specifies the properties of a database that is going to be
+/// created.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewDatabase<E>

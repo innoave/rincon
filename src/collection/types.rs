@@ -5,7 +5,9 @@ use std::u8;
 use serde::de::{self, Deserialize, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
 
-/// The `Collection` struct holds attributes of a collection.
+/// This struct holds attributes of a collection.
+///
+/// It is returned by the `GetCollection` and `ListCollection` methods.
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Collection {
@@ -50,8 +52,8 @@ impl Collection {
     }
 }
 
-/// The `NewCollection` struct defines all attributes that may be specified for
-/// a new collection that is going to be created.
+/// This struct defines all attributes that may be specified when creating a
+/// new collection.
 ///
 /// The `name` attribute is mandatory. All other attributes are optional and
 /// if not specified are assigned to their default values as defined by the
@@ -396,8 +398,8 @@ impl NewCollection {
     }
 }
 
-/// The `NewKeyOptions` struct holds the key options to be used for the
-/// collection that is going to be created.
+/// This struct holds the key options to be used when creating a new
+/// collection.
 #[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct NewKeyOptions {
@@ -423,8 +425,9 @@ pub struct NewKeyOptions {
     offset: Option<u64>,
 }
 
-/// The `BasicCollectionProperties` struct holds basic attributes of a
-/// collection. This struct is returned by the `CreateCollection` method.
+/// This struct holds basic attributes of a collection.
+///
+/// It is returned by the `CreateCollection` method.
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BasicCollectionProperties {
@@ -487,7 +490,9 @@ impl BasicCollectionProperties {
     }
 }
 
-/// The `CollectionProperties` struct holds the attributes of a collection.
+/// This struct holds the properties of a collection.
+///
+/// It is returned by the `GetCollectionProperties` method.
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionProperties {
@@ -612,6 +617,8 @@ impl CollectionProperties {
     }
 }
 
+/// This struct holds optional values for the properties of a collection which
+/// shall be changed.
 #[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -660,7 +667,7 @@ impl CollectionPropertiesUpdate {
     }
 }
 
-/// The `RenameTo` struct holds the new name for rename methods.
+/// This struct holds the new name for rename methods.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct RenameTo {
     /// The new name to rename the object to.
@@ -684,7 +691,7 @@ impl RenameTo {
     }
 }
 
-/// The `KeyOptions` struct holds the key related attributes.
+/// This struct holds the key related properties.
 #[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -721,7 +728,7 @@ impl KeyOptions {
     }
 }
 
-/// The `CollectionType` enum defines the different types of collections.
+/// This enum defines the different types of collections.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CollectionType {
     /// Documents collection
@@ -772,8 +779,7 @@ impl<'de> Visitor<'de> for CollectionTypeVisitor {
     }
 }
 
-/// The `CollectionStatus` enum defines the possible states a collection can
-/// be in.
+/// This enum defines the possible states a collection can be in.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CollectionStatus {
     /// New born
@@ -843,8 +849,7 @@ impl<'de> Visitor<'de> for CollectionStatusVisitor {
     }
 }
 
-/// The `KeyGeneratorType` enum defines the types of key generators that are
-/// available.
+/// This enum defines the types of key generators that are available.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum KeyGeneratorType {
     //TODO clarify what the `Traditional` key generator actually is.

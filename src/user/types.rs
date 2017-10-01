@@ -9,7 +9,7 @@ use serde_json::Value;
 use api::Empty;
 use super::DEFAULT_ROOT_PASSWORD;
 
-/// The `User` struct contains information about a user.
+/// This struct contains the properties of a user.
 ///
 /// The type parameter `E` specifies the type of the extra data about the
 /// user. If users are created without any extra data one can use the
@@ -56,7 +56,8 @@ impl<K, V> UserExtra for HashMap<K, V> {}
 
 impl UserExtra for Value {}
 
-/// The `NewUser` struct specifies the attributes used for creating a new user.
+/// This struct specifies the properties for a new user that is going to be
+/// created.
 ///
 /// The type parameter `E` defines the type of the extra data about the user.
 /// If users are created without any extra data one can use the provided
@@ -165,8 +166,8 @@ impl<E> NewUser<E>
     }
 }
 
-/// The `UserUpdate` struct specifies the attributes used for partially
-/// modifying an existing user.
+/// This struct holds properties of a user that shall be changed. It is used
+/// for partially modifying an existing user.
 ///
 /// The type parameter `E` defines the type of the extra data about the user.
 /// If users are created without any extra data one can use the provided
@@ -258,7 +259,7 @@ impl<E> From<User<E>> for UserUpdate<E>
     }
 }
 
-/// The `NewAccessLevel` struct specifies an access level to be granted.
+/// This struct specifies an access level to be granted.
 #[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -280,7 +281,7 @@ impl NewAccessLevel {
     }
 }
 
-/// The `Permission` enum defines the possible access levels.
+/// This enum defines the possible access levels.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Permission {
     /// The 'Administrate' access level.

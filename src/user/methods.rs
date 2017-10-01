@@ -8,7 +8,7 @@ use serde::ser::Serialize;
 use api::{Empty, Method, Operation, Parameters, Prepare, RpcReturnType};
 use super::types::*;
 
-/// Create a new user.
+/// Creates a new user.
 ///
 /// You need 'Administrate server' access level in order to execute this
 /// method call.
@@ -413,7 +413,7 @@ impl<E> Prepare for ReplaceUser<E>
     }
 }
 
-/// Fetch the list of databases available to the specified user.
+/// Fetches the list of databases available to the specified user.
 ///
 /// You need 'Administrate server' access level in order to execute this method
 /// call.

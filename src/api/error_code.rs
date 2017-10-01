@@ -13,18 +13,18 @@
 //!
 //! Last updated: 09/17/2017
 
-/// The `error_code_enum` macro defines an `ErrorCode` enum with the given
-/// variants. In addition it implements the `description` function that returns
-/// a short description of the error code as well as the `from_u16` function
-/// that maps `u16` values to `ErrorCode` variants.
+/// This macro defines an `ErrorCode` enum with the given variants. In addition
+/// it implements the `description` function that returns a short description
+/// of the error code as well as the `from_u16` function that maps `u16` values
+/// to `ErrorCode` variants.
 macro_rules! error_code_enum {
-    ( $($i:ident($c:expr, $d:expr)),*, ) => {
+    ( $($variant:ident($code:expr, $description:expr)),*, ) => {
         /// An enumeration of all error codes that are defined for *ArangoDB*.
         #[derive(Clone, Copy, PartialEq, Eq)]
         pub enum ErrorCode {
             $(
-                /// $d
-                $i,
+                #[doc=$description]
+                $variant,
             )*
             /// ArangoDB returned an error code that has not been added
             /// to this enum yet.
@@ -37,7 +37,7 @@ macro_rules! error_code_enum {
             pub fn from_u16(value: u16) -> Self {
                 match value {
                     $(
-                        $c => ErrorCode::$i,
+                        $code => ErrorCode::$variant,
                     )*
                     _ => ErrorCode::UnknownError,
                 }
@@ -48,18 +48,18 @@ macro_rules! error_code_enum {
             pub fn as_u16(&self) -> u16 {
                 match *self {
                     $(
-                        ErrorCode::$i => $c,
+                        ErrorCode::$variant => $code,
                     )*
                     _ => ::std::u16::MAX,
                 }
             }
 
-            /// Returns a short description of the error code. It defines the meaning
-            /// of the an error code and when it can occur.
+            /// Returns a short description of the error code. It describes the meaning
+            /// of the error code and when it can occur.
             pub fn description(&self) -> &str {
                 match *self {
                     $(
-                        ErrorCode::$i => $d,
+                        ErrorCode::$variant => $description,
                     )*
                     ErrorCode::UnknownError => "An error occurred that is not known by the driver.",
                 }
