@@ -37,6 +37,7 @@ pub mod connection;
 pub mod datasource;
 
 pub mod admin;
+pub mod authentication;
 pub mod collection;
 pub mod database;
 pub mod user;

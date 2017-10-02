@@ -13,9 +13,11 @@ use native_tls;
 use serde::ser::Serialize;
 use serde_json::{self, Value};
 use tokio_core::reactor;
+use url;
+use url::percent_encoding::DEFAULT_ENCODE_SET;
 
-use api::{self, Method, Operation, Prepare, RpcReturnType};
-use datasource::{Authentication, DataSource};
+use api::{self, Authentication, Credentials, Jwt, Method, Operation, Prepare, RpcReturnType};
+use datasource::DataSource;
 
 const DEFAULT_USER_AGENT: &str = "Mozilla/5.0 (compatible; ArangoDB-RustDriver/1.1)";
 
@@ -29,6 +31,7 @@ pub enum Error {
     HttpError(StatusCode),
     IoError(io::Error),
     NativeTlsError(native_tls::Error),
+    NotAuthenticated(String),
     NotUtf8Content(FromUtf8Error),
 }
 
@@ -79,6 +82,7 @@ pub struct Connection {
     datasource: DataSource,
     client: Client<TimeoutConnector<HttpsConnector<HttpConnector>>>,
     user_agent: String,
+    token: Option<Jwt>,
 }
 
 impl Connection {
@@ -96,7 +100,12 @@ impl Connection {
             datasource,
             client,
             user_agent: DEFAULT_USER_AGENT.to_owned(),
+            token: None,
         })
+    }
+
+    fn authenticate(&mut self, credentials: &Credentials) -> Result<(), Error> {
+        unimplemented!()
     }
 
     pub fn execute<M>(&self, method: M) -> FutureResult<M>
@@ -136,6 +145,20 @@ impl Connection {
                         username: credentials.username().to_owned(),
                         password: Some(credentials.password().to_owned()),
                     }))
+                },
+                Authentication::Jwt(_) => {
+                    match self.token.as_ref() {
+                        Some(token) => {
+                            headers.set(Authorization(Bearer {
+                                token: token.to_owned(),
+                            }))
+                        },
+                        None => {
+                            return Err(Error::NotAuthenticated(
+                                "the client must be authenticated first,\
+                                 when using JWT authentication".into()));
+                        },
+                    }
                 },
                 Authentication::None => {},
             }
@@ -216,19 +239,19 @@ fn build_request_uri<P>(datasource: &DataSource, prepare: &P) -> Uri
     request_uri.push_str(datasource.protocol());
     request_uri.push_str("://");
     request_uri.push_str(datasource.host());
-    request_uri.push_str(":");
+    request_uri.push(':');
     request_uri.push_str(&datasource.port().to_string());
     if let Some(database_name) = datasource.database_name() {
         request_uri.push_str("/_db/");
-        request_uri.push_str(database_name);
+        request_uri.push_str(&percent_encode(database_name));
     }
-    request_uri.push_str(&prepare.path());
+    request_uri.push_str(&percent_encode(&prepare.path()));
     if !prepare.parameters().is_empty() {
         request_uri.push('?');
         for &(ref key, ref value) in prepare.parameters().iter() {
-            request_uri.push_str(key);
+            request_uri.push_str(&percent_encode(key));
             request_uri.push('=');
-            request_uri.push_str(value);
+            request_uri.push_str(&percent_encode(value));
             request_uri.push('&');
         }
         request_uri.pop();
@@ -236,12 +259,15 @@ fn build_request_uri<P>(datasource: &DataSource, prepare: &P) -> Uri
     Uri::from_str(&request_uri).unwrap()
 }
 
+fn percent_encode(value: &str) -> String {
+    url::percent_encoding::percent_encode(value.as_bytes(), DEFAULT_ENCODE_SET).to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use std::iter::FromIterator;
 
-    use api::{Parameters, Prepare};
-    use datasource::{Authentication, Credentials};
+    use api::{Authentication, Credentials, Parameters, Prepare};
     use super::*;
 
     struct Prepared<'a> {
@@ -306,7 +332,7 @@ mod tests {
     #[test]
     fn build_request_uri_for_specific_database() {
         let datasource = DataSource::from_url("https://localhost:8529").unwrap()
-            .use_database("urltest");
+            .use_database("url_test");
         let prepared = Prepared {
             operation: Operation::Read,
             path: "/_api/collection",
@@ -316,13 +342,13 @@ mod tests {
 
         let uri = build_request_uri(&datasource, &prepared);
 
-        assert_eq!("https://localhost:8529/_db/urltest/_api/collection", uri.to_string());
+        assert_eq!("https://localhost:8529/_db/url_test/_api/collection", uri.to_string());
     }
 
     #[test]
     fn build_request_uri_for_specific_database_with_one_param() {
         let datasource = DataSource::from_url("https://localhost:8529").unwrap()
-            .use_database("thebigdata");
+            .use_database("the big data");
         let prepared = Prepared {
             operation: Operation::Read,
             path: "/_api/document",
@@ -332,14 +358,14 @@ mod tests {
 
         let uri = build_request_uri(&datasource, &prepared);
 
-        assert_eq!("https://localhost:8529/_db/thebigdata/_api/document\
+        assert_eq!("https://localhost:8529/_db/the%20big%20data/_api/document\
                 ?id=25", uri.to_string());
     }
 
     #[test]
     fn build_request_uri_for_specific_database_with_two_params() {
         let datasource = DataSource::from_url("https://localhost:8529").unwrap()
-            .use_database("thebigdata");
+            .use_database("the büg data");
         let prepared = Prepared {
             operation: Operation::Read,
             path: "/_api/document",
@@ -349,14 +375,14 @@ mod tests {
 
         let uri = build_request_uri(&datasource, &prepared);
 
-        assert_eq!("https://localhost:8529/_db/thebigdata/_api/document\
+        assert_eq!("https://localhost:8529/_db/the%20b%C3%BCg%20data/_api/document\
                 ?id=25&name=JuneReport", uri.to_string());
     }
 
     #[test]
     fn build_request_uri_for_specific_database_with_three_params() {
         let datasource = DataSource::from_url("https://localhost:8529").unwrap()
-            .use_database("thebigdata");
+            .use_database("the big data");
         let prepared = Prepared {
             operation: Operation::Read,
             path: "/_api/document",
@@ -366,7 +392,7 @@ mod tests {
 
         let uri = build_request_uri(&datasource, &prepared);
 
-        assert_eq!("https://localhost:8529/_db/thebigdata/_api/document\
+        assert_eq!("https://localhost:8529/_db/the%20big%20data/_api/document\
                 ?id=25&name=JuneReport&max=42", uri.to_string());
     }
 

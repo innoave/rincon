@@ -12,7 +12,11 @@ use arangodb_client::database::{CreateDatabase, DropDatabase, NewDatabase};
 use arangodb_client::datasource::DataSource;
 use arangodb_client::user::{NewUser, RemoveUser};
 
-const ENV_ARANGO_DB_URL: &str = "ARANGO_DB_URL";
+pub const ENV_ARANGO_DB_URL: &str = "ARANGO_DB_URL";
+#[allow(dead_code)]
+pub const ENV_ARANGO_ROOT_USERNAME: &str = "ARANGO_ROOT_USERNAME";
+#[allow(dead_code)]
+pub const ENV_ARANGO_ROOT_PASSWORD: &str = "ARANGO_ROOT_PASSWORD";
 
 #[allow(dead_code)]
 pub fn init_logging() {

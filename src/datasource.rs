@@ -4,6 +4,8 @@ use std::time::Duration;
 
 use url::{ParseError, Url};
 
+use api::{Authentication, Credentials};
+
 pub const DEFAULT_PROTOCOL: &str = "http";
 pub const DEFAULT_HOST: &str = "localhost";
 pub const DEFAULT_PORT: u16 = 8529;
@@ -57,45 +59,82 @@ impl DataSource {
     }
 
     pub fn with_basic_authentication(&self, username: &str, password: &str) -> Self {
-        let mut ds = self.clone();
-        ds.authentication = Authentication::Basic(Credentials::new(
-            username.to_owned(),
-            password.to_owned()));
-        ds
-    }
-
-    pub fn without_authentication(&self) -> Self {
-        let mut ds = self.clone();
-        ds.authentication = Authentication::None;
-        ds
+        let authentication = Authentication::Basic(
+            Credentials::new(username.to_owned(), password.to_owned())
+        );
+        DataSource {
+            protocol: self.protocol.clone(),
+            host: self.host.clone(),
+            port: self.port.clone(),
+            authentication,
+            database_name: self.database_name.clone(),
+            timeout: self.timeout.clone(),
+        }
     }
 
     pub fn with_authentication(&self, authentication: Authentication) -> Self {
-        let mut ds = self.clone();
-        ds.authentication = authentication;
-        ds
+        DataSource {
+            protocol: self.protocol.clone(),
+            host: self.host.clone(),
+            port: self.port.clone(),
+            authentication,
+            database_name: self.database_name.clone(),
+            timeout: self.timeout.clone(),
+        }
     }
 
-    pub fn use_database(&self, database_name: &str) -> Self {
-        let mut ds = self.clone();
-        ds.database_name = if database_name.is_empty() {
+    pub fn without_authentication(&self) -> Self {
+        DataSource {
+            protocol: self.protocol.clone(),
+            host: self.host.clone(),
+            port: self.port.clone(),
+            authentication: Authentication::None,
+            database_name: self.database_name.clone(),
+            timeout: self.timeout.clone(),
+        }
+    }
+
+    pub fn use_database<N>(&self, database_name: N) -> Self
+        where N: Into<String>
+    {
+        let database_name = database_name.into();
+        let database_name = if database_name.is_empty() {
             None
         } else {
             Some(database_name.to_owned())
         };
-        ds
+        DataSource {
+            protocol: self.protocol.clone(),
+            host: self.host.clone(),
+            port: self.port.clone(),
+            authentication: self.authentication.clone(),
+            database_name,
+            timeout: self.timeout.clone(),
+        }
     }
 
     pub fn use_default_database(&self) -> Self {
-        let mut ds = self.clone();
-        ds.database_name = None;
-        ds
+        DataSource {
+            protocol: self.protocol.clone(),
+            host: self.host.clone(),
+            port: self.port.clone(),
+            authentication: self.authentication.clone(),
+            database_name: None,
+            timeout: self.timeout.clone(),
+        }
     }
 
-    pub fn with_timeout(&self, timeout: Duration) -> Self {
-        let mut ds = self.clone();
-        ds.timeout = timeout;
-        ds
+    pub fn with_timeout<D>(&self, timeout: D) -> Self
+        where D: Into<Duration>
+    {
+        DataSource {
+            protocol: self.protocol.clone(),
+            host: self.host.clone(),
+            port: self.port.clone(),
+            authentication: self.authentication.clone(),
+            database_name: self.database_name.clone(),
+            timeout: timeout.into(),
+        }
     }
 
     pub fn protocol(&self) -> &str {
@@ -135,38 +174,6 @@ impl Default for DataSource {
             database_name: None,
             timeout: Duration::from_secs(DEFAULT_TIMEOUT),
         }
-    }
-}
-
-//TODO support JWT authentication
-#[derive(Clone, Debug)]
-pub enum Authentication {
-    Basic(Credentials),
-    None,
-}
-
-#[derive(Clone, Debug, PartialEq, Hash)]
-pub struct Credentials {
-    username: String,
-    password: String,
-}
-
-impl Credentials {
-    pub fn new<S>(username: S, password: S) -> Self
-        where S: Into<String>
-    {
-        Credentials {
-            username: username.into(),
-            password: password.into(),
-        }
-    }
-
-    pub fn username(&self) -> &str {
-        &self.username
-    }
-
-    pub fn password(&self) -> &str {
-        &self.password
     }
 }
 

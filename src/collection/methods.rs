@@ -527,6 +527,7 @@ impl Prepare for RenameCollection {
 
 /// A struct that helps to provide an efficient fluent API to build a new
 /// instance of the `RenameCollection` method.
+#[derive(Debug)]
 pub struct RenameCollectionBuilder {
     collection_name: String,
 }
