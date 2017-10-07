@@ -1,10 +1,9 @@
 
 use std::collections::HashMap;
 
-use serde::de::DeserializeOwned;
 use serde_json;
 
-use query::{Query, Value};
+use api::query::{Query, Value};
 
 /// A temporary cursor for retrieving query results.
 ///

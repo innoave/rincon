@@ -14,7 +14,8 @@ use dotenv::dotenv;
 use tokio_core::reactor::Core;
 
 use test_fixture::*;
-use arangodb_client::api::{self, Credentials};
+use arangodb_client::api::auth::Credentials;
+use arangodb_client::api::method::ErrorCode;
 use arangodb_client::authentication::*;
 use arangodb_client::connection::{Connection, Error};
 use arangodb_client::datasource::DataSource;
@@ -56,7 +57,7 @@ fn authenticate_with_invalid_credentials() {
     match result {
         Err(Error::ApiError(error)) => {
             assert_eq!(401, error.status_code());
-            assert_eq!(api::ErrorCode::HttpUnauthorized, error.error_code());
+            assert_eq!(ErrorCode::HttpUnauthorized, error.error_code());
             assert_eq!("Wrong credentials", error.message());
         },
         _ => panic!("Expected error but got {:?}", result),

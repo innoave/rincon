@@ -6,7 +6,7 @@ use serde::de::{self, Deserialize, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
 use serde_json::Value;
 
-use api::Empty;
+use api::types::Empty;
 use super::DEFAULT_ROOT_PASSWORD;
 
 /// This struct contains the properties of a user.
@@ -361,7 +361,7 @@ mod tests {
 
     use serde_json;
 
-    use api::EMPTY;
+    use api::types::EMPTY;
     use super::*;
 
     #[test]

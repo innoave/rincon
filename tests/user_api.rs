@@ -10,7 +10,8 @@ extern crate arangodb_client;
 mod test_fixture;
 
 use test_fixture::*;
-use arangodb_client::api::{self, Empty, EMPTY};
+use arangodb_client::api::method::ErrorCode;
+use arangodb_client::api::types::{Empty, EMPTY};
 use arangodb_client::collection::{CreateCollection, DropCollection};
 use arangodb_client::connection::{Connection, Error};
 use arangodb_client::database::{CreateDatabase, DropDatabase, NewDatabase};
@@ -248,7 +249,7 @@ fn create_collection_in_database_not_accessible_for_user() {
         match result {
             Err(Error::ApiError(error)) => {
                 assert_eq!(401, error.status_code());
-                assert_eq!(api::ErrorCode::HttpUnauthorized, error.error_code());
+                assert_eq!(ErrorCode::HttpUnauthorized, error.error_code());
                 assert_eq!("Will be raised when authorization is required but the user is not authorized.", error.message());
             },
             _ => panic!(format!("Unexpected result: {:?}", result)),

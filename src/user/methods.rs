@@ -5,7 +5,8 @@ use std::marker::PhantomData;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
-use api::{Empty, Method, Operation, Parameters, Prepare, RpcReturnType};
+use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use api::types::Empty;
 use super::types::*;
 
 /// Creates a new user.

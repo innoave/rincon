@@ -9,7 +9,7 @@ extern crate arangodb_client;
 mod test_fixture;
 
 use test_fixture::*;
-use arangodb_client::api;
+use arangodb_client::api::method::ErrorCode;
 use arangodb_client::collection::*;
 use arangodb_client::connection::Error;
 
@@ -142,7 +142,7 @@ fn get_collection_should_return_an_error_if_collection_not_found() {
         match result {
             Err(Error::ApiError(error)) => {
                 assert_eq!(404, error.status_code());
-                assert_eq!(api::ErrorCode::ArangoCollectionNotFound, error.error_code());
+                assert_eq!(ErrorCode::ArangoCollectionNotFound, error.error_code());
                 assert_eq!("unknown collection 'test_collection_not_existing'", error.message());
             },
             _ => panic!("Error::ApiError expected but got {:?}", result),
@@ -193,7 +193,7 @@ fn get_collection_properties_should_return_an_error_if_collection_not_found() {
         match result {
             Err(Error::ApiError(error)) => {
                 assert_eq!(404, error.status_code());
-                assert_eq!(api::ErrorCode::ArangoCollectionNotFound, error.error_code());
+                assert_eq!(ErrorCode::ArangoCollectionNotFound, error.error_code());
                 assert_eq!("unknown collection 'test_collection_not_existing'", error.message());
             },
             _ => panic!("Error::ApiError expected but got {:?}", result),
@@ -283,7 +283,7 @@ fn rename_collection_to_empty_name() {
         match result {
             Err(Error::ApiError(error)) => {
                 assert_eq!(403, error.status_code());
-                assert_eq!(api::ErrorCode::Forbidden, error.error_code());
+                assert_eq!(ErrorCode::Forbidden, error.error_code());
                 assert_eq!("forbidden", error.message());
             },
             _ => panic!("Error::ApiError expected but got {:?}", result),

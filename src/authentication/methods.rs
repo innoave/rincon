@@ -1,5 +1,6 @@
 
-use api::{Credentials, Method, Parameters, Operation, Prepare, RpcReturnType};
+use api::auth::Credentials;
+use api::method::{Method, Parameters, Operation, Prepare, RpcReturnType};
 use super::types::*;
 
 /// Authenticates a user.

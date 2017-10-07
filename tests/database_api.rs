@@ -9,7 +9,7 @@ extern crate arangodb_client;
 mod test_fixture;
 
 use test_fixture::*;
-use arangodb_client::api::Empty;
+use arangodb_client::api::types::Empty;
 use arangodb_client::connection::Connection;
 use arangodb_client::database::*;
 use arangodb_client::user::{CreateUser, NewUser, RemoveUser};

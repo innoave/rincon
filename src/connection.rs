@@ -16,7 +16,9 @@ use tokio_core::reactor;
 use url;
 use url::percent_encoding::DEFAULT_ENCODE_SET;
 
-use api::{self, Authentication, Credentials, Jwt, Method, Operation, Prepare, RpcReturnType};
+use api::auth::{Authentication, Credentials, Jwt};
+use api::method::{Method, Operation, Prepare, RpcReturnType};
+use api::method as api;
 use datasource::DataSource;
 
 const DEFAULT_USER_AGENT: &str = "Mozilla/5.0 (compatible; ArangoDB-RustDriver/1.1)";
@@ -267,7 +269,8 @@ fn percent_encode(value: &str) -> String {
 mod tests {
     use std::iter::FromIterator;
 
-    use api::{Authentication, Credentials, Parameters, Prepare};
+    use api::auth::{Authentication, Credentials};
+    use api::method::{Parameters, Prepare};
     use super::*;
 
     struct Prepared<'a> {

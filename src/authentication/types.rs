@@ -1,5 +1,5 @@
 
-use api::Jwt;
+use api::auth::Jwt;
 
 /// This structs holds the properties necessary to authenticate a user.
 #[derive(Clone, Debug, PartialEq, Serialize)]

@@ -1,5 +1,5 @@
 
-use api::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use super::types::*;
 
 #[allow(missing_copy_implementations)]

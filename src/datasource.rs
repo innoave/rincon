@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use url::{ParseError, Url};
 
-use api::{Authentication, Credentials};
+use api::auth::{Authentication, Credentials};
 
 pub const DEFAULT_PROTOCOL: &str = "http";
 pub const DEFAULT_HOST: &str = "localhost";

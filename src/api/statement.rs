@@ -1,7 +1,8 @@
 
 use futures::{Future, Poll};
 
-use api::{Document, Method, Operation, Parameters};
+use api::method::{Method, Operation, Parameters};
+use api::types::Document;
 
 #[derive(Debug)]
 pub struct PreparedStatement<M>
@@ -87,14 +88,14 @@ impl StatementResult {
 }
 
 /// A `Future` that will resolve to a result of a `Method` execution.
-pub struct FutureResult<M>(Box<Future<Item=<M as Method>::Result, Error=self::Error>>)
+pub struct FutureResult<M>(Box<Future<Item=<M as Method>::Result, Error=Error>>)
     where M: Method;
 
 impl<M> Future for FutureResult<M>
     where M: Method
 {
     type Item = <M as Method>::Result;
-    type Error = self::Error;
+    type Error = Error;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         self.0.poll()

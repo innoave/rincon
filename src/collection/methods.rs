@@ -1,5 +1,5 @@
 
-use api::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use super::types::*;
 
 /// Retrieves a list of existing collections.

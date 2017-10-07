@@ -1,7 +1,7 @@
 
 use serde::ser::Serialize;
 
-use api::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use user::{NewUser, UserExtra};
 use super::types::*;
 

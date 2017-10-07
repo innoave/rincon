@@ -6,7 +6,7 @@ use dotenv::dotenv;
 use log4rs;
 use tokio_core::reactor::Core;
 
-use arangodb_client::api::Empty;
+use arangodb_client::api::types::Empty;
 use arangodb_client::connection::Connection;
 use arangodb_client::database::{CreateDatabase, DropDatabase, NewDatabase};
 use arangodb_client::datasource::DataSource;
