@@ -96,6 +96,18 @@ impl DeleteCursor {
         }
     }
 
+    /// Constructs a new instance of the `DeleteCursor` method that shall
+    /// delete the cursor with the given id.
+    ///
+    /// **Note:** This function always clones the slice to an owned `String`.
+    /// If you have already an owned `String` at hand which is not needed
+    /// elsewhere you might want use the `with_id(Into<String>)` function.
+    pub fn with_id_ref(cursor_id: &str) -> Self {
+        DeleteCursor {
+            cursor_id: cursor_id.into(),
+        }
+    }
+
     /// Returns the id of the cursor that shall be deleted.
     pub fn cursor_id(&self) -> &str {
         &self.cursor_id
@@ -153,6 +165,19 @@ impl<T> ReadNextBatchFromCursor<T> {
     pub fn with_id<I>(cursor_id: I) -> Self
         where I: Into<String>
     {
+        ReadNextBatchFromCursor {
+            result_type: PhantomData,
+            cursor_id: cursor_id.into(),
+        }
+    }
+
+    /// Constructs a new instance of the `ReadNextBatchFromCursor` method for
+    /// the cursor with the given id.
+    ///
+    /// **Note:** This function always clones the slice to an owned `String`.
+    /// If you have already an owned `String` at hand which is not needed
+    /// elsewhere you might want use the `with_id(Into<String>)` function.
+    pub fn with_id_ref(cursor_id: &str) -> Self {
         ReadNextBatchFromCursor {
             result_type: PhantomData,
             cursor_id: cursor_id.into(),

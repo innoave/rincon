@@ -31,14 +31,14 @@ typesafe and Rust idiomatic manner.
 
 ## Usage
 
-First, add this to your `Cargo.toml`:
+Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
 arangodb_client = "0.1"
 ```
 
-Next, add this to your crate:
+And add this to your crate:
 
 ```rust
 extern crate arangodb_client;

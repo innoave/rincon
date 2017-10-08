@@ -1,5 +1,6 @@
 
 use std::collections::HashMap;
+use std::mem;
 
 use api::query::{Query, Value};
 use api::types::JsonValue;
@@ -265,49 +266,94 @@ impl NewCursor {
         &self.bind_vars
     }
 
-    /// Indicates whether the number of documents in the result set should be
-    /// returned in the "count" attribute of the result. Calculating the
-    /// 'count' attribute might have a performance impact for some queries in
-    /// the future so this option is turned off by default, and 'count' is only
-    /// returned when requested.
+    /// Sets the flag whether number of documents in the result set should be
+    /// returned.
+    ///
+    /// Calculating the 'count' attribute might have a performance impact for
+    /// some queries in the future so this option is turned off by default, and
+    /// 'count' is only returned when requested.
+    pub fn set_count(&mut self, count: Option<bool>) {
+        self.count = count;
+    }
+
+    /// Returns whether the number of documents in the result set should be
+    /// returned in the "count" attribute of the result.
     pub fn is_count(&self) -> Option<bool> {
         self.count
     }
 
+    /// Sets the maximum number of result documents to be transferred from the
+    /// server to the client in one round-trip.
+    ///
+    /// If this attribute is not set, a server-controlled default value will be
+    /// used. A batchSize value of 0 is disallowed.
+    pub fn set_batch_size(&mut self, batch_size: Option<u32>) {
+        self.batch_size = batch_size;
+    }
+
     /// Returns the maximum number of result documents to be transferred from
-    /// the server to the client in one round-trip. If this attribute is not
-    /// set, a server-controlled default value will be used. A batchSize value
-    /// of 0 is disallowed.
+    /// the server to the client in one round-trip.
     pub fn batch_size(&self) -> Option<u32> {
         self.batch_size
     }
 
-    /// Indicates whether the AQL query cache shall be used. If set to false,
-    /// then any query cache lookup will be skipped for the query. If set to
-    /// true, it will lead to the query cache being checked for the query if
-    /// the query cache mode is either on or demand.
+    /// Sets the flag that indicates whether the AQL query cache shall be used.
+    ///
+    /// If set to false, then any query cache lookup will be skipped for the
+    /// query. If set to true, it will lead to the query cache being checked
+    /// for the query if the query cache mode is either on or demand.
+    pub fn set_cache(&mut self, cache: Option<bool>) {
+        self.cache = cache
+    }
+
+    /// Returns whether the AQL query cache shall be used.
     pub fn is_cache(&self) -> Option<bool> {
         self.cache
     }
 
+    /// Sets the maximum number of memory (measured in bytes) that the query
+    /// is allowed to use.
+    ///
+    /// If set, then the query will fail with error 'resource limit exceeded'
+    /// in case it allocates too much memory. A value of 0 indicates that there
+    /// is no memory limit.
+    pub fn set_memory_limit(&mut self, memory_limit: Option<u64>) {
+        self.memory_limit = memory_limit;
+    }
+
     /// Returns the maximum number of memory (measured in bytes) that the query
-    /// is allowed to use. If set, then the query will fail with error 'resource
-    /// limit exceeded' in case it allocates too much memory. A value of 0
-    /// indicates that there is no memory limit.
+    /// is allowed to use.
     pub fn memory_limit(&self) -> Option<u64> {
         self.memory_limit
     }
 
-    /// Returns the time-to-live for the cursor (in seconds). The cursor will be
-    /// removed on the server automatically after the specified amount of time.
-    /// This is useful to ensure garbage collection of cursors that are not
-    /// fully fetched by clients. If not set, a server-defined value will be
-    /// used.
+    /// Sets the time-to-live for the cursor (in seconds).
+    ///
+    /// The cursor will be removed on the server automatically after the
+    /// specified amount of time. This is useful to ensure garbage collection
+    /// of cursors that are not fully fetched by clients. If not set, a
+    /// server-defined value will be used.
+    pub fn set_ttl(&mut self, ttl: Option<u32>) {
+        self.ttl = ttl;
+    }
+
+    /// Returns the time-to-live for the cursor (in seconds).
     pub fn ttl(&self) -> Option<u32> {
         self.ttl
     }
 
-    /// Returns the optional parameters for tweaking query execution.
+    /// Returns the optional cursor options as mutable reference for changing
+    /// the optional cursor options to tweak query execution.
+    pub fn options_mut(&mut self) -> &mut CursorOptions {
+        self.options.get_or_insert_with(|| CursorOptions::new())
+    }
+
+    /// Removes the currently set options from this instance and returns them.
+    pub fn remove_options(&mut self) -> Option<CursorOptions> {
+        mem::replace(&mut self.options, None)
+    }
+
+    /// Returns the optional cursor options for tweaking query execution.
     pub fn options(&self) -> Option<&CursorOptions> {
         self.options.as_ref()
     }
@@ -370,8 +416,8 @@ pub struct CursorOptions {
     /// specific rules. To disable a rule, prefix its name with a `-`, to
     /// enable a rule, prefix it with a `+`. There is also a pseudo-rule `all`,
     /// which will match all optimizer rules.
-    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "optimizer.rules")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     optimizer_rules: Option<Vec<String>>,
 
     /// Maximum number of operations after which an intermediate commit is
@@ -407,7 +453,29 @@ pub struct CursorOptions {
 }
 
 impl CursorOptions {
-    /// Returns whether the query shall fail on warnings.
+    /// Constructs a new instance of an empty `CursorOptions` struct.
+    ///
+    /// All fields are set to `None`.
+    pub fn new() -> Self {
+        CursorOptions {
+            fail_on_warning: None,
+            profile: None,
+            max_warning_count: None,
+            full_count: None,
+            max_plans: None,
+            optimizer_rules: None,
+            #[cfg(feature = "rocksdb")]
+            intermediate_commit_count: None,
+            #[cfg(feature = "rocksdb")]
+            intermediate_commit_size: None,
+            #[cfg(feature = "rocksdb")]
+            max_transaction_size: None,
+            #[cfg(feature = "enterprise")]
+            satellite_sync_wait: None,
+        }
+    }
+
+    /// Sets the flag indicating whether the query shall fail on warnings.
     ///
     /// When set to true, the query will throw an exception and abort instead of
     /// producing a warning. This option should be used during development to
@@ -416,29 +484,45 @@ impl CursorOptions {
     /// the query result. There is also a server configuration option
     /// `--query.fail-on-warning` for setting the default value for
     /// `fail_on_warning` so it does not need to be set on a per-query level.
+    pub fn set_fail_on_warning(&mut self, fail_on_warning: Option<bool>) {
+        self.fail_on_warning = fail_on_warning;
+    }
+
+    /// Returns whether the query shall fail on warnings.
     pub fn is_fail_on_warning(&self) -> Option<bool> {
         self.fail_on_warning
     }
 
-    /// Returns whether additional query profiling information shall be
-    /// returned.
+    /// Sets the flag indicating whether additional query profiling information
+    /// shall be returned.
     ///
     /// If set to true, then the additional query profiling information will
     /// be returned in the sub-attribute profile of the extra return attribute
     /// if the query result is not served from the query cache.
+    pub fn set_profile(&mut self, profile: Option<bool>) {
+        self.profile = profile;
+    }
+
+    /// Returns whether additional query profiling information shall be
+    /// returned.
     pub fn is_profile(&self) -> Option<bool> {
         self.profile
     }
 
-    /// Returns the maximum number of warnings a query will return.
+    /// Sets the maximum number of warnings a query will return.
     ///
     /// The number of warnings a query will return is limited to 10 by default,
     /// but that number can be increased or decreased by setting this attribute.
+    pub fn set_max_warning_count(&mut self, max_warning_count: Option<u32>) {
+        self.max_warning_count = max_warning_count;
+    }
+
+    /// Returns the maximum number of warnings a query will return.
     pub fn max_warning_count(&self) -> Option<u32> {
         self.max_warning_count
     }
 
-    /// Indicates whether full count and stats should be returned.
+    /// Set the flag indicating whether full count and stats should be returned.
     ///
     /// If set to true and the query contains a LIMIT clause, then the result
     /// will have an extra attribute with the sub-attributes stats and
@@ -452,8 +536,19 @@ impl CursorOptions {
     /// and thus make queries run longer. Note that the fullCount attribute will
     /// only be present in the result if the query has a LIMIT clause and the
     /// LIMIT clause is actually used in the query.
+    pub fn set_full_count(&mut self, full_count: Option<bool>) {
+        self.full_count = full_count;
+    }
+
+    /// Returns whether full count and stats should be returned.
     pub fn is_full_count(&self) -> Option<bool> {
         self.full_count
+    }
+
+    /// Sets the maximum number of plans that are created by the AQL query
+    /// optimizer.
+    pub fn set_max_plans(&mut self, max_plans: Option<u32>) {
+        self.max_plans = max_plans;
     }
 
     /// Returns the maximum number of plans that are created by the AQL query
@@ -462,14 +557,34 @@ impl CursorOptions {
         self.max_plans
     }
 
-    /// Returns the list of to-be-included or to-be-excluded optimizer rules,
-    /// that are telling the optimizer to include or exclude specific rules.
+    /// Returns a mutable reference to the list of to-be-included or
+    /// to-be-excluded optimizer rules.
     ///
     /// To disable a rule, prefix its name with a `-`, to enable a rule, prefix
     /// it with a `+`. There is also a pseudo-rule `all`, which will match all
     /// optimizer rules.
+    pub fn optimizer_rules_mut(&mut self) -> &mut Vec<String> {
+        self.optimizer_rules.get_or_insert_with(|| Vec::new())
+    }
+
+    /// Removes the optimizer rules from this instance and returns them.
+    pub fn remove_optimizer_rules(&mut self) -> Option<Vec<String>> {
+        mem::replace(&mut self.optimizer_rules, None)
+    }
+
+    /// Returns the list of to-be-included or to-be-excluded optimizer rules,
+    /// that are telling the optimizer to include or exclude specific rules.
     pub fn optimizer_rules(&self) -> Option<&Vec<String>> {
         self.optimizer_rules.as_ref()
+    }
+
+    /// Sets the maximum number of operations after which an intermediate
+    /// commit is performed automatically.
+    ///
+    /// Honored by the RocksDB storage engine only.
+    #[cfg(feature = "rocksdb")]
+    pub fn set_intermediate_commit_count(&mut self, intermediate_commit_count: Option<u32>) {
+        self.intermediate_commit_count = intermediate_commit_count;
     }
 
     /// Returns the maximum number of operations after which an intermediate
@@ -481,6 +596,15 @@ impl CursorOptions {
         self.intermediate_commit_count
     }
 
+    /// Sets the maximum total size of operations after which an intermediate
+    /// commit is performed automatically.
+    ///
+    /// Honored by the RocksDB storage engine only.
+    #[cfg(feature = "rocksdb")]
+    pub fn set_intermediate_commit_size(&mut self, intermediate_commit_size: Option<u32>) {
+        self.intermediate_commit_size = intermediate_commit_size
+    }
+
     /// Returns the maximum total size of operations after which an intermediate
     /// commit is performed automatically.
     ///
@@ -488,6 +612,14 @@ impl CursorOptions {
     #[cfg(feature = "rocksdb")]
     pub fn intermediate_commit_size(&self) -> Option<u32> {
         self.intermediate_commit_size
+    }
+
+    /// Sets the transaction size limit in bytes.
+    ///
+    /// Honored by the RocksDB storage engine only.
+    #[cfg(feature = "rocksdb")]
+    pub fn set_max_transaction_size(&mut self, max_transaction_size: Option<u32>) {
+        self.max_transaction_size = max_transaction_size;
     }
 
     /// Returns the transaction size limit in bytes.
@@ -498,10 +630,20 @@ impl CursorOptions {
         self.max_transaction_size
     }
 
+    /// Sets the enterprise parameter that configures how long a DBServer will
+    /// have time to bring the satellite collections involved in the query into
+    /// sync.
+    ///
+    /// The default value is 60.0 (seconds). When the max time has been reached
+    /// the query will be stopped.
+    #[cfg(feature = "enterprise")]
+    pub fn set_satellite_sync_wait(&mut self, satellite_sync_wait: Option<bool>) {
+        self.satellite_sync_wait = satellite_sync_wait
+    }
+
     /// Returns the enterprise parameter that configures how long a DBServer
     /// will have time to bring the satellite collections involved in the query
-    /// into sync. The default value is 60.0 (seconds). When the max time has
-    /// been reached the query will be stopped.
+    /// into sync.
     #[cfg(feature = "enterprise")]
     pub fn satellite_sync_wait(&self) -> Option<bool> {
         self.satellite_sync_wait
@@ -513,14 +655,32 @@ mod tests {
     use super::*;
 
     #[test]
-    fn convert_query_into_aql_query_request() {
+    fn convert_query_into_new_cursor_to_be_created() {
         let mut query = Query::new("FOR u IN users FILTER u.name = @name RETURN u.name");
         query.set_parameter("name".to_owned(), "simone".to_owned());
         let query = query;
 
-        let aql_query: NewCursor = query.into();
+        let new_cursor: NewCursor = query.into();
 
-        assert_eq!("FOR u IN users FILTER u.name = @name RETURN u.name", aql_query.query);
-        assert_eq!(Some(&Value::String("simone".to_owned())), aql_query.bind_vars.get("name"));
+        assert_eq!("FOR u IN users FILTER u.name = @name RETURN u.name", new_cursor.query);
+        assert_eq!(Some(&Value::String("simone".to_owned())), new_cursor.bind_vars.get("name"));
+    }
+
+    #[test]
+    fn set_optional_cursor_options_of_a_newly_initialized_new_cursor() {
+        let mut query = Query::new("FOR u IN users FILTER u.name = @name RETURN u.name");
+        query.set_parameter("name".to_owned(), "simone".to_owned());
+        let query = query;
+
+        let mut new_cursor = NewCursor::from(query);
+        assert!(new_cursor.options().is_none());
+        {
+            let cursor_options = new_cursor.options_mut();
+            cursor_options.optimizer_rules_mut().push("+use-indexes".to_owned());
+        }
+        let new_cursor = new_cursor;
+
+        assert!(new_cursor.options().is_some());
+        assert!(new_cursor.options().unwrap().optimizer_rules().unwrap().contains(&"+use-indexes".to_owned()));
     }
 }
