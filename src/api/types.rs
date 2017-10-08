@@ -1,6 +1,10 @@
 
 use std::iter::FromIterator;
 
+use serde_json;
+
+pub type JsonValue = serde_json::Value;
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Document {
     bytes: Vec<u8>,

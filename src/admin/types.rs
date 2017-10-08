@@ -1,5 +1,5 @@
 
-use serde_json::Value;
+use api::types::JsonValue;
 
 /// Represents the database-version that this server requires.
 #[derive(Clone, Debug, PartialEq, Deserialize)]
@@ -30,7 +30,7 @@ pub struct ServerVersion {
     license: String,
     /// An optional JSON object with additional details. This is returned only
     /// if the details query parameter is set to true in the request.
-    details: Option<Value>,
+    details: Option<JsonValue>,
 }
 
 impl ServerVersion {
@@ -79,7 +79,7 @@ impl ServerVersion {
     ///
     /// The details are present only if the details method parameter was set
     /// to true.
-    pub fn details(&self) -> Option<&Value> {
+    pub fn details(&self) -> Option<&JsonValue> {
         self.details.as_ref()
     }
 }

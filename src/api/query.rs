@@ -12,7 +12,7 @@ pub struct Query {
 
 impl Query {
     /// Constructs a new `Query` with the given query string.
-    pub fn create<Q>(query_string: Q) -> Self
+    pub fn new<Q>(query_string: Q) -> Self
         where Q: Into<String>
     {
         Query {
@@ -575,7 +575,7 @@ mod tests {
 
     #[test]
     fn query_set_string_parameter() {
-        let mut query = Query::create("FOR u IN users FILTER u.name = @name RETURN u.name");
+        let mut query = Query::new("FOR u IN users FILTER u.name = @name RETURN u.name");
         query.set_parameter("name".to_owned(), "simone".to_owned());
 
         assert_eq!(Some(&Value::String("simone".to_owned())), query.params.get("name"));
@@ -583,7 +583,7 @@ mod tests {
 
     #[test]
     fn query_set_bool_parameter() {
-        let mut query = Query::create("FOR u IN users FILTER u.active = @active RETURN u.name");
+        let mut query = Query::new("FOR u IN users FILTER u.active = @active RETURN u.name");
         query.set_parameter("active".to_owned(), true);
 
         assert_eq!(Some(&Value::Bool(true)), query.params.get("active"));
@@ -591,7 +591,7 @@ mod tests {
 
     #[test]
     fn query_set_i64_parameter() {
-        let mut query = Query::create("FOR u IN users FILTER u.id = @id RETURN u.name");
+        let mut query = Query::new("FOR u IN users FILTER u.id = @id RETURN u.name");
         query.set_parameter("id".to_owned(), -1828359i64);
 
         assert_eq!(Some(&Value::I64(-1828359)), query.params.get("id"));
@@ -599,7 +599,7 @@ mod tests {
 
     #[test]
     fn query_set_vec_of_u64_parameter() {
-        let mut query = Query::create("FOR u IN users FILTER u.id in @ids RETURN u.name");
+        let mut query = Query::new("FOR u IN users FILTER u.id in @ids RETURN u.name");
         let ids: Vec<u64> = vec![1, 2, 3, 4, 5];
         query.set_parameter("ids".to_owned(), ids);
 
@@ -608,7 +608,7 @@ mod tests {
 
     #[test]
     fn query_get_string_parameter() {
-        let mut query = Query::create("FOR u IN users FILTER u.name = @name RETURN u.name");
+        let mut query = Query::new("FOR u IN users FILTER u.name = @name RETURN u.name");
         query.params.insert("name".to_owned(), Value::String("appolonia".to_owned()));
 
         assert_eq!(Some(&"appolonia".to_owned()), query.parameter("name"));
@@ -617,7 +617,7 @@ mod tests {
 
     #[test]
     fn query_get_bool_parameter() {
-        let mut query = Query::create("FOR u IN users FILTER u.active = @active RETURN u.name");
+        let mut query = Query::new("FOR u IN users FILTER u.active = @active RETURN u.name");
         query.params.insert("active".to_owned(), Value::Bool(false));
 
         assert_eq!(Some(&false), query.parameter("active"));
@@ -625,7 +625,7 @@ mod tests {
 
     #[test]
     fn query_get_i8_parameter() {
-        let mut query = Query::create("FOR u IN users FILTER u.id = @id RETURN u.name");
+        let mut query = Query::new("FOR u IN users FILTER u.id = @id RETURN u.name");
         query.set_parameter("id".to_owned(), Value::I8(-1));
 
         assert_eq!(Some(&-1i8), query.parameter("id"));
@@ -633,7 +633,7 @@ mod tests {
 
     #[test]
     fn query_get_vec_of_f32_parameter() {
-        let mut query = Query::create("FOR u IN users FILTER u.id in @ids RETURN u.name");
+        let mut query = Query::new("FOR u IN users FILTER u.id in @ids RETURN u.name");
         let ids = vec![1.1, 2.2, 3.3, 4.4, 5.5];
         query.set_parameter("ids".to_owned(), Value::VecF32(ids));
 

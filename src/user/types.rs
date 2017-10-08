@@ -4,9 +4,8 @@ use std::fmt::{self, Display};
 
 use serde::de::{self, Deserialize, Deserializer, Visitor};
 use serde::ser::{Serialize, Serializer};
-use serde_json::Value;
 
-use api::types::Empty;
+use api::types::{Empty, JsonValue};
 use super::DEFAULT_ROOT_PASSWORD;
 
 /// This struct contains the properties of a user.
@@ -54,7 +53,7 @@ impl UserExtra for Empty {}
 
 impl<K, V> UserExtra for HashMap<K, V> {}
 
-impl UserExtra for Value {}
+impl UserExtra for JsonValue {}
 
 /// This struct specifies the properties for a new user that is going to be
 /// created.

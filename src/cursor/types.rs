@@ -1,9 +1,8 @@
 
 use std::collections::HashMap;
 
-use serde_json;
-
 use api::query::{Query, Value};
+use api::types::JsonValue;
 
 /// A temporary cursor for retrieving query results.
 ///
@@ -50,8 +49,142 @@ pub struct Cursor<T> {
     /// the extra.stats sub-attribute will contain the number of modified
     /// documents and the number of documents that could not be modified due
     /// to an error (if ignoreErrors query option is specified).
-    // TODO define a type for the extra information, like CursorExtra.
-    extra: Option<serde_json::Value>,
+    extra: Option<CursorExtra>,
+}
+
+impl<T> Cursor<T> {
+    /// Returns the id of the cursor created on the server.
+    pub fn id(&self) -> Option<&String> {
+        self.id.as_ref()
+    }
+
+    /// Returns an array of result documents (might be empty if query has no
+    /// results).
+    pub fn result(&self) -> &[T] {
+        &self.result
+    }
+
+    /// Returns whether there are more results available for this cursor on
+    /// the server.
+    pub fn has_more(&self) -> bool {
+        self.has_more
+    }
+
+    /// Returns the total number of result documents available (only available
+    /// if the query was executed with the count attribute set).
+    pub fn count(&self) -> Option<u64> {
+        self.count
+    }
+
+    /// Returns whether the query result was served from the query cache or not.
+    ///
+    /// If the query result is served from the query cache, the extra return
+    /// attribute will not contain any stats sub-attribute and no profile
+    /// sub-attribute.
+    pub fn is_cached(&self) -> bool {
+        self.cached
+    }
+
+    /// Returns an optional JSON object with extra information about the query
+    /// result contained in its `stats` sub-attribute. For data-modification
+    /// queries, the `extra.stats` sub-attribute will contain the number of
+    /// modified documents and the number of documents that could not be
+    /// modified due to an error (if `ignoreErrors` query option is specified).
+    pub fn extra(&self) -> Option<&CursorExtra> {
+        self.extra.as_ref()
+    }
+}
+
+//TODO find a suitable type for warnings
+pub type Warning = JsonValue;
+
+/// Holds extra information about the query execution.
+#[derive(Clone, Debug, Deserialize)]
+pub struct CursorExtra {
+    /// Statistics about the query execution.
+    stats: CursorStatistics,
+    /// Warnings that occurred during query execution.
+    warnings: Vec<Warning>,
+}
+
+impl CursorExtra {
+    /// Returns the statistics about the query execution.
+    pub fn stats(&self) -> &CursorStatistics {
+        &self.stats
+    }
+
+    /// Returns warnings that occurred during query execution.
+    pub fn warnings(&self) -> &[Warning] {
+        &self.warnings
+    }
+}
+
+/// Holds statistics information about the query execution.
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CursorStatistics {
+    /// The execution time of the query.
+    execution_time: f64,
+    /// The number of results that have been filtered out.
+    filtered: u64,
+    /// The total number of results that have been found.
+    full_count: Option<u64>,
+    /// The number of http requests.
+    http_requests: u64,
+    /// The number of full scans.
+    scanned_full: u64,
+    /// The number of index scans.
+    scanned_index: u64,
+    /// The number of write operations that have been executed.
+    writes_executed: u64,
+    /// The number of write operations that have been ignored.
+    writes_ignored: u64,
+}
+
+impl CursorStatistics {
+    /// Returns the time the execution of the query took.
+    pub fn execution_time(&self) -> f64 {
+        self.execution_time
+    }
+
+    /// Returns the number of results that have been filtered out.
+    pub fn filtered(&self) -> u64 {
+        self.filtered
+    }
+
+    /// Returns the total number of results that have been found.
+    ///
+    /// This property is only available if the option `CursorOptions.full_count`
+    /// parameter has been set to `true` for this query.
+    pub fn full_count(&self) -> Option<u64> {
+        self.full_count
+    }
+
+    /// Returns the number of http request.
+    pub fn http_requests(&self) -> u64 {
+        self.http_requests
+    }
+
+    /// Returns the number of full scans.
+    pub fn scanned_full(&self) -> u64 {
+        self.scanned_full
+    }
+
+    /// Returns the number of index scans.
+    pub fn scanned_index(&self) -> u64 {
+        self.scanned_index
+    }
+
+    /// Returns the number of write operation that have been executed.
+    pub fn writes_executed(&self) -> u64 {
+        self.writes_executed
+    }
+
+    /// Returns the number of write operations that have been ignored.
+    pub fn writes_ignored(&self) -> u64 {
+        self.writes_ignored
+    }
 }
 
 /// This struct defines the parameters of a cursor for an AQL query that is
@@ -381,7 +514,7 @@ mod tests {
 
     #[test]
     fn convert_query_into_aql_query_request() {
-        let mut query = Query::create("FOR u IN users FILTER u.name = @name RETURN u.name");
+        let mut query = Query::new("FOR u IN users FILTER u.name = @name RETURN u.name");
         query.set_parameter("name".to_owned(), "simone".to_owned());
         let query = query;
 
