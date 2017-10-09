@@ -167,6 +167,7 @@ impl Connection {
         }
         if let Some(content) = prepare.content() {
             let json = serialize_payload(content)?;
+//            trace!("Payload: {:?}", String::from_utf8(json.clone()));
             request.headers_mut().set(ContentType::json());
             request.headers_mut().set(ContentLength(json.len() as u64));
             request.set_body(json);

@@ -20,7 +20,7 @@
 macro_rules! error_code_enum {
     ( $($variant:ident($code:expr, $description:expr)),*, ) => {
         /// An enumeration of all error codes that are defined for *ArangoDB*.
-        #[derive(Clone, Copy, PartialEq, Eq)]
+        #[derive(Clone, Copy, PartialEq, Eq, Hash)]
         pub enum ErrorCode {
             $(
                 #[doc=$description]

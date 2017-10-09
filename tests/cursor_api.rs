@@ -218,3 +218,29 @@ fn delete_cursor_before_fetching_all_results() {
         };
     });
 }
+
+#[test]
+fn query_with_optimizer_rules() {
+    arango_user_db_test("test_cursor_user5", "test_cursor_db51", |conn, ref mut core| {
+
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let query = Query::new("FOR c IN customers RETURN c");
+
+        let mut new_cursor = NewCursor::from(query);
+        {
+            let mut optimizer_rules = new_cursor.options_mut().optimizer_rules_mut();
+            optimizer_rules.exclude(OptimizerRule::All);
+            optimizer_rules.include(OptimizerRule::InterchangeAdjacentEnumerations);
+            optimizer_rules.include(OptimizerRule::InlineSubQueries);
+            optimizer_rules.include(OptimizerRule::MoveFiltersUp);
+            optimizer_rules.exclude(OptimizerRule::PropagateConstantAttributes);
+        }
+        let method = CreateCursor::<JsonValue>::new(new_cursor);
+        let cursor = core.run(conn.execute(method)).unwrap();
+
+        assert!(cursor.result().is_empty());
+        assert_eq!(false, cursor.has_more());
+        assert_eq!(None, cursor.id());
+    });
+}
