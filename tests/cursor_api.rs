@@ -91,7 +91,7 @@ fn query_reads_from_cursor_in_batches_of_5_results() {
               RETURN c.name"
         );
         let mut new_cursor = NewCursor::from(query);
-        new_cursor.set_batch_size(Some(5));
+        new_cursor.with_batch_size(5);
         let method = CreateCursor::<String>::new(new_cursor);
         let cursor = core.run(conn.execute(method)).unwrap();
         assert_eq!(21, cursor.extra().unwrap().stats().scanned_full());
@@ -169,7 +169,7 @@ fn delete_cursor_before_fetching_all_results() {
               RETURN c.name"
         );
         let mut new_cursor = NewCursor::from(query);
-        new_cursor.set_batch_size(Some(5));
+        new_cursor.with_batch_size(5);
         let method = CreateCursor::<String>::new(new_cursor);
         let cursor = core.run(conn.execute(method)).unwrap();
         assert_eq!(21, cursor.extra().unwrap().stats().scanned_full());
@@ -228,14 +228,15 @@ fn query_with_optimizer_rules() {
         let query = Query::new("FOR c IN customers RETURN c");
 
         let mut new_cursor = NewCursor::from(query);
-        {
-            let mut optimizer_rules = new_cursor.options_mut().optimizer_rules_mut();
-            optimizer_rules.exclude(OptimizerRule::All);
-            optimizer_rules.include(OptimizerRule::InterchangeAdjacentEnumerations);
-            optimizer_rules.include(OptimizerRule::InlineSubQueries);
-            optimizer_rules.include(OptimizerRule::MoveFiltersUp);
-            optimizer_rules.exclude(OptimizerRule::PropagateConstantAttributes);
-        }
+
+            new_cursor.options_mut().optimizer_rules_mut()
+                .exclude(OptimizerRule::All)
+                .include(OptimizerRule::InterchangeAdjacentEnumerations)
+                .include(OptimizerRule::InlineSubQueries)
+                .include(OptimizerRule::MoveFiltersUp)
+                .exclude(OptimizerRule::PropagateConstantAttributes)
+            ;
+
         let method = CreateCursor::<JsonValue>::new(new_cursor);
         let cursor = core.run(conn.execute(method)).unwrap();
 

@@ -587,7 +587,7 @@ impl CollectionProperties {
 
     /// Returns the number of copies that are kept of each shard.
     #[cfg(feature = "cluster")]
-    pub fn replication_factor(&self) -> u16 {
+    pub fn replication_factor(&self) -> u64 {
         self.replication_factor
     }
 

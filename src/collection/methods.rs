@@ -150,7 +150,7 @@ impl CreateCollection {
     /// been created at all replications.
     #[cfg(feature = "cluster")]
     pub fn is_wait_for_sync_replication(&self) -> bool {
-        &self.wait_for_sync_replication
+        self.wait_for_sync_replication
     }
 }
 
