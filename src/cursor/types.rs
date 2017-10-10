@@ -274,11 +274,10 @@ impl NewCursor {
     /// Calculating the 'count' attribute might have a performance impact for
     /// some queries in the future so this option is turned off by default, and
     /// 'count' is only returned when requested.
-    pub fn with_count<C>(&mut self, count: C) -> &mut Self
+    pub fn set_count<C>(&mut self, count: C)
         where C: Into<Option<bool>>
     {
         self.count = count.into();
-        self
     }
 
     /// Returns whether the number of documents in the result set should be
@@ -292,11 +291,10 @@ impl NewCursor {
     ///
     /// If this attribute is not set, a server-controlled default value will be
     /// used. A batchSize value of 0 is disallowed.
-    pub fn with_batch_size<S>(&mut self, batch_size: S) -> &mut Self
+    pub fn set_batch_size<S>(&mut self, batch_size: S)
         where S: Into<Option<u32>>
     {
         self.batch_size = batch_size.into();
-        self
     }
 
     /// Returns the maximum number of result documents to be transferred from
@@ -310,11 +308,10 @@ impl NewCursor {
     /// If set to false, then any query cache lookup will be skipped for the
     /// query. If set to true, it will lead to the query cache being checked
     /// for the query if the query cache mode is either on or demand.
-    pub fn with_cache<C>(&mut self, cache: C) -> &mut Self
+    pub fn set_cache<C>(&mut self, cache: C)
         where C: Into<Option<bool>>
     {
         self.cache = cache.into();
-        self
     }
 
     /// Returns whether the AQL query cache shall be used.
@@ -328,11 +325,10 @@ impl NewCursor {
     /// If set, then the query will fail with error 'resource limit exceeded'
     /// in case it allocates too much memory. A value of 0 indicates that there
     /// is no memory limit.
-    pub fn with_memory_limit<L>(&mut self, memory_limit: L) -> &mut Self
+    pub fn set_memory_limit<L>(&mut self, memory_limit: L)
         where L: Into<Option<u64>>
     {
         self.memory_limit = memory_limit.into();
-        self
     }
 
     /// Returns the maximum number of memory (measured in bytes) that the query
@@ -347,11 +343,10 @@ impl NewCursor {
     /// specified amount of time. This is useful to ensure garbage collection
     /// of cursors that are not fully fetched by clients. If not set, a
     /// server-defined value will be used.
-    pub fn with_ttl<T>(&mut self, ttl: T) -> &mut Self
+    pub fn set_ttl<T>(&mut self, ttl: T)
         where T: Into<Option<u32>>
     {
         self.ttl = ttl.into();
-        self
     }
 
     /// Returns the time-to-live for the cursor (in seconds).
@@ -501,11 +496,10 @@ impl CursorOptions {
     /// the query result. There is also a server configuration option
     /// `--query.fail-on-warning` for setting the default value for
     /// `fail_on_warning` so it does not need to be set on a per-query level.
-    pub fn with_fail_on_warning<W>(&mut self, fail_on_warning: W) -> &mut Self
+    pub fn set_fail_on_warning<W>(&mut self, fail_on_warning: W)
         where W: Into<Option<bool>>
     {
         self.fail_on_warning = fail_on_warning.into();
-        self
     }
 
     /// Returns whether the query shall fail on warnings.
@@ -519,11 +513,10 @@ impl CursorOptions {
     /// If set to true, then the additional query profiling information will
     /// be returned in the sub-attribute profile of the extra return attribute
     /// if the query result is not served from the query cache.
-    pub fn with_profile<P>(&mut self, profile: P) -> &mut Self
+    pub fn set_profile<P>(&mut self, profile: P)
         where P: Into<Option<bool>>
     {
         self.profile = profile.into();
-        self
     }
 
     /// Returns whether additional query profiling information shall be
@@ -536,11 +529,10 @@ impl CursorOptions {
     ///
     /// The number of warnings a query will return is limited to 10 by default,
     /// but that number can be increased or decreased by setting this attribute.
-    pub fn with_max_warning_count<C>(&mut self, max_warning_count: C) -> &mut Self
+    pub fn set_max_warning_count<C>(&mut self, max_warning_count: C)
         where C: Into<Option<u32>>
     {
         self.max_warning_count = max_warning_count.into();
-        self
     }
 
     /// Returns the maximum number of warnings a query will return.
@@ -562,11 +554,10 @@ impl CursorOptions {
     /// and thus make queries run longer. Note that the fullCount attribute will
     /// only be present in the result if the query has a LIMIT clause and the
     /// LIMIT clause is actually used in the query.
-    pub fn with_full_count<C>(&mut self, full_count: C) -> &mut Self
+    pub fn set_full_count<C>(&mut self, full_count: C)
         where C: Into<Option<bool>>
     {
         self.full_count = full_count.into();
-        self
     }
 
     /// Returns whether full count and stats should be returned.
@@ -576,11 +567,10 @@ impl CursorOptions {
 
     /// Sets the maximum number of plans that are created by the AQL query
     /// optimizer.
-    pub fn with_max_plans<P>(&mut self, max_plans: P) -> &mut Self
+    pub fn set_max_plans<P>(&mut self, max_plans: P)
         where P: Into<Option<u32>>
     {
         self.max_plans = max_plans.into();
-        self
     }
 
     /// Returns the maximum number of plans that are created by the AQL query
@@ -616,11 +606,10 @@ impl CursorOptions {
     ///
     /// Honored by the RocksDB storage engine only.
     #[cfg(feature = "rocksdb")]
-    pub fn with_intermediate_commit_count<C>(&mut self, intermediate_commit_count: C) -> &mut Self
+    pub fn set_intermediate_commit_count<C>(&mut self, intermediate_commit_count: C)
         where C: Into<Option<u32>>
     {
         self.intermediate_commit_count = intermediate_commit_count.into();
-        self
     }
 
     /// Returns the maximum number of operations after which an intermediate
@@ -637,11 +626,10 @@ impl CursorOptions {
     ///
     /// Honored by the RocksDB storage engine only.
     #[cfg(feature = "rocksdb")]
-    pub fn with_intermediate_commit_size<S>(&mut self, intermediate_commit_size: S) -> &mut Self
+    pub fn set_intermediate_commit_size<S>(&mut self, intermediate_commit_size: S)
         where S: Into<Option<u32>>
     {
         self.intermediate_commit_size = intermediate_commit_size.into();
-        self
     }
 
     /// Returns the maximum total size of operations after which an intermediate
@@ -657,11 +645,10 @@ impl CursorOptions {
     ///
     /// Honored by the RocksDB storage engine only.
     #[cfg(feature = "rocksdb")]
-    pub fn with_max_transaction_size<S>(&mut self, max_transaction_size: S) -> &mut Self
+    pub fn set_max_transaction_size<S>(&mut self, max_transaction_size: S)
         where S: Into<Option<u32>>
     {
         self.max_transaction_size = max_transaction_size.into();
-        self
     }
 
     /// Returns the transaction size limit in bytes.
@@ -679,11 +666,10 @@ impl CursorOptions {
     /// The default value is 60.0 (seconds). When the max time has been reached
     /// the query will be stopped.
     #[cfg(feature = "enterprise")]
-    pub fn with_satellite_sync_wait<W>(&mut self, satellite_sync_wait: W) -> &mut Self
+    pub fn set_satellite_sync_wait<W>(&mut self, satellite_sync_wait: W)
         where W: Into<Option<bool>>
     {
         self.satellite_sync_wait = satellite_sync_wait.into();
-        self
     }
 
     /// Returns the enterprise parameter that configures how long a DBServer
@@ -1136,21 +1122,19 @@ mod tests {
         let mut new_cursor = NewCursor::from(query);
         assert!(new_cursor.options().is_none());
 
-        new_cursor.options_mut()
-            .with_fail_on_warning(true)
-            .with_full_count(Some(false))
-            .with_max_warning_count(None)
-            .with_max_plans(5)
-        ;
-        #[cfg(feature = "rocksdb")] {
-            new_cursor.options_mut()
-                .with_intermediate_commit_count(1)
-            ;
-        }
-        #[cfg(feature = "enterprise")] {
-            new_cursor.options_mut()
-                .with_satellite_sync_wait(false)
-            ;
+        {
+            let mut cursor_options = new_cursor.options_mut();
+            cursor_options.set_fail_on_warning(true);
+            cursor_options.set_full_count(Some(false));
+            cursor_options.set_max_warning_count(None);
+            cursor_options.set_max_plans(5);
+
+            #[cfg(feature = "rocksdb")] {
+                cursor_options.set_intermediate_commit_count(1);
+            }
+            #[cfg(feature = "enterprise")] {
+                cursor_options.set_satellite_sync_wait(false);
+            }
         }
         let new_cursor = new_cursor;
         assert!(new_cursor.options().is_some());
@@ -1179,12 +1163,11 @@ mod tests {
         let query = query;
 
         let mut new_cursor = NewCursor::from(query);
-        new_cursor.with_batch_size(42)
-            .with_cache(false)
-            .with_count(None)
-            .with_memory_limit(32 * 1024)
-            .with_ttl(Some(30))
-        ;
+        new_cursor.set_batch_size(42);
+        new_cursor.set_cache(false);
+        new_cursor.set_count(None);
+        new_cursor.set_memory_limit(32 * 1024);
+        new_cursor.set_ttl(Some(30));
         let new_cursor = new_cursor;
 
         assert_eq!(Some(42), new_cursor.batch_size());

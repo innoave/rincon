@@ -91,7 +91,7 @@ fn query_reads_from_cursor_in_batches_of_5_results() {
               RETURN c.name"
         );
         let mut new_cursor = NewCursor::from(query);
-        new_cursor.with_batch_size(5);
+        new_cursor.set_batch_size(5);
         let method = CreateCursor::<String>::new(new_cursor);
         let cursor = core.run(conn.execute(method)).unwrap();
         assert_eq!(21, cursor.extra().unwrap().stats().scanned_full());
@@ -169,7 +169,7 @@ fn delete_cursor_before_fetching_all_results() {
               RETURN c.name"
         );
         let mut new_cursor = NewCursor::from(query);
-        new_cursor.with_batch_size(5);
+        new_cursor.set_batch_size(5);
         let method = CreateCursor::<String>::new(new_cursor);
         let cursor = core.run(conn.execute(method)).unwrap();
         assert_eq!(21, cursor.extra().unwrap().stats().scanned_full());
