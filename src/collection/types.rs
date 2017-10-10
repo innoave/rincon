@@ -1,5 +1,6 @@
 
 use std::fmt;
+use std::mem;
 use std::u8;
 
 use serde::de::{self, Deserialize, Deserializer, Visitor};
@@ -13,13 +14,18 @@ use serde::ser::{Serialize, Serializer};
 pub struct Collection {
     /// The id of the collection.
     id: String,
+
     /// The name of the collection.
     name: String,
+
     /// The type of the collection.
     #[serde(rename = "type")]
+
     kind: CollectionType,
+
     /// The status of the collection.
     status: CollectionStatus,
+
     /// Whether the collection is a system collection or regular collection.
     is_system: bool,
 }
@@ -189,11 +195,13 @@ pub struct NewCollection {
 }
 
 impl NewCollection {
-    fn _new(name: String, kind: Option<CollectionType>, is_system: Option<bool>) -> Self {
+    fn new<K, S>(name: String, kind: K, is_system: S) -> Self
+        where K: Into<Option<CollectionType>>, S: Into<Option<bool>>
+    {
         NewCollection {
             name,
-            kind,
-            is_system,
+            kind: kind.into(),
+            is_system: is_system.into(),
             key_options: None,
             wait_for_sync: None,
             #[cfg(feature = "cluster")]
@@ -222,7 +230,7 @@ impl NewCollection {
     pub fn with_name<N>(name: N) -> Self
         where N: Into<String>
     {
-        NewCollection::_new(name.into(), None, None)
+        NewCollection::new(name.into(), None, None)
     }
 
     /// Constructs a new instance of `NewCollection` with the given name as
@@ -234,7 +242,7 @@ impl NewCollection {
     pub fn documents_with_name<N>(name: N) -> Self
         where N: Into<String>
     {
-        NewCollection::_new(name.into(), Some(CollectionType::Documents), None)
+        NewCollection::new(name.into(), Some(CollectionType::Documents), None)
     }
 
     /// Constructs a new instance of `NewCollection` with the given name as
@@ -246,7 +254,7 @@ impl NewCollection {
     pub fn edges_with_name<N>(name: N) -> Self
         where N: Into<String>
     {
-        NewCollection::_new(name.into(), Some(CollectionType::Edges), None)
+        NewCollection::new(name.into(), Some(CollectionType::Edges), None)
     }
 
     /// Constructs a new instance of `NewCollection` with the given name as
@@ -258,7 +266,7 @@ impl NewCollection {
     pub fn system_documents_with_name<N>(name: N) -> Self
         where N: Into<String>
     {
-        NewCollection::_new(name.into(), Some(CollectionType::Documents), Some(true))
+        NewCollection::new(name.into(), Some(CollectionType::Documents), Some(true))
     }
 
     /// Constructs a new instance of `NewCollection` with the given name as
@@ -270,7 +278,7 @@ impl NewCollection {
     pub fn system_edges_with_name<N>(name: N) -> Self
         where N: Into<String>
     {
-        NewCollection::_new(name.into(), Some(CollectionType::Edges), Some(true))
+        NewCollection::new(name.into(), Some(CollectionType::Edges), Some(true))
     }
 
     /// Returns the name of the collection to be created.
@@ -289,9 +297,15 @@ impl NewCollection {
         self.is_system
     }
 
-    /// Sets the key options of the collection to be created.
-    pub fn set_key_options(&mut self, key_options: Option<NewKeyOptions>) {
-        self.key_options = key_options;
+    /// Returns the key options as mutable reference for changing key options
+    /// in place.
+    pub fn key_options_mut<K>(&mut self) -> &mut NewKeyOptions {
+        self.key_options.get_or_insert_with(|| NewKeyOptions::new())
+    }
+
+    /// Removes the currently set key options from this struct and returns them.
+    pub fn remove_key_options(&mut self) -> Option<NewKeyOptions> {
+        mem::replace(&mut self.key_options, None)
     }
 
     /// Returns the key options of the collection to be created.
@@ -301,20 +315,24 @@ impl NewCollection {
 
     /// Sets whether the server waits for sync to the filesystem before
     /// sending the response.
-    pub fn set_wait_for_sync(&mut self, wait_for_sync: Option<bool>) {
-        self.wait_for_sync = wait_for_sync;
+    pub fn set_wait_for_sync<W>(&mut self, wait_for_sync: W)
+        where W: Into<Option<bool>>
+    {
+        self.wait_for_sync = wait_for_sync.into();
     }
 
     /// Returns whether the server waits for sync to the filesystem before
     /// sending the response.
-    pub fn wait_for_sync(&self) -> Option<bool> {
+    pub fn is_wait_for_sync(&self) -> Option<bool> {
         self.wait_for_sync
     }
 
     /// Sets the number of shards that shall be created for this collection.
     #[cfg(feature = "cluster")]
-    pub fn set_number_of_shards(&mut self, number_of_shards: Option<u16>) {
-        self.number_of_shards = number_of_shards;
+    pub fn set_number_of_shards<S>(&mut self, number_of_shards: S)
+        where S: Into<Option<u16>>
+    {
+        self.number_of_shards = number_of_shards.into();
     }
 
     /// Returns the number of shards that shall be created for this collection.
@@ -325,8 +343,10 @@ impl NewCollection {
 
     /// Sets the keys to determine the shard for a collection.
     #[cfg(feature = "cluster")]
-    pub fn set_shard_keys(&mut self, shard_keys: Option<String>) {
-        self.shard_keys = shard_keys;
+    pub fn set_shard_keys<K>(&mut self, shard_keys: K)
+        where K: Into<Option<String>>
+    {
+        self.shard_keys = shard_keys.into();
     }
 
     /// Returns the keys to determine the shard for a collection.
@@ -337,8 +357,10 @@ impl NewCollection {
 
     /// Sets the number of copies that are kept of each shard.
     #[cfg(feature = "cluster")]
-    pub fn set_replication_factor(&mut self, replication_factor: Option<u16>) {
-        self.replication_factor = replication_factor;
+    pub fn set_replication_factor<R>(&mut self, replication_factor: R)
+        where R: Into<Option<u16>>
+    {
+        self.replication_factor = replication_factor.into();
     }
 
     /// Returns the number of copies that are kept of each shard.
@@ -349,8 +371,10 @@ impl NewCollection {
 
     /// Sets whether this collection is going to be a volatile collection.
     #[cfg(feature = "mmfiles")]
-    pub fn set_volatile(&mut self, volatile: Option<bool>) {
-        self.is_volatile = volatile;
+    pub fn set_volatile<V>(&mut self, volatile: V)
+        where V: Into<Option<bool>>
+    {
+        self.is_volatile = volatile.into();
     }
 
     /// Returns whether this collection is going to be a volatile collection.
@@ -361,8 +385,10 @@ impl NewCollection {
 
     /// Sets whether this collection is going to be compacted.
     #[cfg(feature = "mmfiles")]
-    pub fn set_do_compact(&mut self, do_compact: Option<bool>) {
-        self.do_compact = do_compact;
+    pub fn set_do_compact<C>(&mut self, do_compact: C)
+        where C: Into<Option<bool>>
+    {
+        self.do_compact = do_compact.into();
     }
 
     /// Returns whether this collection is going to be compacted.
@@ -374,8 +400,10 @@ impl NewCollection {
     /// Sets the number of buckets into which indexes using a hash table
     /// are split.
     #[cfg(feature = "mmfiles")]
-    pub fn set_index_buckets(&mut self, index_buckets: Option<u16>) {
-        self.index_buckets = index_buckets;
+    pub fn set_index_buckets<B>(&mut self, index_buckets: B)
+        where B: Into<Option<u16>>
+    {
+        self.index_buckets = index_buckets.into();
     }
 
     /// Returns the number of buckets into which indexes using a hash table
@@ -387,8 +415,10 @@ impl NewCollection {
 
     /// Sets the maximal size of a journal or datafile in bytes.
     #[cfg(feature = "mmfiles")]
-    pub fn set_journal_size(&mut self, journal_size: Option<u64>) {
-        self.journal_size = journal_size;
+    pub fn set_journal_size<J>(&mut self, journal_size: J)
+        where J: Into<Option<u64>>
+    {
+        self.journal_size = journal_size.into();
     }
 
     /// Returns the maximal size of a journal or datafile in bytes.
@@ -403,26 +433,101 @@ impl NewCollection {
 #[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct NewKeyOptions {
-    /// If set to true, then it is allowed to supply own key values in the _key attribute of a
-    /// document. If set to false, then the key generator will solely be responsible for generating
-    /// keys and supplying own key values in the _key attribute of documents is considered an error.
+    /// If set to true, then it is allowed to supply own key values in the _key
+    /// attribute of a document. If set to false, then the key generator will
+    /// solely be responsible for generating keys and supplying own key values
+    /// in the _key attribute of documents is considered an error.
     #[serde(skip_serializing_if = "Option::is_none")]
     allow_user_keys: Option<bool>,
+
     /// Specifies the type of the key generator.
     ///
-    /// The currently available generators are 'Traditional' and 'AutoIncrement'.
+    /// The currently available generators are 'Traditional' and
+    /// 'AutoIncrement'.
     #[serde(rename = "type")]
     kind: KeyGeneratorType,
+
     /// Increment value for 'AutoIncrement key generator.
     ///
     /// Used for 'AutoIncrement' key generator only.
     #[serde(skip_serializing_if = "Option::is_none")]
     increment: Option<u64>,
+
     /// Initial offset value for autoincrement key generator.
     ///
     /// Used for 'AutoIncrement' key generator only.
     #[serde(skip_serializing_if = "Option::is_none")]
     offset: Option<u64>,
+}
+
+impl NewKeyOptions {
+    /// Constructs a new instance of `NewKeyOptions` with the kind set to
+    /// `KeyGeneratorType::Traditional` and all optional fields set to `None`.
+    fn new() -> Self {
+        NewKeyOptions {
+            allow_user_keys: None,
+            kind: KeyGeneratorType::Traditional,
+            increment: None,
+            offset: None,
+        }
+    }
+
+    /// Sets the flag indicating whether user keys shall be allowed.
+    ///
+    /// If set to true, then it is allowed to supply own key values in the _key
+    /// attribute of a document. If set to false, then the key generator will
+    /// solely be responsible for generating keys and supplying own key values
+    /// in the _key attribute of documents is considered an error.
+    pub fn set_allow_user_keys<U>(&mut self, allow_user_keys: U)
+        where U: Into<Option<bool>>
+    {
+        self.allow_user_keys = allow_user_keys.into();
+    }
+
+    /// Returns whether user keys shall be allowed.
+    pub fn is_allow_user_keys(&self) -> Option<bool> {
+        self.allow_user_keys
+    }
+
+    /// Sets the type of the key generator that shall be used by the new
+    /// collection.
+    pub fn set_kind(&mut self, kind: KeyGeneratorType)
+    {
+        self.kind = kind;
+    }
+
+    /// Returns the type of the key generator that shall be used.
+    pub fn kind(&self) -> &KeyGeneratorType {
+        &self.kind
+    }
+
+    /// Sets the increment value for 'AutoIncrement key generator.
+    ///
+    /// Used for 'AutoIncrement' key generator only.
+    pub fn set_increment<I>(&mut self, increment: I)
+        where I: Into<Option<u64>>
+    {
+        self.increment = increment.into();
+    }
+
+    /// Returns the initial offset value for autoincrement key generator.
+    pub fn increment(&self) -> Option<u64> {
+        self.increment
+    }
+
+    /// Sets the initial offset value for autoincrement key generator.
+    ///
+    /// Used for 'AutoIncrement' key generator only.
+    pub fn set_offset<O>(&mut self, offset: O)
+        where O: Into<Option<u64>>
+    {
+        self.offset = offset.into();
+    }
+
+    /// Returns the initial offset value for autoincrement key generator.
+    pub fn offset(&self) -> Option<u64> {
+        self.offset
+    }
 }
 
 /// This struct holds basic attributes of a collection.
@@ -433,18 +538,24 @@ pub struct NewKeyOptions {
 pub struct BasicCollectionProperties {
     /// The id of the collection.
     id: String,
+
     /// The name of the collection.
     name: String,
+
     /// The type of the collection.
     #[serde(rename = "type")]
     kind: CollectionType,
+
     /// The status of the collection.
     status: CollectionStatus,
+
     /// Whether the collection is system collection or regular collection.
     is_system: bool,
+
     /// Whether the server should wait until the collection is synchronized to
     /// the file system before returning the response.
     wait_for_sync: bool,
+
     /// Whether this collection is volatile.
     #[cfg(feature = "mmfiles")]
     is_volatile: bool,
@@ -498,38 +609,51 @@ impl BasicCollectionProperties {
 pub struct CollectionProperties {
     /// The id of the collection.
     id: String,
+
     /// The name of the collection.
     name: String,
+
     /// The type of the collection.
     #[serde(rename = "type")]
     kind: CollectionType,
+
     /// The status of the collection.
     status: CollectionStatus,
+
     /// Whether the collection is system collection or regular collection.
     is_system: bool,
+
     /// The key options of the collection.
     key_options: KeyOptions,
+
     /// Whether the server should wait until the collection is synchronized to
     /// the file system before returning the response.
     wait_for_sync: bool,
+
     /// The number of shards of the collection.
     #[cfg(feature = "cluster")]
     number_of_shards: u16,
+
     /// The keys used to identify the shards of a collection.
     #[cfg(feature = "cluster")]
     shard_keys: String,
+
     /// The number of copies that are kept of each shard.
     #[cfg(feature = "cluster")]
     replication_factor: u64,
+
     /// Whether this collection is volatile.
     #[cfg(feature = "mmfiles")]
     is_volatile: bool,
+
     /// Whether this collection is compacted.
     #[cfg(feature = "mmfiles")]
     do_compact: bool,
+
     /// The number of buckets into which indexes using a hash table are split.
     #[cfg(feature = "mmfiles")]
     index_buckets: u16,
+
     /// The maximal size of a journal or datafile in bytes.
     #[cfg(feature = "mmfiles")]
     journal_size: u64,
@@ -626,6 +750,7 @@ pub struct CollectionPropertiesUpdate {
     /// Whether the server should wait until the collection is synchronized to
     /// the file system before returning the response.
     wait_for_sync: Option<bool>,
+
     /// The maximal size of a journal or datafile in bytes.
     #[cfg(feature = "mmfiles")]
     journal_size: Option<u64>,
@@ -644,20 +769,24 @@ impl CollectionPropertiesUpdate {
 
     /// Sets whether the server waits for sync to the filesystem before
     /// sending the response.
-    pub fn set_wait_for_sync(&mut self, wait_for_sync: Option<bool>) {
-        self.wait_for_sync = wait_for_sync;
+    pub fn set_wait_for_sync<W>(&mut self, wait_for_sync: W)
+        where W: Into<Option<bool>>
+    {
+        self.wait_for_sync = wait_for_sync.into();
     }
 
     /// Returns whether the server waits for sync to the filesystem before
     /// sending the response.
-    pub fn wait_for_sync(&self) -> Option<bool> {
+    pub fn is_wait_for_sync(&self) -> Option<bool> {
         self.wait_for_sync
     }
 
     /// Sets the maximal size of a journal or datafile in bytes.
     #[cfg(feature = "mmfiles")]
-    pub fn set_journal_size(&mut self, journal_size: Option<u64>) {
-        self.journal_size = journal_size;
+    pub fn set_journal_size<J>(&mut self, journal_size: J)
+        where J: Into<Option<u64>>
+    {
+        self.journal_size = journal_size.into();
     }
 
     /// Returns the maximal size of a journal or datafile in bytes.
@@ -701,12 +830,14 @@ pub struct KeyOptions {
     /// solely be responsible for generating keys and supplying own key values
     /// in the _key attribute of documents is considered an error.
     allow_user_keys: bool,
+
     /// Specifies the type of the key generator.
     ///
     /// The currently available generators are 'Traditional' and
     /// 'AutoIncrement'.
     #[serde(rename = "type")]
     kind: KeyGeneratorType,
+
     /// Last used key value.
     last_value: u64,
 }

@@ -93,12 +93,14 @@ impl<E> NewUser<E>
 {
     /// Constructs an new instance of `NewUser` with all attributes explicitly
     /// set.
-    pub fn new(name: String, password: Option<String>, active: Option<bool>, extra: Option<E>) -> Self {
+    pub fn new<P, A, O>(name: String, password: P, active: A, extra: O) -> Self
+        where P: Into<Option<String>>, A: Into<Option<bool>>, O: Into<Option<E>>
+    {
         NewUser {
             user: name,
-            passwd: password,
-            active,
-            extra,
+            passwd: password.into(),
+            active: active.into(),
+            extra: extra.into(),
         }
     }
 
@@ -134,13 +136,17 @@ impl<E> NewUser<E>
     }
 
     /// Sets the extra data for this `NewUser`.
-    pub fn set_extra(&mut self, extra: Option<E>) {
-        self.extra = extra;
+    pub fn set_extra<O>(&mut self, extra: O)
+        where O: Into<Option<E>>
+    {
+        self.extra = extra.into();
     }
 
     /// Sets the active flag for this `NewUser`.
-    pub fn set_active(&mut self, active: Option<bool>) {
-        self.active = active;
+    pub fn set_active<A>(&mut self, active: A)
+        where A: Into<Option<bool>>
+    {
+        self.active = active.into();
     }
 
     /// Returns the name of the user to be created.
@@ -197,11 +203,13 @@ impl<E> UserUpdate<E>
 {
     /// Constructs an new instance of `UserUpdate` with all attributes
     /// explicitly set.
-    pub fn new(password: Option<String>, active: Option<bool>, extra: Option<E>) -> Self {
+    pub fn new<P, A, O>(password: P, active: A, extra: O) -> Self
+        where P: Into<Option<String>>, A: Into<Option<bool>>, O: Into<Option<E>>
+    {
         UserUpdate {
-            passwd: password,
-            active,
-            extra,
+            passwd: password.into(),
+            active: active.into(),
+            extra: extra.into(),
         }
     }
 
@@ -215,18 +223,24 @@ impl<E> UserUpdate<E>
     }
 
     /// Sets the password for this `UserUpdate`.
-    pub fn set_password(&mut self, password: Option<String>) {
-        self.passwd = password;
+    pub fn set_password<P>(&mut self, password: P)
+        where P: Into<Option<String>>
+    {
+        self.passwd = password.into();
     }
 
     /// Sets the extra data for this `UserUpdate`.
-    pub fn set_extra(&mut self, extra: Option<E>) {
-        self.extra = extra;
+    pub fn set_extra<O>(&mut self, extra: O)
+        where O: Into<Option<E>>
+    {
+        self.extra = extra.into();
     }
 
     /// Sets the active flag for this `UserUpdate`.
-    pub fn set_active(&mut self, active: Option<bool>) {
-        self.active = active;
+    pub fn set_active<A>(&mut self, active: A)
+        where A: Into<Option<bool>>
+    {
+        self.active = active.into();
     }
 
     /// Returns the password of the user to be created.

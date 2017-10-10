@@ -355,7 +355,9 @@ impl NewCursor {
     }
 
     /// Returns the optional cursor options as mutable reference for changing
-    /// the optional cursor options to tweak query execution.
+    /// the optional cursor options in place.
+    ///
+    /// The cursor options can be used to tweak query execution.
     pub fn options_mut(&mut self) -> &mut CursorOptions {
         self.options.get_or_insert_with(|| CursorOptions::new())
     }
