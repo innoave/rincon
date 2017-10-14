@@ -37,8 +37,10 @@ pub mod connection;
 pub mod datasource;
 
 pub mod admin;
+pub mod aql;
 pub mod authentication;
 pub mod collection;
 pub mod cursor;
 pub mod database;
+pub mod index;
 pub mod user;
