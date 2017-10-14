@@ -6,7 +6,7 @@ use std::fmt::{self, Debug, Display};
 use std::iter::{ExactSizeIterator, FromIterator, Iterator};
 use std::slice::Iter;
 
-use serde::de::{self, Deserialize, Deserializer, DeserializeOwned, Visitor};
+use serde::de::{Deserialize, Deserializer, DeserializeOwned};
 use serde::ser::Serialize;
 
 pub trait Method {
@@ -220,22 +220,7 @@ impl<'de> Deserialize<'de> for ErrorCode {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
     {
-        deserializer.deserialize_u64(ErrorCodeVisitor)
-    }
-}
-
-struct ErrorCodeVisitor;
-
-impl<'de> Visitor<'de> for ErrorCodeVisitor {
-    type Value = ErrorCode;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("an u16 integer")
-    }
-
-    fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
-        where E: de::Error
-    {
-        Ok(ErrorCode::from_u16(value as u16))
+        let value = u16::deserialize(deserializer)?;
+        Ok(ErrorCode::from_u16(value))
     }
 }

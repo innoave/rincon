@@ -2,7 +2,7 @@
 use std::collections::HashMap;
 use std::fmt::{self, Display};
 
-use serde::de::{self, Deserialize, Deserializer, Visitor};
+use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
 use api::types::{Empty, JsonValue};
@@ -326,6 +326,17 @@ impl Permission {
     }
 }
 
+impl Display for Permission {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::Permission::*;
+        f.write_str(match *self {
+            ReadWrite => "Read/Write",
+            ReadOnly  => "Read Only",
+            None      => "No access",
+        })
+    }
+}
+
 impl Serialize for Permission {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
@@ -338,34 +349,9 @@ impl<'de> Deserialize<'de> for Permission {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
     {
-        deserializer.deserialize_str(PermissionVisitor)
-    }
-}
-
-struct PermissionVisitor;
-
-impl<'de> Visitor<'de> for PermissionVisitor {
-    type Value = Permission;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a valid permission string")
-    }
-
-    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-        where E: de::Error
-    {
-        Permission::from_str(value).map_err(|err| E::custom(err))
-    }
-}
-
-impl Display for Permission {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use self::Permission::*;
-        f.write_str(match *self {
-            ReadWrite => "Read/Write",
-            ReadOnly  => "Read Only",
-            None      => "No access",
-        })
+        use serde::de::Error;
+        let value = String::deserialize(deserializer)?;
+        Permission::from_str(&value).map_err(|err| D::Error::custom(err))
     }
 }
 

@@ -16,6 +16,7 @@ use arangodb_client::connection::{self, Connection};
 use arangodb_client::datasource::DataSource;
 
 
+#[ignore]
 #[test]
 fn establish_connection_timeout() {
     dotenv::dotenv().ok();

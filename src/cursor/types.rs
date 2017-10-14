@@ -1125,7 +1125,7 @@ mod tests {
         assert!(new_cursor.options().is_none());
 
         {
-            let mut cursor_options = new_cursor.options_mut();
+            let cursor_options = new_cursor.options_mut();
             cursor_options.set_fail_on_warning(true);
             cursor_options.set_full_count(Some(false));
             cursor_options.set_max_warning_count(None);

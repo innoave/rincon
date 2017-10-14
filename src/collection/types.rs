@@ -1,9 +1,8 @@
 
-use std::fmt;
 use std::mem;
 use std::u8;
 
-use serde::de::{self, Deserialize, Deserializer, Visitor};
+use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
 /// This struct holds attributes of a collection.
@@ -885,27 +884,13 @@ impl<'de> Deserialize<'de> for CollectionType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
     {
-        deserializer.deserialize_u64(CollectionTypeVisitor)
-    }
-}
-
-struct CollectionTypeVisitor;
-
-impl<'de> Visitor<'de> for CollectionTypeVisitor {
-    type Value = CollectionType;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("an integer between 2 and 3")
-    }
-
-    fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
-        where E: de::Error
-    {
+        use serde::de::Error;
         use self::CollectionType::*;
+        let value = u64::deserialize(deserializer)?;
         match value {
             2 => Ok(Documents),
             3 => Ok(Edges),
-            _ => Err(E::custom(format!("u64 out of range: {}", value))),
+            _ => Err(D::Error::custom(format!("u64 out of range: {}", value))),
         }
     }
 }
@@ -951,23 +936,8 @@ impl<'de> Deserialize<'de> for CollectionStatus {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
     {
-        deserializer.deserialize_u64(CollectionStatusVisitor)
-    }
-}
-
-struct CollectionStatusVisitor;
-
-impl<'de> Visitor<'de> for CollectionStatusVisitor {
-    type Value = CollectionStatus;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("an integer between 1 and 6")
-    }
-
-    fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
-        where E: de::Error
-    {
         use self::CollectionStatus::*;
+        let value = u64::deserialize(deserializer)?;
         match value {
             1 => Ok(NewBorn),
             2 => Ok(Unloaded),
@@ -1006,33 +976,13 @@ impl<'de> Deserialize<'de> for KeyGeneratorType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
     {
-        deserializer.deserialize_str(KeyGeneratorTypeVisitor)
-    }
-}
-
-struct KeyGeneratorTypeVisitor;
-
-impl<'de> Visitor<'de> for KeyGeneratorTypeVisitor {
-    type Value = KeyGeneratorType;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a string that is either 'traditional' or 'autoincrement'")
-    }
-
-    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-        where E: de::Error
-    {
+        use serde::de::Error;
         use self::KeyGeneratorType::*;
-        match value {
+        let value = String::deserialize(deserializer)?;
+        match &value[..] {
             "traditional" => Ok(Traditional),
             "autoincrement" => Ok(AutoIncrement),
-            _ => Err(E::custom(format!("Unknown KeyGeneratorType: {}", value))),
+            _ => Err(D::Error::custom(format!("Unknown KeyGeneratorType: {}", value))),
         }
-    }
-
-    fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
-        where E: de::Error
-    {
-        self.visit_str(&value)
     }
 }
