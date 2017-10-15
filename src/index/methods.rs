@@ -2,6 +2,10 @@
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use index::types::*;
 
+const REST_PATH_INDEX: &str = "/_api/index";
+
+const REST_PARAM_COLLECTION: &str = "collection";
+
 /// Returns an `IndexList` with an attribute indexes containing an array of all
 /// index descriptions for the given collection.
 ///
@@ -48,7 +52,7 @@ impl Prepare for GetIndexList {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/index")
+        String::from(REST_PATH_INDEX)
     }
 
     fn parameters(&self) -> Parameters {
@@ -65,25 +69,17 @@ impl Prepare for GetIndexList {
 /// Returns the index description for an index of a collection.
 #[derive(Clone, Debug, PartialEq)]
 pub struct GetIndex {
-    collection_name: String,
-    index_id: String,
+    index_id: IndexId,
 }
 
 impl GetIndex {
-    pub fn new<C, I>(collection_name: C, index_id: I) -> Self
-        where C: Into<String>, I: Into<String>
-    {
+    pub fn new(index_id: IndexId) -> Self {
         GetIndex {
-            collection_name: collection_name.into(),
-            index_id: index_id.into(),
+            index_id,
         }
     }
 
-    pub fn collection_name(&self) -> &str {
-        &self.collection_name
-    }
-
-    pub fn index_id(&self) -> &str {
+    pub fn index_id(&self) -> &IndexId {
         &self.index_id
     }
 }
@@ -104,7 +100,9 @@ impl Prepare for GetIndex {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/index/") + &self.collection_name + "/" + &self.index_id
+        String::from(REST_PATH_INDEX)
+            + "/" + &self.index_id.collection_name()
+            + "/" + &self.index_id.index_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -116,7 +114,8 @@ impl Prepare for GetIndex {
     }
 }
 
-/// Returns the index description for an index of a collection.
+/// Creates a new index in the collection of the given collection name. The
+/// type of the index and its details are given in the index parameter.
 #[derive(Clone, Debug, PartialEq)]
 pub struct CreateIndex {
     collection_name: String,
@@ -158,16 +157,64 @@ impl Prepare for CreateIndex {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/index")
+        String::from(REST_PATH_INDEX)
     }
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::with_capacity(1);
-        params.push("collection", self.collection_name.as_ref());
+        params.push(REST_PARAM_COLLECTION, self.collection_name.as_ref());
         params
     }
 
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.index)
+    }
+}
+
+/// Deletes the index with the given index id.
+#[derive(Clone, Debug, PartialEq)]
+pub struct DeleteIndex {
+    index_id: IndexId,
+}
+
+impl DeleteIndex {
+    pub fn new(index_id: IndexId) -> Self {
+        DeleteIndex {
+            index_id,
+        }
+    }
+
+    pub fn index_id(&self) -> &IndexId {
+        &self.index_id
+    }
+}
+
+impl Method for DeleteIndex {
+    type Result = IndexId;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: Some("id"),
+        code_field: Some("code"),
+    };
+}
+
+impl Prepare for DeleteIndex {
+    type Content = ();
+
+    fn operation(&self) -> Operation {
+        Operation::Delete
+    }
+
+    fn path(&self) -> String {
+        String::from(REST_PATH_INDEX)
+            + "/" + &self.index_id.collection_name()
+            + "/" + &self.index_id.index_key()
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
     }
 }

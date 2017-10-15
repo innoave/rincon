@@ -2,6 +2,7 @@
 use std::collections::HashMap;
 use std::iter::{FromIterator, IntoIterator};
 
+use regex::Regex;
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
@@ -14,6 +15,68 @@ const INDEX_TYPE_GEO1: &str = "geo1";
 const INDEX_TYPE_GEO2: &str = "geo2";
 const INDEX_TYPE_FULLTEXT: &str = "fulltext";
 const INDEX_TYPE_EDGE: &str = "edge";
+
+const CAPTURE_COLLECTION_NAME: &str = "coll";
+const CAPTURE_INDEX_KEY: &str = "key";
+const REGEX_INDEX_ID: &str = "^(?P<coll>[^/]+)/(?P<key>[^/]+)$";
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct IndexId {
+    collection_name: String,
+    index_key: String,
+}
+
+impl IndexId {
+    pub fn new<C, K>(collection_name: C, index_key: K) -> Self
+        where C: Into<String>, K: Into<String>
+    {
+        let collection_name = collection_name.into();
+        let index_key = index_key.into();
+        IndexId {
+            collection_name,
+            index_key,
+        }
+    }
+
+    pub fn collection_name(&self) -> &str {
+        &self.collection_name
+    }
+
+    pub fn index_key(&self) -> &str {
+        &self.index_key
+    }
+
+    pub fn as_string(&self) -> String {
+        self.collection_name.to_owned() + "/" + &self.index_key
+    }
+}
+
+impl Serialize for IndexId {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let value = self.collection_name.to_owned()
+            + "/" + &self.index_key;
+        serializer.serialize_str(&value)
+    }
+}
+
+impl<'de> Deserialize<'de> for IndexId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        use serde::de::Error;
+        let value = String::deserialize(deserializer)?;
+        let re = Regex::new(REGEX_INDEX_ID).unwrap();
+        if let Some(caps) = re.captures(&value) {
+            let collection = &caps[CAPTURE_COLLECTION_NAME];
+            let index_key = &caps[CAPTURE_INDEX_KEY];
+            Ok(IndexId::new(collection, index_key))
+        } else {
+            Err(D::Error::custom(format!("Invalid index id: {:?}", value)))
+        }
+    }
+}
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct IndexList {
@@ -32,7 +95,7 @@ impl IndexList {
 }
 
 pub trait IndexDetails {
-    fn id(&self) -> &str;
+    fn id(&self) -> &IndexId;
 
     fn fields(&self) -> &[String];
 
@@ -59,20 +122,20 @@ impl Index {
     fn unwrap_details(&self) -> &IndexDetails {
         use self::Index::*;
         match *self {
-            Primary(ref info) => info,
-            Hash(ref info) => info,
-            SkipList(ref info) => info,
-            Persistent(ref info) => info,
-            Geo1(ref info) => info,
-            Geo2(ref info) => info,
-            Fulltext(ref info) => info,
-            Edge(ref info) => info,
+            Primary(ref details) => details,
+            Hash(ref details) => details,
+            SkipList(ref details) => details,
+            Persistent(ref details) => details,
+            Geo1(ref details) => details,
+            Geo2(ref details) => details,
+            Fulltext(ref details) => details,
+            Edge(ref details) => details,
         }
     }
 }
 
 impl IndexDetails for Index {
-    fn id(&self) -> &str {
+    fn id(&self) -> &IndexId {
         self.unwrap_details().id()
     }
 
@@ -96,7 +159,7 @@ impl IndexDetails for Index {
 #[derive(Clone, Debug)]
 pub struct PrimaryIndex {
     newly_created: bool,
-    id: String,
+    id: IndexId,
     fields: Vec<String>,
     sparse: bool,
     unique: bool,
@@ -114,7 +177,7 @@ impl IndexDetails for PrimaryIndex {
         self.newly_created
     }
 
-    fn id(&self) -> &str {
+    fn id(&self) -> &IndexId {
         &self.id
     }
 
@@ -134,7 +197,7 @@ impl IndexDetails for PrimaryIndex {
 #[derive(Clone, Debug)]
 pub struct HashIndex {
     newly_created: bool,
-    id: String,
+    id: IndexId,
     fields: Vec<String>,
     sparse: bool,
     unique: bool,
@@ -157,7 +220,7 @@ impl IndexDetails for HashIndex {
         self.newly_created
     }
 
-    fn id(&self) -> &str {
+    fn id(&self) -> &IndexId {
         &self.id
     }
 
@@ -177,7 +240,7 @@ impl IndexDetails for HashIndex {
 #[derive(Clone, Debug)]
 pub struct SkipListIndex {
     newly_created: bool,
-    id: String,
+    id: IndexId,
     fields: Vec<String>,
     sparse: bool,
     unique: bool,
@@ -195,7 +258,7 @@ impl IndexDetails for SkipListIndex {
         self.newly_created
     }
 
-    fn id(&self) -> &str {
+    fn id(&self) -> &IndexId {
         &self.id
     }
 
@@ -215,7 +278,7 @@ impl IndexDetails for SkipListIndex {
 #[derive(Clone, Debug)]
 pub struct PersistentIndex {
     newly_created: bool,
-    id: String,
+    id: IndexId,
     fields: Vec<String>,
     sparse: bool,
     unique: bool,
@@ -233,7 +296,7 @@ impl IndexDetails for PersistentIndex {
         self.newly_created
     }
 
-    fn id(&self) -> &str {
+    fn id(&self) -> &IndexId {
         &self.id
     }
 
@@ -253,7 +316,7 @@ impl IndexDetails for PersistentIndex {
 #[derive(Clone, Debug)]
 pub struct Geo1Index {
     newly_created: bool,
-    id: String,
+    id: IndexId,
     fields: Vec<String>,
     sparse: bool,
     unique: bool,
@@ -276,7 +339,7 @@ impl IndexDetails for Geo1Index {
         self.newly_created
     }
 
-    fn id(&self) -> &str {
+    fn id(&self) -> &IndexId {
         &self.id
     }
 
@@ -296,7 +359,7 @@ impl IndexDetails for Geo1Index {
 #[derive(Clone, Debug)]
 pub struct Geo2Index {
     newly_created: bool,
-    id: String,
+    id: IndexId,
     fields: Vec<String>,
     sparse: bool,
     unique: bool,
@@ -310,16 +373,16 @@ impl Geo2Index {
 }
 
 impl IndexDetails for Geo2Index {
-    fn id(&self) -> &str {
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
+    }
+
+    fn id(&self) -> &IndexId {
         &self.id
     }
 
     fn fields(&self) -> &[String] {
         &self.fields
-    }
-
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
     }
 
     fn is_sparse(&self) -> bool {
@@ -334,7 +397,7 @@ impl IndexDetails for Geo2Index {
 #[derive(Clone, Debug)]
 pub struct FulltextIndex {
     newly_created: bool,
-    id: String,
+    id: IndexId,
     fields: Vec<String>,
     sparse: bool,
     unique: bool,
@@ -352,7 +415,7 @@ impl IndexDetails for FulltextIndex {
         self.newly_created
     }
 
-    fn id(&self) -> &str {
+    fn id(&self) -> &IndexId {
         &self.id
     }
 
@@ -372,7 +435,7 @@ impl IndexDetails for FulltextIndex {
 #[derive(Clone, Debug)]
 pub struct EdgeIndex {
     newly_created: bool,
-    id: String,
+    id: IndexId,
     fields: Vec<String>,
     sparse: bool,
     unique: bool,
@@ -383,7 +446,7 @@ impl IndexDetails for EdgeIndex {
         self.newly_created
     }
 
-    fn id(&self) -> &str {
+    fn id(&self) -> &IndexId {
         &self.id
     }
 
@@ -668,12 +731,12 @@ pub struct NewFulltextIndex {
 }
 
 impl NewFulltextIndex {
-    pub fn new<F>(fields: F, min_length: u32) -> Self
-        where F: IntoIterator<Item=String>
+    pub fn new<F>(field: F, min_length: u32) -> Self
+        where F: Into<String>
     {
         NewFulltextIndex {
             kind: IndexType::Fulltext,
-            fields: Vec::from_iter(fields.into_iter()),
+            fields: vec![field.into()],
             min_length,
         }
     }
@@ -761,7 +824,7 @@ impl<'de> Deserialize<'de> for IndexType {
 struct GenericIndex {
     #[serde(rename = "type")]
     kind: IndexType,
-    id: String,
+    id: IndexId,
     fields: Vec<String>,
     selectivity_estimate: Option<u32>,
     is_newly_created: Option<bool>,
@@ -916,7 +979,8 @@ mod tests {
         let index = serde_json::from_str(index_json).unwrap();
 
         if let Index::Primary(primary_index) = index {
-            assert_eq!("products/0", primary_index.id());
+            assert_eq!("products", primary_index.id().collection_name());
+            assert_eq!("0", primary_index.id().index_key());
             assert_eq!(&vec!("_key".to_owned())[..], primary_index.fields());
             assert_eq!(false, primary_index.is_newly_created());
             assert_eq!(1, primary_index.selectivity_estimate());
@@ -946,7 +1010,8 @@ mod tests {
         let index = serde_json::from_str(index_json).unwrap();
 
         if let Index::Hash(hash_index) = index {
-            assert_eq!("products/11582", hash_index.id());
+            assert_eq!("products", hash_index.id().collection_name());
+            assert_eq!("11582", hash_index.id().index_key());
             assert_eq!(&vec!("a".to_owned())[..], hash_index.fields());
             assert_eq!(true, hash_index.is_newly_created());
             assert_eq!(true, hash_index.is_deduplicate());
@@ -976,7 +1041,8 @@ mod tests {
         let index = serde_json::from_str(index_json).unwrap();
 
         if let Index::SkipList(skip_list_index) = index {
-            assert_eq!("products/11556", skip_list_index.id());
+            assert_eq!("products", skip_list_index.id().collection_name());
+            assert_eq!("11556", skip_list_index.id().index_key());
             assert_eq!(&vec!("a".to_owned(), "b".to_owned())[..], skip_list_index.fields());
             assert_eq!(false, skip_list_index.is_newly_created());
             assert_eq!(true, skip_list_index.is_deduplicate());
@@ -1005,7 +1071,8 @@ mod tests {
         let index = serde_json::from_str(index_json).unwrap();
 
         if let Index::Persistent(persistent_index) = index {
-            assert_eq!("products/11595", persistent_index.id());
+            assert_eq!("products", persistent_index.id().collection_name());
+            assert_eq!("11595", persistent_index.id().index_key());
             assert_eq!(&vec!("a".to_owned(), "b".to_owned())[..], persistent_index.fields());
             assert_eq!(true, persistent_index.is_newly_created());
             assert_eq!(false, persistent_index.is_deduplicate());
@@ -1035,7 +1102,8 @@ mod tests {
         let index = serde_json::from_str(index_json).unwrap();
 
         if let Index::Geo1(geo1_index) = index {
-            assert_eq!("products/11504", geo1_index.id());
+            assert_eq!("products", geo1_index.id().collection_name());
+            assert_eq!("11504", geo1_index.id().index_key());
             assert_eq!(&vec!("b".to_owned())[..], geo1_index.fields());
             assert_eq!(true, geo1_index.is_newly_created());
             assert_eq!(true, geo1_index.is_geo_json());
@@ -1065,7 +1133,8 @@ mod tests {
         let index = serde_json::from_str(index_json).unwrap();
 
         if let Index::Geo2(geo2_index) = index {
-            assert_eq!("products/11491", geo2_index.id());
+            assert_eq!("products", geo2_index.id().collection_name());
+            assert_eq!("11491", geo2_index.id().index_key());
             assert_eq!(&vec!("e".to_owned(), "f".to_owned())[..], geo2_index.fields());
             assert_eq!(true, geo2_index.is_newly_created());
             assert_eq!(true, geo2_index.is_constraint());
@@ -1091,7 +1160,8 @@ mod tests {
         let index = serde_json::from_str(index_json).unwrap();
 
         if let Index::Fulltext(fulltext_index) = index {
-            assert_eq!("products/11476", fulltext_index.id());
+            assert_eq!("products", fulltext_index.id().collection_name());
+            assert_eq!("11476", fulltext_index.id().index_key());
             assert_eq!(&vec!("description".to_owned())[..], fulltext_index.fields());
             assert_eq!(false, fulltext_index.is_newly_created());
             assert_eq!(2, fulltext_index.min_length());
@@ -1116,7 +1186,8 @@ mod tests {
         let index = serde_json::from_str(index_json).unwrap();
 
         if let Index::Edge(edge_index) = index {
-            assert_eq!("products/2834226", edge_index.id());
+            assert_eq!("products", edge_index.id().collection_name());
+            assert_eq!("2834226", edge_index.id().index_key());
             assert_eq!(&vec!("_from".to_owned(), "_to".to_owned())[..], edge_index.fields());
             assert_eq!(false, edge_index.is_newly_created());
         } else {
