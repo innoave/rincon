@@ -1,7 +1,19 @@
 
 use std::collections::HashMap;
+use std::iter::{FromIterator, IntoIterator};
 
 use serde::de::{Deserialize, Deserializer};
+use serde::ser::{Serialize, Serializer};
+
+const INDEX_TYPE_PRIMARY: &str = "primary";
+const INDEX_TYPE_HASH: &str = "hash";
+const INDEX_TYPE_SKIP_LIST: &str = "skiplist";
+const INDEX_TYPE_PERSISTENT: &str = "persistent";
+const INDEX_TYPE_GEO: &str = "geo";
+const INDEX_TYPE_GEO1: &str = "geo1";
+const INDEX_TYPE_GEO2: &str = "geo2";
+const INDEX_TYPE_FULLTEXT: &str = "fulltext";
+const INDEX_TYPE_EDGE: &str = "edge";
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct IndexList {
@@ -19,7 +31,7 @@ impl IndexList {
     }
 }
 
-pub trait IndexInfo {
+pub trait IndexDetails {
     fn id(&self) -> &str;
 
     fn fields(&self) -> &[String];
@@ -44,7 +56,7 @@ pub enum Index {
 }
 
 impl Index {
-    fn unwrap_index_info(&self) -> &IndexInfo {
+    fn unwrap_details(&self) -> &IndexDetails {
         use self::Index::*;
         match *self {
             Primary(ref info) => info,
@@ -59,35 +71,36 @@ impl Index {
     }
 }
 
-impl IndexInfo for Index {
+impl IndexDetails for Index {
     fn id(&self) -> &str {
-        self.unwrap_index_info().id()
+        self.unwrap_details().id()
     }
 
     fn fields(&self) -> &[String] {
-        self.unwrap_index_info().fields()
+        self.unwrap_details().fields()
     }
 
     fn is_newly_created(&self) -> bool {
-        self.unwrap_index_info().is_newly_created()
+        self.unwrap_details().is_newly_created()
     }
 
     fn is_sparse(&self) -> bool {
-        self.unwrap_index_info().is_sparse()
+        self.unwrap_details().is_sparse()
     }
 
     fn is_unique(&self) -> bool {
-        self.unwrap_index_info().is_unique()
+        self.unwrap_details().is_unique()
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct PrimaryIndex {
+    newly_created: bool,
     id: String,
     fields: Vec<String>,
-    newly_created: bool,
-    selectivity_estimate: u32,
+    sparse: bool,
     unique: bool,
+    selectivity_estimate: u32,
 }
 
 impl PrimaryIndex {
@@ -96,7 +109,11 @@ impl PrimaryIndex {
     }
 }
 
-impl IndexInfo for PrimaryIndex {
+impl IndexDetails for PrimaryIndex {
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
+    }
+
     fn id(&self) -> &str {
         &self.id
     }
@@ -105,12 +122,8 @@ impl IndexInfo for PrimaryIndex {
         &self.fields
     }
 
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
-    }
-
     fn is_sparse(&self) -> bool {
-        false
+        self.sparse
     }
 
     fn is_unique(&self) -> bool {
@@ -120,13 +133,13 @@ impl IndexInfo for PrimaryIndex {
 
 #[derive(Clone, Debug)]
 pub struct HashIndex {
+    newly_created: bool,
     id: String,
     fields: Vec<String>,
-    newly_created: bool,
-    deduplicate: bool,
-    selectivity_estimate: u32,
     sparse: bool,
     unique: bool,
+    deduplicate: bool,
+    selectivity_estimate: u32,
 }
 
 impl HashIndex {
@@ -139,17 +152,17 @@ impl HashIndex {
     }
 }
 
-impl IndexInfo for HashIndex {
+impl IndexDetails for HashIndex {
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
+    }
+
     fn id(&self) -> &str {
         &self.id
     }
 
     fn fields(&self) -> &[String] {
         &self.fields
-    }
-
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
     }
 
     fn is_sparse(&self) -> bool {
@@ -163,12 +176,12 @@ impl IndexInfo for HashIndex {
 
 #[derive(Clone, Debug)]
 pub struct SkipListIndex {
+    newly_created: bool,
     id: String,
     fields: Vec<String>,
-    newly_created: bool,
-    deduplicate: bool,
     sparse: bool,
     unique: bool,
+    deduplicate: bool,
 }
 
 impl SkipListIndex {
@@ -177,17 +190,17 @@ impl SkipListIndex {
     }
 }
 
-impl IndexInfo for SkipListIndex {
+impl IndexDetails for SkipListIndex {
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
+    }
+
     fn id(&self) -> &str {
         &self.id
     }
 
     fn fields(&self) -> &[String] {
         &self.fields
-    }
-
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
     }
 
     fn is_sparse(&self) -> bool {
@@ -201,12 +214,12 @@ impl IndexInfo for SkipListIndex {
 
 #[derive(Clone, Debug)]
 pub struct PersistentIndex {
+    newly_created: bool,
     id: String,
     fields: Vec<String>,
-    newly_created: bool,
-    deduplicate: bool,
     sparse: bool,
     unique: bool,
+    deduplicate: bool,
 }
 
 impl PersistentIndex {
@@ -215,7 +228,88 @@ impl PersistentIndex {
     }
 }
 
-impl IndexInfo for PersistentIndex {
+impl IndexDetails for PersistentIndex {
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
+    }
+
+    fn id(&self) -> &str {
+        &self.id
+    }
+
+    fn fields(&self) -> &[String] {
+        &self.fields
+    }
+
+    fn is_sparse(&self) -> bool {
+        self.sparse
+    }
+
+    fn is_unique(&self) -> bool {
+        self.unique
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Geo1Index {
+    newly_created: bool,
+    id: String,
+    fields: Vec<String>,
+    sparse: bool,
+    unique: bool,
+    constraint: bool,
+    geo_json: bool,
+}
+
+impl Geo1Index {
+    pub fn is_constraint(&self) -> bool {
+        self.constraint
+    }
+
+    pub fn is_geo_json(&self) -> bool {
+        self.geo_json
+    }
+}
+
+impl IndexDetails for Geo1Index {
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
+    }
+
+    fn id(&self) -> &str {
+        &self.id
+    }
+
+    fn fields(&self) -> &[String] {
+        &self.fields
+    }
+
+    fn is_sparse(&self) -> bool {
+        self.sparse
+    }
+
+    fn is_unique(&self) -> bool {
+        self.unique
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Geo2Index {
+    newly_created: bool,
+    id: String,
+    fields: Vec<String>,
+    sparse: bool,
+    unique: bool,
+    constraint: bool,
+}
+
+impl Geo2Index {
+    pub fn is_constraint(&self) -> bool {
+        self.constraint
+    }
+}
+
+impl IndexDetails for Geo2Index {
     fn id(&self) -> &str {
         &self.id
     }
@@ -238,89 +332,12 @@ impl IndexInfo for PersistentIndex {
 }
 
 #[derive(Clone, Debug)]
-pub struct Geo1Index {
-    id: String,
-    fields: Vec<String>,
-    newly_created: bool,
-    geo_json: bool,
-    constraint: bool,
-    sparse: bool,
-}
-
-impl Geo1Index {
-    pub fn is_geo_json(&self) -> bool {
-        self.geo_json
-    }
-
-    pub fn is_constraint(&self) -> bool {
-        self.constraint
-    }
-}
-
-impl IndexInfo for Geo1Index {
-    fn id(&self) -> &str {
-        &self.id
-    }
-
-    fn fields(&self) -> &[String] {
-        &self.fields
-    }
-
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
-    }
-
-    fn is_sparse(&self) -> bool {
-        self.sparse
-    }
-
-    fn is_unique(&self) -> bool {
-        false
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct Geo2Index {
-    id: String,
-    fields: Vec<String>,
-    newly_created: bool,
-    constraint: bool,
-    sparse: bool,
-}
-
-impl Geo2Index {
-    pub fn is_constraint(&self) -> bool {
-        self.constraint
-    }
-}
-
-impl IndexInfo for Geo2Index {
-    fn id(&self) -> &str {
-        &self.id
-    }
-
-    fn fields(&self) -> &[String] {
-        &self.fields
-    }
-
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
-    }
-
-    fn is_sparse(&self) -> bool {
-        self.sparse
-    }
-
-    fn is_unique(&self) -> bool {
-        false
-    }
-}
-
-#[derive(Clone, Debug)]
 pub struct FulltextIndex {
+    newly_created: bool,
     id: String,
     fields: Vec<String>,
-    newly_created: bool,
+    sparse: bool,
+    unique: bool,
     min_length: u32,
 }
 
@@ -330,7 +347,11 @@ impl FulltextIndex {
     }
 }
 
-impl IndexInfo for FulltextIndex {
+impl IndexDetails for FulltextIndex {
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
+    }
+
     fn id(&self) -> &str {
         &self.id
     }
@@ -339,27 +360,29 @@ impl IndexInfo for FulltextIndex {
         &self.fields
     }
 
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
-    }
-
     fn is_sparse(&self) -> bool {
-        false
+        self.sparse
     }
 
     fn is_unique(&self) -> bool {
-        false
+        self.unique
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct EdgeIndex {
+    newly_created: bool,
     id: String,
     fields: Vec<String>,
-    newly_created: bool,
+    sparse: bool,
+    unique: bool,
 }
 
-impl IndexInfo for EdgeIndex {
+impl IndexDetails for EdgeIndex {
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
+    }
+
     fn id(&self) -> &str {
         &self.id
     }
@@ -368,16 +391,368 @@ impl IndexInfo for EdgeIndex {
         &self.fields
     }
 
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
-    }
-
     fn is_sparse(&self) -> bool {
-        false
+        self.sparse
     }
 
     fn is_unique(&self) -> bool {
-        false
+        self.unique
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum NewIndex {
+    Hash(NewHashIndex),
+    SkipList(NewSkipListIndex),
+    Persistent(NewPersistentIndex),
+    Geo(NewGeoIndex),
+    Fulltext(NewFulltextIndex),
+}
+
+impl Serialize for NewIndex {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        use self::NewIndex::*;
+        match *self {
+            Hash(ref index) => index.serialize(serializer),
+            SkipList(ref index) => index.serialize(serializer),
+            Persistent(ref index) => index.serialize(serializer),
+            Geo(ref index) => index.serialize(serializer),
+            Fulltext(ref index) => index.serialize(serializer),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewHashIndex {
+    #[serde(rename = "type")]
+    kind: IndexType,
+    fields: Vec<String>,
+    sparse: bool,
+    unique: bool,
+    deduplicate: bool,
+}
+
+impl NewHashIndex {
+    pub fn new<F>(fields: F, unique: bool, sparse: bool, deduplicate: bool) -> Self
+        where F: IntoIterator<Item=String>
+    {
+        NewHashIndex {
+            kind: IndexType::Hash,
+            fields: Vec::from_iter(fields.into_iter()),
+            sparse,
+            unique,
+            deduplicate,
+        }
+    }
+
+    pub fn fields_mut(&mut self) -> &mut Vec<String> {
+        &mut self.fields
+    }
+
+    pub fn fields(&self) -> &[String] {
+        &self.fields
+    }
+
+    pub fn set_sparse(&mut self, sparse: bool) {
+        self.sparse = sparse;
+    }
+
+    pub fn is_sparse(&self) -> bool {
+        self.sparse
+    }
+
+    pub fn set_unique(&mut self, unique: bool) {
+        self.unique = unique;
+    }
+
+    pub fn is_unique(&self) -> bool {
+        self.unique
+    }
+
+    pub fn set_deduplicate(&mut self, deduplicate: bool) {
+        self.deduplicate = deduplicate;
+    }
+
+    pub fn is_deduplicate(&self) -> bool {
+        self.deduplicate
+    }
+}
+
+impl From<NewHashIndex> for NewIndex {
+    fn from(index: NewHashIndex) -> Self {
+        NewIndex::Hash(index)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewSkipListIndex {
+    #[serde(rename = "type")]
+    kind: IndexType,
+    fields: Vec<String>,
+    sparse: bool,
+    unique: bool,
+    deduplicate: bool,
+}
+
+impl NewSkipListIndex {
+    pub fn new<F>(fields: F, unique: bool, sparse: bool, deduplicate: bool) -> Self
+        where F: IntoIterator<Item=String>
+    {
+        NewSkipListIndex {
+            kind: IndexType::SkipList,
+            fields: Vec::from_iter(fields.into_iter()),
+            sparse,
+            unique,
+            deduplicate,
+        }
+    }
+
+    pub fn fields_mut(&mut self) -> &mut Vec<String> {
+        &mut self.fields
+    }
+
+    pub fn fields(&self) -> &[String] {
+        &self.fields
+    }
+
+    pub fn set_sparse(&mut self, sparse: bool) {
+        self.sparse = sparse;
+    }
+
+    pub fn is_sparse(&self) -> bool {
+        self.sparse
+    }
+
+    pub fn set_unique(&mut self, unique: bool) {
+        self.unique = unique;
+    }
+
+    pub fn is_unique(&self) -> bool {
+        self.unique
+    }
+
+    pub fn set_deduplicate(&mut self, deduplicate: bool) {
+        self.deduplicate = deduplicate;
+    }
+
+    pub fn is_deduplicate(&self) -> bool {
+        self.deduplicate
+    }
+}
+
+impl From<NewSkipListIndex> for NewIndex {
+    fn from(index: NewSkipListIndex) -> Self {
+        NewIndex::SkipList(index)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewPersistentIndex {
+    #[serde(rename = "type")]
+    kind: IndexType,
+    fields: Vec<String>,
+    sparse: bool,
+    unique: bool,
+}
+
+impl NewPersistentIndex {
+    pub fn new<F>(fields: F, unique: bool, sparse: bool) -> Self
+        where F: IntoIterator<Item=String>
+    {
+        NewPersistentIndex {
+            kind: IndexType::Persistent,
+            fields: Vec::from_iter(fields.into_iter()),
+            sparse,
+            unique,
+        }
+    }
+
+    pub fn fields_mut(&mut self) -> &mut Vec<String> {
+        &mut self.fields
+    }
+
+    pub fn fields(&self) -> &[String] {
+        &self.fields
+    }
+
+    pub fn set_sparse(&mut self, sparse: bool) {
+        self.sparse = sparse;
+    }
+
+    pub fn is_sparse(&self) -> bool {
+        self.sparse
+    }
+
+    pub fn set_unique(&mut self, unique: bool) {
+        self.unique = unique;
+    }
+
+    pub fn is_unique(&self) -> bool {
+        self.unique
+    }
+}
+
+impl From<NewPersistentIndex> for NewIndex {
+    fn from(index: NewPersistentIndex) -> Self {
+        NewIndex::Persistent(index)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewGeoIndex {
+    #[serde(rename = "type")]
+    kind: IndexType,
+    fields: Vec<String>,
+    geo_json: bool,
+}
+
+impl NewGeoIndex {
+    pub fn new<F>(fields: F, geo_json: bool) -> Self
+        where F: IntoIterator<Item=String>
+    {
+        NewGeoIndex {
+            kind: IndexType::Geo,
+            fields: Vec::from_iter(fields.into_iter()),
+            geo_json,
+        }
+    }
+
+    pub fn with_location_field<L>(location_field: L, geo_json: bool) -> Self
+        where L: Into<String>
+    {
+        NewGeoIndex::new(vec![location_field.into()], geo_json)
+    }
+
+    pub fn with_lat_lng_fields<LAT, LNG>(lat_field: LAT, lng_field: LNG) -> Self
+        where LAT: Into<String>, LNG: Into<String>
+    {
+        NewGeoIndex::new(vec![lat_field.into(), lng_field.into()], false)
+    }
+
+    pub fn fields_mut(&mut self) -> &mut Vec<String> {
+        &mut self.fields
+    }
+
+    pub fn fields(&self) -> &[String] {
+        &self.fields
+    }
+
+    pub fn set_geo_json(&mut self, geo_json: bool) {
+        self.geo_json = geo_json;
+    }
+
+    pub fn is_geo_json(&self) -> bool {
+        self.geo_json
+    }
+}
+
+impl From<NewGeoIndex> for NewIndex {
+    fn from(index: NewGeoIndex) -> Self {
+        NewIndex::Geo(index)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewFulltextIndex {
+    #[serde(rename = "type")]
+    kind: IndexType,
+    fields: Vec<String>,
+    min_length: u32,
+}
+
+impl NewFulltextIndex {
+    pub fn new<F>(fields: F, min_length: u32) -> Self
+        where F: IntoIterator<Item=String>
+    {
+        NewFulltextIndex {
+            kind: IndexType::Fulltext,
+            fields: Vec::from_iter(fields.into_iter()),
+            min_length,
+        }
+    }
+
+    pub fn fields_mut(&mut self) -> &mut Vec<String> {
+        &mut self.fields
+    }
+
+    pub fn fields(&self) -> &[String] {
+        &self.fields
+    }
+
+    pub fn set_min_length(&mut self, min_length: u32) {
+        self.min_length = min_length;
+    }
+
+    pub fn min_length(&self) -> u32 {
+        self.min_length
+    }
+}
+
+impl From<NewFulltextIndex> for NewIndex {
+    fn from(index: NewFulltextIndex) -> Self {
+        NewIndex::Fulltext(index)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+enum IndexType {
+    Primary,
+    Hash,
+    SkipList,
+    Persistent,
+    Geo1,
+    Geo2,
+    Geo,
+    Fulltext,
+    Edge,
+}
+
+impl Serialize for IndexType {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        use self::IndexType::*;
+        let type_str = match *self {
+            Primary => INDEX_TYPE_PRIMARY,
+            Hash => INDEX_TYPE_HASH,
+            SkipList => INDEX_TYPE_SKIP_LIST,
+            Persistent => INDEX_TYPE_PERSISTENT,
+            Geo1 => INDEX_TYPE_GEO1,
+            Geo2 => INDEX_TYPE_GEO2,
+            Geo => INDEX_TYPE_GEO,
+            Fulltext => INDEX_TYPE_FULLTEXT,
+            Edge => INDEX_TYPE_EDGE,
+        };
+        serializer.serialize_str(type_str)
+    }
+}
+
+impl<'de> Deserialize<'de> for IndexType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        use serde::de::Error;
+        use self::IndexType::*;
+        let value = String::deserialize(deserializer)?;
+        match &value[..] {
+            INDEX_TYPE_PRIMARY => Ok(Primary),
+            INDEX_TYPE_HASH => Ok(Hash),
+            INDEX_TYPE_SKIP_LIST => Ok(SkipList),
+            INDEX_TYPE_PERSISTENT => Ok(Persistent),
+            INDEX_TYPE_GEO1 => Ok(Geo1),
+            INDEX_TYPE_GEO2 => Ok(Geo2),
+            INDEX_TYPE_GEO => Ok(Geo),
+            INDEX_TYPE_FULLTEXT => Ok(Fulltext),
+            INDEX_TYPE_EDGE => Ok(Edge),
+            _ => Err(D::Error::custom(format!("Unsupported index type: {:?}", value))),
+        }
     }
 }
 
@@ -385,7 +760,7 @@ impl IndexInfo for EdgeIndex {
 #[serde(rename_all = "camelCase")]
 struct GenericIndex {
     #[serde(rename = "type")]
-    kind: String,
+    kind: IndexType,
     id: String,
     fields: Vec<String>,
     selectivity_estimate: Option<u32>,
@@ -403,6 +778,7 @@ impl<'de> Deserialize<'de> for Index {
         where D: Deserializer<'de>
     {
         use serde::de::Error;
+        use self::IndexType::*;
         let GenericIndex {
             kind,
             id,
@@ -416,94 +792,104 @@ impl<'de> Deserialize<'de> for Index {
             deduplicate,
             geo_json,
         } = GenericIndex::deserialize(deserializer)?;
-        match &kind[..] {
-            "primary" => match (selectivity_estimate, unique) {
-                (Some(selectivity_estimate), Some(unique)) =>
+        match kind {
+            Primary => match (selectivity_estimate, sparse, unique) {
+                (Some(selectivity_estimate), Some(sparse), Some(unique)) =>
                     Ok(Index::Primary(PrimaryIndex {
+                        newly_created: is_newly_created.unwrap_or(false),
                         id,
                         fields,
-                        newly_created: is_newly_created.unwrap_or(false),
-                        selectivity_estimate,
+                        sparse,
                         unique,
+                        selectivity_estimate,
                     })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             }
-            "hash" => match (deduplicate, selectivity_estimate, sparse, unique) {
+            Hash => match (deduplicate, selectivity_estimate, sparse, unique) {
                 (Some(deduplicate), Some(selectivity_estimate), Some(sparse), Some(unique)) =>
                     Ok(Index::Hash(HashIndex {
+                        newly_created: is_newly_created.unwrap_or(false),
                         id,
                         fields,
-                        newly_created: is_newly_created.unwrap_or(false),
+                        sparse,
+                        unique,
                         deduplicate,
                         selectivity_estimate,
-                        sparse,
-                        unique,
                     })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
-            "skiplist" =>match (deduplicate, sparse, unique) {
+            SkipList =>match (deduplicate, sparse, unique) {
                 (Some(deduplicate), Some(sparse), Some(unique)) =>
                     Ok(Index::SkipList(SkipListIndex {
+                        newly_created: is_newly_created.unwrap_or(false),
                         id,
                         fields,
-                        newly_created: is_newly_created.unwrap_or(false),
-                        deduplicate,
                         sparse,
                         unique,
+                        deduplicate,
                     })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
-            "persistent" => match (deduplicate, sparse, unique) {
+            Persistent => match (deduplicate, sparse, unique) {
                 (Some(deduplicate), Some(sparse), Some(unique)) =>
                     Ok(Index::Persistent(PersistentIndex {
+                        newly_created: is_newly_created.unwrap_or(false),
                         id,
                         fields,
-                        deduplicate,
-                        newly_created: is_newly_created.unwrap_or(false),
                         sparse,
                         unique,
+                        deduplicate,
                     })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
-            "geo1" => match (geo_json, constraint, sparse) {
-                (Some(geo_json), Some(constraint), Some(sparse)) =>
+            Geo1 => match (geo_json, constraint, sparse, unique) {
+                (Some(geo_json), Some(constraint), Some(sparse), Some(unique)) =>
                     Ok(Index::Geo1(Geo1Index {
+                        newly_created: is_newly_created.unwrap_or(false),
                         id,
                         fields,
-                        newly_created: is_newly_created.unwrap_or(false),
+                        sparse,
+                        unique,
+                        constraint,
                         geo_json,
-                        constraint,
-                        sparse,
                     })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
-            "geo2" => match (constraint, sparse) {
-                (Some(constraint), Some(sparse)) =>
+            Geo2 => match (constraint, sparse, unique) {
+                (Some(constraint), Some(sparse), Some(unique)) =>
                     Ok(Index::Geo2(Geo2Index {
+                        newly_created: is_newly_created.unwrap_or(false),
                         id,
                         fields,
-                        newly_created: is_newly_created.unwrap_or(false),
-                        constraint,
                         sparse,
+                        unique,
+                        constraint,
                     })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
-            "fulltext" => match min_length {
-                Some(min_length) =>
+            Fulltext => match (min_length, sparse, unique) {
+                (Some(min_length), Some(sparse), Some(unique)) =>
                     Ok(Index::Fulltext(FulltextIndex {
+                        newly_created: is_newly_created.unwrap_or(false),
                         id,
                         fields,
-                        newly_created: is_newly_created.unwrap_or(false),
+                        sparse,
+                        unique,
                         min_length,
                     })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
-            "edge" =>
-                Ok(Index::Edge(EdgeIndex {
-                    id,
-                    fields,
-                    newly_created: is_newly_created.unwrap_or(false),
-                })),
+            Edge => match (sparse, unique) {
+                (Some(sparse), Some(unique)) =>
+                    Ok(Index::Edge(EdgeIndex {
+                        newly_created: is_newly_created.unwrap_or(false),
+                        id,
+                        fields,
+                        sparse,
+                        unique,
+                    })),
+                _ => Err(D::Error::custom("Unsupported type/fields combination")),
+            }
             _ => Err(D::Error::custom("Unsupported index type")),
         }
     }
