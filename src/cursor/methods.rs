@@ -6,6 +6,7 @@ use serde::de::DeserializeOwned;
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use api::query::Query;
 use api::types::Empty;
+use consts::{FIELD_CODE, PATH_API_CURSOR};
 use super::types::*;
 
 /// Executes a query and returns a cursor with the first result set.
@@ -46,7 +47,7 @@ impl<T> Method for CreateCursor<T>
     type Result = Cursor<T>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -58,7 +59,7 @@ impl<T> Prepare for CreateCursor<T> {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/cursor")
+        String::from(PATH_API_CURSOR)
     }
 
     fn parameters(&self) -> Parameters {
@@ -118,7 +119,7 @@ impl Method for DeleteCursor {
     type Result = Empty;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -130,7 +131,8 @@ impl Prepare for DeleteCursor {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/cursor/") + &self.cursor_id
+        String::from(PATH_API_CURSOR)
+            + "/" + &self.cursor_id
     }
 
     fn parameters(&self) -> Parameters {
@@ -197,7 +199,7 @@ impl<T> Method for ReadNextBatchFromCursor<T>
     type Result = Cursor<T>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -209,7 +211,8 @@ impl<T> Prepare for ReadNextBatchFromCursor<T> {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/cursor/") + &self.cursor_id
+        String::from(PATH_API_CURSOR)
+            + "/" + &self.cursor_id
     }
 
     fn parameters(&self) -> Parameters {

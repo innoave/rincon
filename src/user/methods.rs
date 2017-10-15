@@ -7,6 +7,7 @@ use serde::ser::Serialize;
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use api::types::Empty;
+use consts::{FIELD_CODE, FIELD_RESULT, PATH_DATABASE, PATH_API_USER};
 use super::types::*;
 
 /// Creates a new user.
@@ -42,7 +43,7 @@ impl<E> Method for CreateUser<E>
     type Result = User<E>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -56,7 +57,7 @@ impl<E> Prepare for CreateUser<E>
     }
 
     fn path(&self) -> String {
-        String::from("/_api/user")
+        String::from(PATH_API_USER)
     }
 
     fn parameters(&self) -> Parameters {
@@ -95,8 +96,8 @@ impl<E> Method for ListAvailableUsers<E>
 {
     type Result = Vec<User<E>>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
-        result_field: Some("result"),
-        code_field: Some("code"),
+        result_field: Some(FIELD_RESULT),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -110,7 +111,7 @@ impl<E> Prepare for ListAvailableUsers<E>
     }
 
     fn path(&self) -> String {
-        String::from("/_api/user")
+        String::from(PATH_API_USER)
     }
 
     fn parameters(&self) -> Parameters {
@@ -152,7 +153,7 @@ impl Method for RemoveUser {
     type Result = Empty;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -164,7 +165,7 @@ impl Prepare for RemoveUser {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/user/") + &self.name
+        String::from(PATH_API_USER) + "/" + &self.name
     }
 
     fn parameters(&self) -> Parameters {
@@ -222,7 +223,7 @@ impl<E> Method for GetUser<E>
     type Result = User<E>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -236,7 +237,7 @@ impl<E> Prepare for GetUser<E>
     }
 
     fn path(&self) -> String {
-        String::from("/_api/user/") + &self.name
+        String::from(PATH_API_USER) + "/" + &self.name
     }
 
     fn parameters(&self) -> Parameters {
@@ -303,7 +304,7 @@ impl<E> Method for ModifyUser<E>
     type Result = User<E>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -317,7 +318,7 @@ impl<E> Prepare for ModifyUser<E>
     }
 
     fn path(&self) -> String {
-        String::from("/_api/user/") + &self.user_name
+        String::from(PATH_API_USER) + "/" + &self.user_name
     }
 
     fn parameters(&self) -> Parameters {
@@ -388,7 +389,7 @@ impl<E> Method for ReplaceUser<E>
     type Result = User<E>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -402,7 +403,7 @@ impl<E> Prepare for ReplaceUser<E>
     }
 
     fn path(&self) -> String {
-        String::from("/_api/user/") + &self.user_name
+        String::from(PATH_API_USER) + "/" + &self.user_name
     }
 
     fn parameters(&self) -> Parameters {
@@ -452,8 +453,8 @@ impl ListDatabasesForUser {
 impl Method for ListDatabasesForUser {
     type Result = HashMap<String, Permission>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
-        result_field: Some("result"),
-        code_field: Some("code"),
+        result_field: Some(FIELD_RESULT),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -465,7 +466,8 @@ impl Prepare for ListDatabasesForUser {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/user/") + &self.user_name + "/database"
+        String::from(PATH_API_USER) + "/" + &self.user_name
+            + "/" + PATH_DATABASE
     }
 
     fn parameters(&self) -> Parameters {
@@ -509,8 +511,8 @@ impl GetDatabaseAccessLevel {
 impl Method for GetDatabaseAccessLevel {
     type Result = Permission;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
-        result_field: Some("result"),
-        code_field: Some("code"),
+        result_field: Some(FIELD_RESULT),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -522,8 +524,8 @@ impl Prepare for GetDatabaseAccessLevel {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/user/") + &self.user_name
-            + "/database/" + &self.database
+        String::from(PATH_API_USER) + "/" + &self.user_name
+            + "/" + PATH_DATABASE + "/" + &self.database
     }
 
     fn parameters(&self) -> Parameters {
@@ -578,7 +580,7 @@ impl Method for SetDatabaseAccessLevel {
     type Result = Empty;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -590,8 +592,8 @@ impl Prepare for SetDatabaseAccessLevel {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/user/") + &self.user_name
-            + "/database/" + &self.database
+        String::from(PATH_API_USER) + "/" + &self.user_name
+            + "/" + PATH_DATABASE + "/" + &self.database
     }
 
     fn parameters(&self) -> Parameters {
@@ -641,7 +643,7 @@ impl Method for ResetDatabaseAccessLevel {
     type Result = Empty;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -653,8 +655,8 @@ impl Prepare for ResetDatabaseAccessLevel {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/user/") + &self.user_name
-            + "/database/" + &self.database
+        String::from(PATH_API_USER) + "/" + &self.user_name
+            + "/" + PATH_DATABASE + "/" + &self.database
     }
 
     fn parameters(&self) -> Parameters {
@@ -706,8 +708,8 @@ impl GetCollectionAccessLevel {
 impl Method for GetCollectionAccessLevel {
     type Result = Permission;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
-        result_field: Some("result"),
-        code_field: Some("code"),
+        result_field: Some(FIELD_RESULT),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -719,8 +721,8 @@ impl Prepare for GetCollectionAccessLevel {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/user/") + &self.user_name
-            + "/database/" + &self.database
+        String::from(PATH_API_USER) + "/" + &self.user_name
+            + "/" + PATH_DATABASE + "/" + &self.database
             + "/" + &self.collection
     }
 
@@ -788,7 +790,7 @@ impl Method for SetCollectionAccessLevel {
     type Result = Empty;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -800,8 +802,8 @@ impl Prepare for SetCollectionAccessLevel {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/user/") + &self.user_name
-            + "/database/" + &self.database
+        String::from(PATH_API_USER) + "/" + &self.user_name
+            + "/" + PATH_DATABASE + "/" + &self.database
             + "/" + &self.collection
     }
 
@@ -860,7 +862,7 @@ impl Method for ResetCollectionAccessLevel {
     type Result = Empty;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -872,8 +874,8 @@ impl Prepare for ResetCollectionAccessLevel {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/user/") + &self.user_name
-            + "/database/" + &self.database
+        String::from(PATH_API_USER) + "/" + &self.user_name
+            + "/" + PATH_DATABASE + "/" + &self.database
             + "/" + &self.collection
     }
 

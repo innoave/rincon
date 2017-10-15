@@ -1,10 +1,7 @@
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use index::types::*;
-
-const REST_PATH_INDEX: &str = "/_api/index";
-
-const REST_PARAM_COLLECTION: &str = "collection";
+use consts::{FIELD_CODE, FIELD_ID, PARAM_COLLECTION, PATH_API_INDEX};
+use super::types::*;
 
 /// Returns an `IndexList` with an attribute indexes containing an array of all
 /// index descriptions for the given collection.
@@ -40,7 +37,7 @@ impl Method for GetIndexList {
     type Result = IndexList;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -52,7 +49,7 @@ impl Prepare for GetIndexList {
     }
 
     fn path(&self) -> String {
-        String::from(REST_PATH_INDEX)
+        String::from(PATH_API_INDEX)
     }
 
     fn parameters(&self) -> Parameters {
@@ -88,7 +85,7 @@ impl Method for GetIndex {
     type Result = Index;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -100,7 +97,7 @@ impl Prepare for GetIndex {
     }
 
     fn path(&self) -> String {
-        String::from(REST_PATH_INDEX)
+        String::from(PATH_API_INDEX)
             + "/" + &self.index_id.collection_name()
             + "/" + &self.index_id.index_key()
     }
@@ -145,7 +142,7 @@ impl Method for CreateIndex {
     type Result = Index;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -157,12 +154,12 @@ impl Prepare for CreateIndex {
     }
 
     fn path(&self) -> String {
-        String::from(REST_PATH_INDEX)
+        String::from(PATH_API_INDEX)
     }
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::with_capacity(1);
-        params.push(REST_PARAM_COLLECTION, self.collection_name.as_ref());
+        params.push(PARAM_COLLECTION, self.collection_name.as_ref());
         params
     }
 
@@ -192,8 +189,8 @@ impl DeleteIndex {
 impl Method for DeleteIndex {
     type Result = IndexId;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
-        result_field: Some("id"),
-        code_field: Some("code"),
+        result_field: Some(FIELD_ID),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -205,7 +202,7 @@ impl Prepare for DeleteIndex {
     }
 
     fn path(&self) -> String {
-        String::from(REST_PATH_INDEX)
+        String::from(PATH_API_INDEX)
             + "/" + &self.index_id.collection_name()
             + "/" + &self.index_id.index_key()
     }

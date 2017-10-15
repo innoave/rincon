@@ -1,6 +1,7 @@
 
 use api::auth::Credentials;
 use api::method::{Method, Parameters, Operation, Prepare, RpcReturnType};
+use consts::{FIELD_CODE, PATH_OPEN_AUTH};
 use super::types::*;
 
 /// Authenticates a user.
@@ -33,7 +34,7 @@ impl Method for Authenticate {
     type Result = AuthenticationResponse;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -45,7 +46,7 @@ impl Prepare for Authenticate {
     }
 
     fn path(&self) -> String {
-        String::from("/_open/auth")
+        String::from(PATH_OPEN_AUTH)
     }
 
     fn parameters(&self) -> Parameters {

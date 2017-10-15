@@ -1,5 +1,9 @@
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use consts::{FIELD_CODE, FIELD_ID, FIELD_RESULT, PARAM_EXCLUDE_SYSTEM,
+    PATH_API_COLLECTION, PATH_PROPERTIES, PATH_RENAME, VALUE_TRUE};
+#[cfg(feature = "cluster")]
+use consts::{PARAM_WAIT_FOR_SYNC_REPLICATION, VALUE_ZERO};
 use super::types::*;
 
 /// Retrieves a list of existing collections.
@@ -42,8 +46,8 @@ impl ListCollections {
 impl Method for ListCollections {
     type Result = Vec<Collection>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
-        result_field: Some("result"),
-        code_field: Some("code"),
+        result_field: Some(FIELD_RESULT),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -55,13 +59,13 @@ impl Prepare for ListCollections {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/collection")
+        String::from(PATH_API_COLLECTION)
     }
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::with_capacity(1);
         if self.exclude_system {
-            params.push("excludeSystem", "true");
+            params.push(PARAM_EXCLUDE_SYSTEM, VALUE_TRUE);
         }
         params
     }
@@ -158,7 +162,7 @@ impl Method for CreateCollection {
     type Result = BasicCollectionProperties;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -170,7 +174,7 @@ impl Prepare for CreateCollection {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/collection")
+        String::from(PATH_API_COLLECTION)
     }
 
     #[cfg(not(feature = "cluster"))]
@@ -182,7 +186,7 @@ impl Prepare for CreateCollection {
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::with_capacity(1);
         if !self.wait_for_sync_replication {
-            params.push("waitForSyncReplication", "0");
+            params.push(PARAM_WAIT_FOR_SYNC_REPLICATION, VALUE_ZERO);
         }
         params
     }
@@ -259,8 +263,8 @@ impl DropCollection {
 impl Method for DropCollection {
     type Result = String;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
-        result_field: Some("id"),
-        code_field: Some("code"),
+        result_field: Some(FIELD_ID),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -272,7 +276,8 @@ impl Prepare for DropCollection {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/collection/") + &self.name
+        String::from(PATH_API_COLLECTION)
+            + "/" + &self.name
     }
 
     fn parameters(&self) -> Parameters {
@@ -319,7 +324,7 @@ impl Method for GetCollection {
     type Result = Collection;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -331,7 +336,8 @@ impl Prepare for GetCollection {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/collection/") + &self.name
+        String::from(PATH_API_COLLECTION)
+            + "/" + &self.name
     }
 
     fn parameters(&self) -> Parameters {
@@ -378,7 +384,7 @@ impl Method for GetCollectionProperties {
     type Result = CollectionProperties;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -390,7 +396,9 @@ impl Prepare for GetCollectionProperties {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/collection/") + &self.name + "/properties"
+        String::from(PATH_API_COLLECTION)
+            + "/" + &self.name
+            + "/" + PATH_PROPERTIES
     }
 
     fn parameters(&self) -> Parameters {
@@ -443,7 +451,7 @@ impl Method for ChangeCollectionProperties {
     type Result = CollectionProperties;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -455,7 +463,8 @@ impl Prepare for ChangeCollectionProperties {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/collection/") + &self.name + "/properties"
+        String::from(PATH_API_COLLECTION)
+            + "/" + &self.name + "/" + PATH_PROPERTIES
     }
 
     fn parameters(&self) -> Parameters {
@@ -501,7 +510,7 @@ impl Method for RenameCollection {
     type Result = Collection;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -513,7 +522,9 @@ impl Prepare for RenameCollection {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/collection/") + &self.name + "/rename"
+        String::from(PATH_API_COLLECTION)
+            + "/" + &self.name
+            + "/" + PATH_RENAME
     }
 
     fn parameters(&self) -> Parameters {

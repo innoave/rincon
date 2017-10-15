@@ -1,5 +1,7 @@
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use consts::{FIELD_CODE, PARAM_DETAILS, PATH_ADMIN, PATH_API_VERSION,
+    PATH_DATABASE, PATH_TARGET_VERSION, VALUE_TRUE};
 use super::types::*;
 
 #[allow(missing_copy_implementations)]
@@ -16,7 +18,7 @@ impl Method for GetTargetVersion {
     type Result = TargetVersion;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
-        code_field: Some("code"),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -28,7 +30,8 @@ impl Prepare for GetTargetVersion {
     }
 
     fn path(&self) -> String {
-        String::from("/_admin/database/target-version")
+        String::from(PATH_ADMIN) + "/" + PATH_DATABASE
+            + "/" + PATH_TARGET_VERSION
     }
 
     fn parameters(&self) -> Parameters {
@@ -80,13 +83,13 @@ impl Prepare for GetServerVersion {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/version")
+        String::from(PATH_API_VERSION)
     }
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::with_capacity(1);
         if self.details {
-            params.push("details", "true");
+            params.push(PARAM_DETAILS, VALUE_TRUE);
         }
         params
     }

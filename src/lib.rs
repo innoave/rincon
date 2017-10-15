@@ -44,3 +44,5 @@ pub mod cursor;
 pub mod database;
 pub mod index;
 pub mod user;
+
+mod consts;

@@ -2,8 +2,9 @@
 use serde::ser::Serialize;
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use user::{NewUser, UserExtra};
+use consts::{FIELD_CODE, FIELD_RESULT, PATH_API_DATABASE, PATH_CURRENT, PATH_USER};
 use super::types::*;
+use user::{NewUser, UserExtra};
 
 /// Retrieves information about the current database.
 #[allow(missing_copy_implementations)]
@@ -20,8 +21,8 @@ impl GetCurrentDatabase {
 impl Method for GetCurrentDatabase {
     type Result = Database;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
-        result_field: Some("result"),
-        code_field: Some("code"),
+        result_field: Some(FIELD_RESULT),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -33,7 +34,7 @@ impl Prepare for GetCurrentDatabase {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/database/current")
+        String::from(PATH_API_DATABASE) + "/" + PATH_CURRENT
     }
 
     fn parameters(&self) -> Parameters {
@@ -65,8 +66,8 @@ impl ListDatabases {
 impl Method for ListDatabases {
     type Result = Vec<String>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
-        result_field: Some("result"),
-        code_field: Some("code"),
+        result_field: Some(FIELD_RESULT),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -78,7 +79,7 @@ impl Prepare for ListDatabases {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/database")
+        String::from(PATH_API_DATABASE)
     }
 
     fn parameters(&self) -> Parameters {
@@ -106,8 +107,8 @@ impl ListAccessibleDatabases {
 impl Method for ListAccessibleDatabases {
     type Result = Vec<String>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
-        result_field: Some("result"),
-        code_field: Some("code"),
+        result_field: Some(FIELD_RESULT),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -119,7 +120,7 @@ impl Prepare for ListAccessibleDatabases {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/database/user")
+        String::from(PATH_API_DATABASE) + "/" + PATH_USER
     }
 
     fn parameters(&self) -> Parameters {
@@ -190,8 +191,8 @@ impl<E> Method for CreateDatabase<E>
 {
     type Result = bool;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
-        result_field: Some("result"),
-        code_field: Some("code"),
+        result_field: Some(FIELD_RESULT),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -205,7 +206,7 @@ impl<E> Prepare for CreateDatabase<E>
     }
 
     fn path(&self) -> String {
-        String::from("/_api/database")
+        String::from(PATH_API_DATABASE)
     }
 
     fn parameters(&self) -> Parameters {
@@ -255,8 +256,8 @@ impl DropDatabase {
 impl Method for DropDatabase {
     type Result = bool;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
-        result_field: Some("result"),
-        code_field: Some("code"),
+        result_field: Some(FIELD_RESULT),
+        code_field: Some(FIELD_CODE),
     };
 }
 
@@ -268,7 +269,7 @@ impl Prepare for DropDatabase {
     }
 
     fn path(&self) -> String {
-        String::from("/_api/database/") + &self.database_name
+        String::from(PATH_API_DATABASE) + "/" + &self.database_name
     }
 
     fn parameters(&self) -> Parameters {
