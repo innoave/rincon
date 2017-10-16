@@ -19,6 +19,7 @@ use url::percent_encoding::DEFAULT_ENCODE_SET;
 use api::auth::{Authentication, Credentials, Jwt};
 use api::method::{Method, Operation, Prepare, RpcReturnType};
 use api::method as api;
+use consts::PATH_DB;
 use datasource::DataSource;
 
 const DEFAULT_USER_AGENT: &str = "Mozilla/5.0 (compatible; ArangoDB-RustDriver/1.1)";
@@ -245,7 +246,7 @@ fn build_request_uri<P>(datasource: &DataSource, prepare: &P) -> Uri
     request_uri.push(':');
     request_uri.push_str(&datasource.port().to_string());
     if let Some(database_name) = datasource.database_name() {
-        request_uri.push_str("/_db/");
+        request_uri.push_str(PATH_DB);
         request_uri.push_str(&percent_encode(database_name));
     }
     request_uri.push_str(&percent_encode(&prepare.path()));

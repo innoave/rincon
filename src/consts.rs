@@ -14,6 +14,7 @@ pub const PATH_OPEN_AUTH: &str = "/_open/auth";
 
 pub const PATH_CURRENT: &str = "current";
 pub const PATH_DATABASE: &str = "database";
+pub const PATH_DB: &str = "/_db/";
 pub const PATH_PROPERTIES: &str = "properties";
 pub const PATH_RENAME: &str = "rename";
 pub const PATH_TARGET_VERSION: &str = "target-version";
