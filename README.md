@@ -70,7 +70,7 @@ e.g. something like
     let document = collection.get_document(..);
 ```
 
-a main purpose of the session shall be:
+The main purpose of the session shall be:
 * no need to specify the database and collection on each and every request.
 * reuse of connections to the database, e.g. from a connection pool, for
   speed and efficient use of resources.
