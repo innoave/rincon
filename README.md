@@ -1,14 +1,12 @@
 
 # ArangoDB Rust Driver
 
+[![Crates.io][crb]][crl]
+[![Docs.rs][dcb]][dcl]
 [![Build Status][tcb]][tcl]
 [![codevoc.io][cvb]][cvl]
 [![Apache-2.0][lib]][lil]
 [![Join the chat][gcb]][gcl]
-<!--TODO uncomment once this resources are activated!
-[![Crates.io][crb]][crl]
-[![Docs.rs][dcb]][dcl]
--->
 
 [crb]: https://img.shields.io/crates/v/arangodb_client.svg?style=flat-square
 [dcb]: https://docs.rs/arangodb_client/badge.svg
@@ -29,6 +27,67 @@ typesafe and Rust idiomatic manner.
 
 [Documentation](https://docs.rs/arangodb_client)
 
+The vision for this project is to provide a fast and typesafe client lib for
+easy and flexible use of ArangoDB in applications.  
+
+This project is under heavy development. There is no released version yet.
+
+The plans are to provide:
+
+* A typesafe and low level driver API for the REST API of ArangoDB. (WIP)
+* Convenience 'Session'-API on top of the driver API. (PLANNED)
+* API to compose AQL queries in a typesafe manner. (PLANNED)
+
+## Ideas
+
+In this section ideas for this project are collected. The provided code
+snippets shall illustrate the ideas. This does not mean that they are
+implemented yet or will be implemented in exact that way. So don't
+expect that any code snippet provided here will compile or work yet. 
+
+#### Typesafe and low level driver API for the REST API of ArangoDB
+
+e.g. something like
+
+```
+    let method = CreateCollection::with_name("my_collection");
+    let result = connection.execute(method);
+```
+
+#### Session API on top of the driver API
+
+e.g. something like
+
+```
+    let session = datasource.create_session();
+    let database = session.use_database("my_database");
+    let collection = database.create_collection("my_new_collection");
+    collection.add_document(..);
+    let document = collection.get_document(..);
+```
+
+a main purpose of the session shall be:
+* no need to specify the database and collection on each and every request.
+* reuse of connections to the database, e.g. from a connection pool, for
+  speed and efficient use of resources.
+* convenient API for transaction handling
+* efficient execution of batches of operations.
+
+#### API to compose AQL queries in a typesafe manner
+
+e.g. something like
+
+```
+    let query = Aql::From(customers)
+        .filter(|c| c.age == 42)
+        .limit(10)
+        .return(|c| (c.name, c.age, c.city))
+        ;
+    let results = query.results(session);
+```
+
+
+<!--TODO uncomment this section once the first release has been published
 ## Usage
 
 Add this to your `Cargo.toml`:
@@ -45,6 +104,7 @@ extern crate arangodb_client;
 ```
 
 See the [client example](./examples/client.rs) for a working example.
+-->
 
 ## License
 
