@@ -25,10 +25,14 @@
 An ArangoDB client for Rust. It enables low level access to ArangoDB in a
 typesafe and Rust idiomatic manner. 
 
+<!--TODO uncomment this section once the first release has been published
 [Documentation](https://docs.rs/arangodb_client)
+-->
 
 The vision for this project is to provide a fast and typesafe client lib for
 easy and flexible use of ArangoDB in applications.  
+
+**Status: Experimental**
 
 This project is under heavy development. There is no released version yet.
 
