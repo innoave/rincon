@@ -97,9 +97,7 @@ impl Prepare for GetIndex {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_INDEX)
-            + "/" + &self.index_id.collection_name()
-            + "/" + &self.index_id.index_key()
+        String::from(PATH_API_INDEX) + "/" + &self.index_id.as_string()
     }
 
     fn parameters(&self) -> Parameters {
@@ -187,7 +185,7 @@ impl DeleteIndex {
 }
 
 impl Method for DeleteIndex {
-    type Result = IndexId;
+    type Result = IndexIdOption;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: Some(FIELD_ID),
         code_field: Some(FIELD_CODE),
@@ -202,9 +200,7 @@ impl Prepare for DeleteIndex {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_INDEX)
-            + "/" + &self.index_id.collection_name()
-            + "/" + &self.index_id.index_key()
+        String::from(PATH_API_INDEX) + "/" + &self.index_id.as_string()
     }
 
     fn parameters(&self) -> Parameters {

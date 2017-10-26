@@ -18,7 +18,58 @@ const INDEX_TYPE_EDGE: &str = "edge";
 
 const CAPTURE_COLLECTION_NAME: &str = "coll";
 const CAPTURE_INDEX_KEY: &str = "key";
-const REGEX_INDEX_ID: &str = "^(?P<coll>[^/]+)/(?P<key>[^/]+)$";
+const REGEX_INDEX_ID: &str = "^((?P<coll>[^/]+)/)?(?P<key>[^/]+)$";
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum IndexIdOption {
+    Qualified(IndexId),
+    Local(IndexKey),
+}
+
+impl IndexIdOption {
+    pub fn from_str(value: &str) -> Result<Self, String> {
+        let re = Regex::new(REGEX_INDEX_ID).unwrap();
+        if let Some(caps) = re.captures(value) {
+            match (caps.name(CAPTURE_COLLECTION_NAME), caps.name(CAPTURE_INDEX_KEY)) {
+                (Some(collection_name), Some(index_key)) =>
+                    Ok(IndexIdOption::Qualified(IndexId {
+                        collection_name: collection_name.as_str().to_owned(),
+                        index_key: index_key.as_str().to_owned(),
+                    })),
+                (None, Some(index_key)) =>
+                    Ok(IndexIdOption::Local(IndexKey(
+                        index_key.as_str().to_owned()
+                    ))),
+                (_, None) =>
+                    Err(format!("Index id does not have a key: {:?}", value)),
+            }
+        } else {
+            Err(format!("Invalid index id: {:?}", value))
+        }
+    }
+}
+
+impl Serialize for IndexIdOption {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        use self::IndexIdOption::*;
+        match *self {
+            Qualified(ref index_id) => index_id.serialize(serializer),
+            Local(ref index_key) => index_key.serialize(serializer),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for IndexIdOption {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        use serde::de::Error;
+        let value = String::deserialize(deserializer)?;
+        IndexIdOption::from_str(&value).map_err(D::Error::custom)
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct IndexId {
@@ -31,11 +82,36 @@ impl IndexId {
         where C: Into<String>, K: Into<String>
     {
         let collection_name = collection_name.into();
+        assert!(!collection_name.contains('/'), "A collection name must not contain any '/' character");
         let index_key = index_key.into();
+        assert!(!collection_name.contains('/'), "An index key must not contain any '/' character");
         IndexId {
             collection_name,
             index_key,
         }
+    }
+
+    pub fn from_str(value: &str) -> Result<Self, String> {
+        let re = Regex::new(REGEX_INDEX_ID).unwrap();
+        if let Some(caps) = re.captures(value) {
+            match (caps.name(CAPTURE_COLLECTION_NAME), caps.name(CAPTURE_INDEX_KEY)) {
+                (Some(collection_name), Some(index_key)) =>
+                    Ok(IndexId {
+                        collection_name: collection_name.as_str().to_owned(),
+                        index_key: index_key.as_str().to_owned(),
+                    }),
+                (None, Some(_)) =>
+                    Err(format!("Index id does not have a collection name: {:?}", value)),
+                (_, None) =>
+                    Err(format!("Index id does not have an index key: {:?}", value)),
+            }
+        } else {
+            Err(format!("Invalid index id: {:?}", value))
+        }
+    }
+
+    pub fn as_string(&self) -> String {
+        self.collection_name.to_owned() + "/" + &self.index_key
     }
 
     pub fn collection_name(&self) -> &str {
@@ -45,9 +121,11 @@ impl IndexId {
     pub fn index_key(&self) -> &str {
         &self.index_key
     }
+}
 
-    pub fn as_string(&self) -> String {
-        self.collection_name.to_owned() + "/" + &self.index_key
+impl From<IndexId> for IndexIdOption {
+    fn from(index_id: IndexId) -> Self {
+        IndexIdOption::Qualified(index_id)
     }
 }
 
@@ -55,9 +133,7 @@ impl Serialize for IndexId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let value = self.collection_name.to_owned()
-            + "/" + &self.index_key;
-        serializer.serialize_str(&value)
+        serializer.serialize_str(&self.as_string())
     }
 }
 
@@ -67,14 +143,56 @@ impl<'de> Deserialize<'de> for IndexId {
     {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;
-        let re = Regex::new(REGEX_INDEX_ID).unwrap();
-        if let Some(caps) = re.captures(&value) {
-            let collection = &caps[CAPTURE_COLLECTION_NAME];
-            let index_key = &caps[CAPTURE_INDEX_KEY];
-            Ok(IndexId::new(collection, index_key))
+        IndexId::from_str(&value).map_err(D::Error::custom)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct IndexKey(String);
+
+impl IndexKey {
+    pub fn new<K>(index_key: K) -> Self
+        where K: Into<String>
+    {
+        let index_key = index_key.into();
+        assert!(!index_key.contains('/'), "An index key must not contain any '/' character");
+        IndexKey(index_key)
+    }
+
+    pub fn from_str(value: &str) -> Result<Self, String> {
+        if value.contains('/') {
+            Err(format!("An index key must not contain any '/' character, but got: {:?}", &value))
         } else {
-            Err(D::Error::custom(format!("Invalid index id: {:?}", value)))
+            Ok(IndexKey(value.to_owned()))
         }
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl From<IndexKey> for IndexIdOption {
+    fn from(index_key: IndexKey) -> Self {
+        IndexIdOption::Local(index_key)
+    }
+}
+
+impl Serialize for IndexKey {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for IndexKey {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        use serde::de::Error;
+        let value = String::deserialize(deserializer)?;
+        IndexKey::from_str(&value).map_err(D::Error::custom)
     }
 }
 
@@ -95,18 +213,18 @@ impl IndexList {
 }
 
 pub trait IndexDetails {
-    fn id(&self) -> &IndexId;
+    fn id(&self) -> &IndexIdOption;
 
     fn fields(&self) -> &[String];
 
     fn is_newly_created(&self) -> bool;
 
-    fn is_sparse(&self) -> bool;
-
     fn is_unique(&self) -> bool;
+
+    fn is_sparse(&self) -> bool;
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Index {
     Primary(PrimaryIndex),
     Hash(HashIndex),
@@ -135,7 +253,7 @@ impl Index {
 }
 
 impl IndexDetails for Index {
-    fn id(&self) -> &IndexId {
+    fn id(&self) -> &IndexIdOption {
         self.unwrap_details().id()
     }
 
@@ -147,22 +265,22 @@ impl IndexDetails for Index {
         self.unwrap_details().is_newly_created()
     }
 
-    fn is_sparse(&self) -> bool {
-        self.unwrap_details().is_sparse()
-    }
-
     fn is_unique(&self) -> bool {
         self.unwrap_details().is_unique()
     }
+
+    fn is_sparse(&self) -> bool {
+        self.unwrap_details().is_sparse()
+    }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct PrimaryIndex {
     newly_created: bool,
-    id: IndexId,
+    id: IndexIdOption,
     fields: Vec<String>,
-    sparse: bool,
     unique: bool,
+    sparse: bool,
     selectivity_estimate: u32,
 }
 
@@ -177,7 +295,7 @@ impl IndexDetails for PrimaryIndex {
         self.newly_created
     }
 
-    fn id(&self) -> &IndexId {
+    fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
@@ -185,27 +303,56 @@ impl IndexDetails for PrimaryIndex {
         &self.fields
     }
 
-    fn is_sparse(&self) -> bool {
-        self.sparse
-    }
-
     fn is_unique(&self) -> bool {
         self.unique
     }
+
+    fn is_sparse(&self) -> bool {
+        self.sparse
+    }
 }
 
-#[derive(Clone, Debug)]
+impl From<PrimaryIndex> for Index {
+    fn from(index: PrimaryIndex) -> Self {
+        Index::Primary(index)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct HashIndex {
     newly_created: bool,
-    id: IndexId,
+    id: IndexIdOption,
     fields: Vec<String>,
-    sparse: bool,
     unique: bool,
+    sparse: bool,
     deduplicate: bool,
     selectivity_estimate: u32,
 }
 
 impl HashIndex {
+    pub fn new<Flds, Fld>(
+        id: IndexIdOption,
+        fields: Flds,
+        unique: bool,
+        sparse: bool,
+        deduplicate: bool,
+        selectivity_estimate: u32,
+    ) -> Self
+        where
+            Flds: IntoIterator<Item=Fld>,
+            Fld: Into<String>,
+    {
+        HashIndex {
+            newly_created: false,
+            id,
+            fields: Vec::from_iter(fields.into_iter().map(|f| f.into())),
+            unique,
+            sparse,
+            deduplicate,
+            selectivity_estimate,
+        }
+    }
+
     pub fn is_deduplicate(&self) -> bool {
         self.deduplicate
     }
@@ -220,7 +367,7 @@ impl IndexDetails for HashIndex {
         self.newly_created
     }
 
-    fn id(&self) -> &IndexId {
+    fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
@@ -228,22 +375,28 @@ impl IndexDetails for HashIndex {
         &self.fields
     }
 
-    fn is_sparse(&self) -> bool {
-        self.sparse
-    }
-
     fn is_unique(&self) -> bool {
         self.unique
     }
+
+    fn is_sparse(&self) -> bool {
+        self.sparse
+    }
 }
 
-#[derive(Clone, Debug)]
+impl From<HashIndex> for Index {
+    fn from(index: HashIndex) -> Self {
+        Index::Hash(index)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct SkipListIndex {
     newly_created: bool,
-    id: IndexId,
+    id: IndexIdOption,
     fields: Vec<String>,
-    sparse: bool,
     unique: bool,
+    sparse: bool,
     deduplicate: bool,
 }
 
@@ -258,7 +411,7 @@ impl IndexDetails for SkipListIndex {
         self.newly_created
     }
 
-    fn id(&self) -> &IndexId {
+    fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
@@ -266,22 +419,28 @@ impl IndexDetails for SkipListIndex {
         &self.fields
     }
 
-    fn is_sparse(&self) -> bool {
-        self.sparse
-    }
-
     fn is_unique(&self) -> bool {
         self.unique
     }
+
+    fn is_sparse(&self) -> bool {
+        self.sparse
+    }
 }
 
-#[derive(Clone, Debug)]
+impl From<SkipListIndex> for Index {
+    fn from(index: SkipListIndex) -> Self {
+        Index::SkipList(index)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct PersistentIndex {
     newly_created: bool,
-    id: IndexId,
+    id: IndexIdOption,
     fields: Vec<String>,
-    sparse: bool,
     unique: bool,
+    sparse: bool,
     deduplicate: bool,
 }
 
@@ -296,7 +455,7 @@ impl IndexDetails for PersistentIndex {
         self.newly_created
     }
 
-    fn id(&self) -> &IndexId {
+    fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
@@ -304,22 +463,28 @@ impl IndexDetails for PersistentIndex {
         &self.fields
     }
 
-    fn is_sparse(&self) -> bool {
-        self.sparse
-    }
-
     fn is_unique(&self) -> bool {
         self.unique
     }
+
+    fn is_sparse(&self) -> bool {
+        self.sparse
+    }
 }
 
-#[derive(Clone, Debug)]
+impl From<PersistentIndex> for Index {
+    fn from(index: PersistentIndex) -> Self {
+        Index::Persistent(index)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct Geo1Index {
     newly_created: bool,
-    id: IndexId,
+    id: IndexIdOption,
     fields: Vec<String>,
-    sparse: bool,
     unique: bool,
+    sparse: bool,
     constraint: bool,
     geo_json: bool,
 }
@@ -339,7 +504,7 @@ impl IndexDetails for Geo1Index {
         self.newly_created
     }
 
-    fn id(&self) -> &IndexId {
+    fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
@@ -347,22 +512,28 @@ impl IndexDetails for Geo1Index {
         &self.fields
     }
 
-    fn is_sparse(&self) -> bool {
-        self.sparse
-    }
-
     fn is_unique(&self) -> bool {
         self.unique
     }
+
+    fn is_sparse(&self) -> bool {
+        self.sparse
+    }
 }
 
-#[derive(Clone, Debug)]
+impl From<Geo1Index> for Index {
+    fn from(index: Geo1Index) -> Self {
+        Index::Geo1(index)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct Geo2Index {
     newly_created: bool,
-    id: IndexId,
+    id: IndexIdOption,
     fields: Vec<String>,
-    sparse: bool,
     unique: bool,
+    sparse: bool,
     constraint: bool,
 }
 
@@ -377,7 +548,7 @@ impl IndexDetails for Geo2Index {
         self.newly_created
     }
 
-    fn id(&self) -> &IndexId {
+    fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
@@ -385,22 +556,28 @@ impl IndexDetails for Geo2Index {
         &self.fields
     }
 
-    fn is_sparse(&self) -> bool {
-        self.sparse
-    }
-
     fn is_unique(&self) -> bool {
         self.unique
     }
+
+    fn is_sparse(&self) -> bool {
+        self.sparse
+    }
 }
 
-#[derive(Clone, Debug)]
+impl From<Geo2Index> for Index {
+    fn from(index: Geo2Index) -> Self {
+        Index::Geo2(index)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct FulltextIndex {
     newly_created: bool,
-    id: IndexId,
+    id: IndexIdOption,
     fields: Vec<String>,
-    sparse: bool,
     unique: bool,
+    sparse: bool,
     min_length: u32,
 }
 
@@ -415,7 +592,7 @@ impl IndexDetails for FulltextIndex {
         self.newly_created
     }
 
-    fn id(&self) -> &IndexId {
+    fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
@@ -423,22 +600,28 @@ impl IndexDetails for FulltextIndex {
         &self.fields
     }
 
-    fn is_sparse(&self) -> bool {
-        self.sparse
-    }
-
     fn is_unique(&self) -> bool {
         self.unique
     }
+
+    fn is_sparse(&self) -> bool {
+        self.sparse
+    }
 }
 
-#[derive(Clone, Debug)]
+impl From<FulltextIndex> for Index {
+    fn from(index: FulltextIndex) -> Self {
+        Index::Fulltext(index)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct EdgeIndex {
     newly_created: bool,
-    id: IndexId,
+    id: IndexIdOption,
     fields: Vec<String>,
-    sparse: bool,
     unique: bool,
+    sparse: bool,
 }
 
 impl IndexDetails for EdgeIndex {
@@ -446,7 +629,7 @@ impl IndexDetails for EdgeIndex {
         self.newly_created
     }
 
-    fn id(&self) -> &IndexId {
+    fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
@@ -454,12 +637,18 @@ impl IndexDetails for EdgeIndex {
         &self.fields
     }
 
+    fn is_unique(&self) -> bool {
+        self.unique
+    }
+
     fn is_sparse(&self) -> bool {
         self.sparse
     }
+}
 
-    fn is_unique(&self) -> bool {
-        self.unique
+impl From<EdgeIndex> for Index {
+    fn from(index: EdgeIndex) -> Self {
+        Index::Edge(index)
     }
 }
 
@@ -493,8 +682,8 @@ pub struct NewHashIndex {
     #[serde(rename = "type")]
     kind: IndexType,
     fields: Vec<String>,
-    sparse: bool,
     unique: bool,
+    sparse: bool,
     deduplicate: bool,
 }
 
@@ -824,15 +1013,15 @@ impl<'de> Deserialize<'de> for IndexType {
 struct GenericIndex {
     #[serde(rename = "type")]
     kind: IndexType,
-    id: IndexId,
+    id: IndexIdOption,
     fields: Vec<String>,
     selectivity_estimate: Option<u32>,
     is_newly_created: Option<bool>,
-    min_length: Option<u32>,
-    sparse: Option<bool>,
     unique: Option<bool>,
-    constraint: Option<bool>,
+    sparse: Option<bool>,
     deduplicate: Option<bool>,
+    constraint: Option<bool>,
+    min_length: Option<u32>,
     geo_json: Option<bool>,
 }
 
@@ -848,11 +1037,11 @@ impl<'de> Deserialize<'de> for Index {
             fields,
             selectivity_estimate,
             is_newly_created,
-            min_length,
-            sparse,
             unique,
-            constraint,
+            sparse,
             deduplicate,
+            constraint,
+            min_length,
             geo_json,
         } = GenericIndex::deserialize(deserializer)?;
         match kind {
@@ -953,7 +1142,7 @@ impl<'de> Deserialize<'de> for Index {
                     })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             }
-            _ => Err(D::Error::custom("Unsupported index type")),
+            Geo => Err(D::Error::custom("Unsupported index type")),
         }
     }
 }
@@ -962,6 +1151,68 @@ impl<'de> Deserialize<'de> for Index {
 mod tests {
     use serde_json;
     use super::*;
+
+    #[test]
+    fn get_index_key_from_str() {
+        let index_key = IndexKey::from_str("12341").unwrap();
+        assert_eq!("12341", index_key.as_str());
+    }
+
+    #[test]
+    fn get_index_key_from_str_with_slash_character_in_the_middle() {
+        let result = IndexKey::from_str("mine/12341");
+        assert_eq!(Err("An index key must not contain any '/' character, but got: \"mine/12341\"".to_owned()), result);
+    }
+
+    #[test]
+    fn get_index_key_from_str_with_slash_character_at_the_beginning() {
+        let result = IndexKey::from_str("/12341");
+        assert_eq!(Err("An index key must not contain any '/' character, but got: \"/12341\"".to_owned()), result);
+    }
+
+    #[test]
+    fn get_index_key_from_str_with_slash_character_at_the_end() {
+        let result = IndexKey::from_str("12341/");
+        assert_eq!(Err("An index key must not contain any '/' character, but got: \"12341/\"".to_owned()), result);
+    }
+
+    #[test]
+    fn get_index_id_from_str() {
+        let index_id = IndexId::from_str("mine/12341").unwrap();
+        assert_eq!("mine", index_id.collection_name());
+        assert_eq!("12341", index_id.index_key());
+        assert_eq!("mine/12341", &index_id.as_string());
+    }
+
+    #[test]
+    fn get_index_id_from_str_without_collection_name() {
+        let result = IndexId::from_str("12341");
+        assert_eq!(Err("Index id does not have a collection name: \"12341\"".to_owned()), result);
+    }
+
+    #[test]
+    fn get_index_id_from_str_with_empty_collection_name() {
+        let result = IndexId::from_str("/12341");
+        assert_eq!(Err("Invalid index id: \"/12341\"".to_owned()), result);
+    }
+
+    #[test]
+    fn get_index_id_from_str_with_empty_index_key() {
+        let result = IndexId::from_str("mine/");
+        assert_eq!(Err("Invalid index id: \"mine/\"".to_owned()), result);
+    }
+
+    #[test]
+    fn get_index_id_option_from_str_with_collection_name_and_index_key() {
+        let index_id_option = IndexIdOption::from_str("mine/12341").unwrap();
+        assert_eq!(IndexIdOption::from(IndexId::new("mine", "12341")), index_id_option);
+    }
+
+    #[test]
+    fn get_index_id_option_from_str_with_index_key_only() {
+        let index_id_option = IndexIdOption::from_str("12341").unwrap();
+        assert_eq!(IndexIdOption::from(IndexKey::new("12341")), index_id_option);
+    }
 
     #[test]
     fn deserialize_primary_index() {
@@ -976,11 +1227,15 @@ mod tests {
             "unique" : true
         }"#;
 
-        let index = serde_json::from_str(index_json).unwrap();
+        let index: Index = serde_json::from_str(index_json).unwrap();
+        let index_id = match *index.id() {
+            IndexIdOption::Qualified(ref index_id) => index_id,
+            _ => panic!("Qualified index id expected!"),
+        };
 
-        if let Index::Primary(primary_index) = index {
-            assert_eq!("products", primary_index.id().collection_name());
-            assert_eq!("0", primary_index.id().index_key());
+        if let Index::Primary(ref primary_index) = index {
+            assert_eq!("products", index_id.collection_name());
+            assert_eq!("0", index_id.index_key());
             assert_eq!(&vec!("_key".to_owned())[..], primary_index.fields());
             assert_eq!(false, primary_index.is_newly_created());
             assert_eq!(1, primary_index.selectivity_estimate());
@@ -1007,11 +1262,15 @@ mod tests {
             "code" : 201
         }"#;
 
-        let index = serde_json::from_str(index_json).unwrap();
+        let index: Index = serde_json::from_str(index_json).unwrap();
+        let index_id = match *index.id() {
+            IndexIdOption::Qualified(ref index_id) => index_id,
+            _ => panic!("Qualified index id expected!"),
+        };
 
-        if let Index::Hash(hash_index) = index {
-            assert_eq!("products", hash_index.id().collection_name());
-            assert_eq!("11582", hash_index.id().index_key());
+        if let Index::Hash(ref hash_index) = index {
+            assert_eq!("products", index_id.collection_name());
+            assert_eq!("11582", index_id.index_key());
             assert_eq!(&vec!("a".to_owned())[..], hash_index.fields());
             assert_eq!(true, hash_index.is_newly_created());
             assert_eq!(true, hash_index.is_deduplicate());
@@ -1038,11 +1297,15 @@ mod tests {
             "unique" : false
         }"#;
 
-        let index = serde_json::from_str(index_json).unwrap();
+        let index: Index = serde_json::from_str(index_json).unwrap();
+        let index_id = match *index.id() {
+            IndexIdOption::Qualified(ref index_id) => index_id,
+            _ => panic!("Qualified index id expected!"),
+        };
 
-        if let Index::SkipList(skip_list_index) = index {
-            assert_eq!("products", skip_list_index.id().collection_name());
-            assert_eq!("11556", skip_list_index.id().index_key());
+        if let Index::SkipList(ref skip_list_index) = index {
+            assert_eq!("products", index_id.collection_name());
+            assert_eq!("11556", index_id.index_key());
             assert_eq!(&vec!("a".to_owned(), "b".to_owned())[..], skip_list_index.fields());
             assert_eq!(false, skip_list_index.is_newly_created());
             assert_eq!(true, skip_list_index.is_deduplicate());
@@ -1068,11 +1331,15 @@ mod tests {
             "unique" : true
         }"#;
 
-        let index = serde_json::from_str(index_json).unwrap();
+        let index: Index = serde_json::from_str(index_json).unwrap();
+        let index_id = match *index.id() {
+            IndexIdOption::Qualified(ref index_id) => index_id,
+            _ => panic!("Qualified index id expected!"),
+        };
 
-        if let Index::Persistent(persistent_index) = index {
-            assert_eq!("products", persistent_index.id().collection_name());
-            assert_eq!("11595", persistent_index.id().index_key());
+        if let Index::Persistent(ref persistent_index) = index {
+            assert_eq!("products", index_id.collection_name());
+            assert_eq!("11595", index_id.index_key());
             assert_eq!(&vec!("a".to_owned(), "b".to_owned())[..], persistent_index.fields());
             assert_eq!(true, persistent_index.is_newly_created());
             assert_eq!(false, persistent_index.is_deduplicate());
@@ -1099,11 +1366,15 @@ mod tests {
             "unique" : false
         }"#;
 
-        let index = serde_json::from_str(index_json).unwrap();
+        let index: Index = serde_json::from_str(index_json).unwrap();
+        let index_id = match *index.id() {
+            IndexIdOption::Qualified(ref index_id) => index_id,
+            _ => panic!("Qualified index id expected!"),
+        };
 
-        if let Index::Geo1(geo1_index) = index {
-            assert_eq!("products", geo1_index.id().collection_name());
-            assert_eq!("11504", geo1_index.id().index_key());
+        if let Index::Geo1(ref geo1_index) = index {
+            assert_eq!("products", index_id.collection_name());
+            assert_eq!("11504", index_id.index_key());
             assert_eq!(&vec!("b".to_owned())[..], geo1_index.fields());
             assert_eq!(true, geo1_index.is_newly_created());
             assert_eq!(true, geo1_index.is_geo_json());
@@ -1130,11 +1401,15 @@ mod tests {
             "unique" : false
         }"#;
 
-        let index = serde_json::from_str(index_json).unwrap();
+        let index: Index = serde_json::from_str(index_json).unwrap();
+        let index_id = match *index.id() {
+            IndexIdOption::Qualified(ref index_id) => index_id,
+            _ => panic!("Qualified index id expected!"),
+        };
 
-        if let Index::Geo2(geo2_index) = index {
-            assert_eq!("products", geo2_index.id().collection_name());
-            assert_eq!("11491", geo2_index.id().index_key());
+        if let Index::Geo2(ref geo2_index) = index {
+            assert_eq!("products", index_id.collection_name());
+            assert_eq!("11491", index_id.index_key());
             assert_eq!(&vec!("e".to_owned(), "f".to_owned())[..], geo2_index.fields());
             assert_eq!(true, geo2_index.is_newly_created());
             assert_eq!(true, geo2_index.is_constraint());
@@ -1157,11 +1432,15 @@ mod tests {
             "unique" : false
         }"#;
 
-        let index = serde_json::from_str(index_json).unwrap();
+        let index: Index = serde_json::from_str(index_json).unwrap();
+        let index_id = match *index.id() {
+            IndexIdOption::Qualified(ref index_id) => index_id,
+            _ => panic!("Qualified index id expected!"),
+        };
 
-        if let Index::Fulltext(fulltext_index) = index {
-            assert_eq!("products", fulltext_index.id().collection_name());
-            assert_eq!("11476", fulltext_index.id().index_key());
+        if let Index::Fulltext(ref fulltext_index) = index {
+            assert_eq!("products", index_id.collection_name());
+            assert_eq!("11476", index_id.index_key());
             assert_eq!(&vec!("description".to_owned())[..], fulltext_index.fields());
             assert_eq!(false, fulltext_index.is_newly_created());
             assert_eq!(2, fulltext_index.min_length());
@@ -1183,11 +1462,15 @@ mod tests {
             "unique" : false
         }"#;
 
-        let index = serde_json::from_str(index_json).unwrap();
+        let index: Index = serde_json::from_str(index_json).unwrap();
+        let index_id = match *index.id() {
+            IndexIdOption::Qualified(ref index_id) => index_id,
+            _ => panic!("Qualified index id expected!"),
+        };
 
-        if let Index::Edge(edge_index) = index {
-            assert_eq!("products", edge_index.id().collection_name());
-            assert_eq!("2834226", edge_index.id().index_key());
+        if let Index::Edge(ref edge_index) = index {
+            assert_eq!("products", index_id.collection_name());
+            assert_eq!("2834226", index_id.index_key());
             assert_eq!(&vec!("_from".to_owned(), "_to".to_owned())[..], edge_index.fields());
             assert_eq!(false, edge_index.is_newly_created());
         } else {

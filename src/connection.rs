@@ -191,19 +191,23 @@ fn parse_return_type<M>(return_type: &RpcReturnType, status_code: StatusCode, pa
 {
     debug!("Received response with code {:?}", status_code);
     if status_code.is_success() {
-        match return_type.result_field {
-            Some(result_field) => match serde_json::from_slice(payload).map_err(Error::from) {
+        let parse_result = match return_type.result_field {
+            Some(result_field) => match serde_json::from_slice(payload) {
                 Ok(Value::Object(ref mut obj)) => match obj.remove(result_field) {
                     Some(result_value) =>
-                        serde_json::from_value(result_value).map_err(Error::from),
+                        serde_json::from_value(result_value),
                     None =>
-                        serde_json::from_slice(payload).map_err(Error::from),
+                        serde_json::from_slice(payload),
                 },
                 _ =>
-                    serde_json::from_slice(payload).map_err(Error::from),
+                    serde_json::from_slice(payload),
             },
-            None => serde_json::from_slice(payload).map_err(Error::from),
+            None => serde_json::from_slice(payload),
+        };
+        if parse_result.is_err() {
+            debug!("| response body: {}", String::from_utf8_lossy(payload));
         }
+        parse_result.map_err(Error::from)
     } else {
         debug!("| response body: {}", String::from_utf8_lossy(payload));
         let api_error = serde_json::from_slice(payload).unwrap_or_else(|_| {

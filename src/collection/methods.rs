@@ -137,9 +137,9 @@ impl CreateCollection {
         }
     }
 
+    #[cfg(feature = "cluster")]
     /// Set whether the server shall wait until the new collection has been
     /// created at all replications before it returns the response.
-    #[cfg(feature = "cluster")]
     pub fn set_wait_for_sync_replication(&mut self, wait_for_sync_replication: bool) {
         self.wait_for_sync_replication = wait_for_sync_replication;
     }
@@ -150,9 +150,9 @@ impl CreateCollection {
         &self.collection
     }
 
+    #[cfg(feature = "cluster")]
     /// Returns whether the request will wait until the new collection has
     /// been created at all replications.
-    #[cfg(feature = "cluster")]
     pub fn is_wait_for_sync_replication(&self) -> bool {
         self.wait_for_sync_replication
     }

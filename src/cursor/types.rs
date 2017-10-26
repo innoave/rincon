@@ -1,11 +1,10 @@
 
-use std::collections::{HashMap, HashSet};
-use std::iter::{ExactSizeIterator, Iterator};
-use std::collections::hash_set::Iter;
+use std::collections::HashMap;
 use std::mem;
 
 use api::query::{Query, Value};
 use api::types::JsonValue;
+use aql::Optimizer;
 
 /// A temporary cursor for retrieving query results.
 ///
@@ -425,43 +424,37 @@ pub struct CursorOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     max_plans: Option<u32>,
 
-    /// A list of to-be-included or to-be-excluded optimizer rules can be put
-    /// into this attribute, telling the optimizer to include or exclude
-    /// specific rules. To disable a rule, prefix its name with a `-`, to
-    /// enable a rule, prefix it with a `+`. There is also a pseudo-rule `all`,
-    /// which will match all optimizer rules.
-    #[serde(rename = "optimizer.rules")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    optimizer_rules: Option<HashSet<String>>,
+    optimizer: Option<Optimizer>,
 
+    #[cfg(feature = "rocksdb")]
     /// Maximum number of operations after which an intermediate commit is
     /// performed automatically.
     ///
     /// Honored by the RocksDB storage engine only.
-    #[cfg(feature = "rocksdb")]
     #[serde(skip_serializing_if = "Option::is_none")]
     intermediate_commit_count: Option<u32>,
 
+    #[cfg(feature = "rocksdb")]
     /// Maximum total size of operations after which an intermediate commit is
     /// performed automatically.
     ///
     /// Honored by the RocksDB storage engine only.
-    #[cfg(feature = "rocksdb")]
     #[serde(skip_serializing_if = "Option::is_none")]
     intermediate_commit_size: Option<u32>,
 
+    #[cfg(feature = "rocksdb")]
     /// Transaction size limit in bytes.
     ///
     /// Honored by the RocksDB storage engine only.
-    #[cfg(feature = "rocksdb")]
     #[serde(skip_serializing_if = "Option::is_none")]
     max_transaction_size: Option<u32>,
 
+    #[cfg(feature = "enterprise")]
     /// This enterprise parameter allows to configure how long a DBServer will
     /// have time to bring the satellite collections involved in the query into
     /// sync. The default value is 60.0 (seconds). When the max time has been
     /// reached the query will be stopped.
-    #[cfg(feature = "enterprise")]
     #[serde(skip_serializing_if = "Option::is_none")]
     satellite_sync_wait: Option<bool>,
 }
@@ -477,7 +470,7 @@ impl CursorOptions {
             max_warning_count: None,
             full_count: None,
             max_plans: None,
-            optimizer_rules: None,
+            optimizer: None,
             #[cfg(feature = "rocksdb")]
             intermediate_commit_count: None,
             #[cfg(feature = "rocksdb")]
@@ -581,504 +574,107 @@ impl CursorOptions {
         self.max_plans
     }
 
-    /// Returns a mutable reference to the list of to-be-included or
-    /// to-be-excluded optimizer rules.
-    ///
-    /// To disable a rule, prefix its name with a `-`, to enable a rule, prefix
-    /// it with a `+`. There is also a pseudo-rule `all`, which will match all
-    /// optimizer rules.
-    pub fn optimizer_rules_mut(&mut self) -> OptimizerRuleSetMut {
-        OptimizerRuleSetMut::new(self.optimizer_rules
-            .get_or_insert_with(|| HashSet::new()))
+    /// Returns a mutable reference to the optimizer options.
+    pub fn optimizer_mut(&mut self) -> &mut Optimizer {
+        self.optimizer.get_or_insert_with(|| Optimizer::new())
     }
 
-    /// Removes the optimizer rules from this instance.
-    pub fn remove_optimizer_rules(&mut self) {
-        self.optimizer_rules = None;
+    /// Removes the optimizer options from this struct and returns
+    /// the them.
+    pub fn remove_optimizer(&mut self) -> Option<Optimizer> {
+        mem::replace(&mut self.optimizer, None)
     }
 
-    /// Returns the list of to-be-included or to-be-excluded optimizer rules,
-    /// that are telling the optimizer to include or exclude specific rules.
-    pub fn optimizer_rules(&self) -> Option<OptimizerRuleSet> {
-        self.optimizer_rules.as_ref().map(OptimizerRuleSet::new)
+    /// Returns a reference to the optimizer options.
+    pub fn optimizer(&self) -> Option<&Optimizer> {
+        self.optimizer.as_ref()
     }
 
+    #[cfg(feature = "rocksdb")]
     /// Sets the maximum number of operations after which an intermediate
     /// commit is performed automatically.
     ///
     /// Honored by the RocksDB storage engine only.
-    #[cfg(feature = "rocksdb")]
     pub fn set_intermediate_commit_count<C>(&mut self, intermediate_commit_count: C)
         where C: Into<Option<u32>>
     {
         self.intermediate_commit_count = intermediate_commit_count.into();
     }
 
+    #[cfg(feature = "rocksdb")]
     /// Returns the maximum number of operations after which an intermediate
     /// commit is performed automatically.
     ///
     /// Honored by the RocksDB storage engine only.
-    #[cfg(feature = "rocksdb")]
     pub fn intermediate_commit_count(&self) -> Option<u32> {
         self.intermediate_commit_count
     }
 
+    #[cfg(feature = "rocksdb")]
     /// Sets the maximum total size of operations after which an intermediate
     /// commit is performed automatically.
     ///
     /// Honored by the RocksDB storage engine only.
-    #[cfg(feature = "rocksdb")]
     pub fn set_intermediate_commit_size<S>(&mut self, intermediate_commit_size: S)
         where S: Into<Option<u32>>
     {
         self.intermediate_commit_size = intermediate_commit_size.into();
     }
 
+    #[cfg(feature = "rocksdb")]
     /// Returns the maximum total size of operations after which an intermediate
     /// commit is performed automatically.
     ///
     /// Honored by the RocksDB storage engine only.
-    #[cfg(feature = "rocksdb")]
     pub fn intermediate_commit_size(&self) -> Option<u32> {
         self.intermediate_commit_size
     }
 
+    #[cfg(feature = "rocksdb")]
     /// Sets the transaction size limit in bytes.
     ///
     /// Honored by the RocksDB storage engine only.
-    #[cfg(feature = "rocksdb")]
     pub fn set_max_transaction_size<S>(&mut self, max_transaction_size: S)
         where S: Into<Option<u32>>
     {
         self.max_transaction_size = max_transaction_size.into();
     }
 
+    #[cfg(feature = "rocksdb")]
     /// Returns the transaction size limit in bytes.
     ///
     /// Honored by the RocksDB storage engine only.
-    #[cfg(feature = "rocksdb")]
     pub fn max_transaction_size(&self) -> Option<u32> {
         self.max_transaction_size
     }
 
+    #[cfg(feature = "enterprise")]
     /// Sets the enterprise parameter that configures how long a DBServer will
     /// have time to bring the satellite collections involved in the query into
     /// sync.
     ///
     /// The default value is 60.0 (seconds). When the max time has been reached
     /// the query will be stopped.
-    #[cfg(feature = "enterprise")]
     pub fn set_satellite_sync_wait<W>(&mut self, satellite_sync_wait: W)
         where W: Into<Option<bool>>
     {
         self.satellite_sync_wait = satellite_sync_wait.into();
     }
 
+    #[cfg(feature = "enterprise")]
     /// Returns the enterprise parameter that configures how long a DBServer
     /// will have time to bring the satellite collections involved in the query
     /// into sync.
-    #[cfg(feature = "enterprise")]
     pub fn satellite_sync_wait(&self) -> Option<bool> {
         self.satellite_sync_wait
     }
 }
 
-#[derive(Debug)]
-pub struct OptimizerRuleSet<'a> {
-    rules: &'a HashSet<String>,
-}
-
-impl<'a> OptimizerRuleSet<'a> {
-    fn new(rules: &'a HashSet<String>) -> Self {
-        OptimizerRuleSet {
-            rules,
-        }
-    }
-
-    fn included(rule: &OptimizerRule) -> String {
-       String::from("+") + rule.as_api_str()
-    }
-
-    fn excluded(rule: &OptimizerRule) -> String {
-        String::from("-") + rule.as_api_str()
-    }
-
-    pub fn includes(&self, rule: &OptimizerRule) -> bool {
-        self.rules.contains(&OptimizerRuleSet::included(&rule))
-    }
-
-    pub fn excludes(&self, rule: &OptimizerRule) -> bool {
-        self.rules.contains(&OptimizerRuleSet::excluded(&rule))
-    }
-
-    pub fn into_iter(self) -> OptimizerRuleIntoIter<'a> {
-        OptimizerRuleIntoIter {
-            inner: self.rules.into_iter(),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct OptimizerRuleSetMut<'a> {
-    rules: &'a mut HashSet<String>,
-}
-
-impl<'a> OptimizerRuleSetMut<'a> {
-    fn new(rules: &'a mut HashSet<String>) -> Self {
-        OptimizerRuleSetMut {
-            rules,
-        }
-    }
-
-    pub fn include(&mut self, rule: OptimizerRule) -> &mut Self {
-        self.rules.remove(&OptimizerRuleSet::excluded(&rule));
-        self.rules.insert(OptimizerRuleSet::included(&rule));
-        self
-    }
-
-    pub fn exclude(&mut self, rule: OptimizerRule) -> &mut Self {
-        self.rules.remove(&OptimizerRuleSet::included(&rule));
-        self.rules.insert(OptimizerRuleSet::excluded(&rule));
-        self
-    }
-
-    pub fn remove(&mut self, rule: &OptimizerRule) -> &mut Self {
-        self.rules.remove(&OptimizerRuleSet::included(&rule));
-        self.rules.remove(&OptimizerRuleSet::excluded(&rule));
-        self
-    }
-}
-
-#[derive(Debug)]
-pub struct OptimizerRuleIntoIter<'a> {
-    inner: Iter<'a, String>,
-}
-
-impl<'a> Iterator for OptimizerRuleIntoIter<'a> {
-    type Item = (IncludedExcluded, OptimizerRule);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(|v| match (&v[..1], &v[1..]) {
-            ("+", rule) => (IncludedExcluded::Included, OptimizerRule::from_api_str(rule)),
-            ("-", rule) => (IncludedExcluded::Excluded, OptimizerRule::from_api_str(rule)),
-            _ => unreachable!(),
-        })
-    }
-}
-
-impl<'a> ExactSizeIterator for OptimizerRuleIntoIter<'a> {}
-
-#[derive(Clone, Copy, Debug, PartialEq, Hash)]
-pub enum IncludedExcluded {
-    Included,
-    Excluded,
-}
-
-/// Represents the rules for the AQL query optimizer.
-///
-/// This enum defines all possible optimizer rules as listed in the official
-/// documentation of *ArangoDB*.
-///
-/// Source: [https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-optimizer-rules]
-///
-/// Last updated: 10/08/2017
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum OptimizerRule {
-    /// Pseudo-rule that matches all rules.
-    All,
-    /// will appear if a CalculationNode was moved up in a plan. The intention of this rule is to move calculations up in the processing pipeline as far as possible (ideally out of enumerations) so they are not executed in loops if not required. It is also quite common that this rule enables further optimizations to kick in.
-    MoveCalculationsUp,
-    /// will appear if a FilterNode was moved up in a plan. The intention of this rule is to move filters up in the processing pipeline as far as possible (ideally out of inner loops) so they filter results as early as possible.
-    MoveFiltersUp,
-    /// will appear when the values used as right-hand side of an IN operator will be pre-sorted using an extra function call. Pre-sorting the comparison array allows using a binary search in-list lookup with a logarithmic complexity instead of the default linear complexity in-list lookup.
-    SortInValues,
-    /// will appear if a FilterNode was removed or replaced. FilterNodes whose filter condition will always evaluate to true will be removed from the plan, whereas FilterNode that will never let any results pass will be replaced with a NoResultsNode.
-    RemoveUnnecessaryFilters,
-    /// will appear if redundant calculations (expressions with the exact same result) were found in the query. The optimizer rule will then replace references to the redundant expressions with a single reference, allowing other optimizer rules to remove the then-unneeded CalculationNodes.
-    RemoveRedundantCalculations,
-    /// will appear if CalculationNodes were removed from the query. The rule will removed all calculations whose result is not referenced in the query (note that this may be a consequence of applying other optimizations).
-    RemoveUnnecessaryCalculations,
-    /// will appear if multiple SORT statements can be merged into fewer sorts.
-    RemoveRedundantSorts,
-    /// will appear if a query contains multiple FOR statements whose order were permuted. Permutation of FOR statements is performed because it may enable further optimizations by other rules.
-    InterchangeAdjacentEnumerations,
-    /// will appear if an INTO clause was removed from a COLLECT statement because the result of INTO is not used. May also appear if a result of a COLLECT statement's AGGREGATE variables is not used.
-    RemoveCollectVariables,
-    /// will appear when a constant value was inserted into a filter condition, replacing a dynamic attribute value.
-    PropagateConstantAttributes,
-    /// will appear if multiple OR-combined equality conditions on the same variable or attribute were replaced with an IN condition.
-    ReplaceOrWithIn,
-    /// will appear if multiple OR conditions for the same variable or attribute were combined into a single condition.
-    RemoveRedundantOr,
-    /// will appear when an index is used to iterate over a collection. As a consequence, an EnumerateCollectionNode was replaced with an IndexNode in the plan.
-    UseIndexes,
-    /// will appear if a FilterNode was removed or replaced because the filter condition is already covered by an IndexNode.
-    RemoveFilterCoveredByIndex,
-    /// will appear if a FilterNode was removed or replaced because the filter condition is already covered by an TraversalNode.
-    RemoveFilterCoveredByTraversal,
-    /// will appear if an index can be used to avoid a SORT operation. If the rule was applied, a SortNode was removed from the plan.
-    UseIndexForSort,
-    /// will appear if a CalculationNode was moved down in a plan. The intention of this rule is to move calculations down in the processing pipeline as far as possible (below FILTER, LIMIT and SUBQUERY nodes) so they are executed as late as possible and not before their results are required.
-    MoveCalculationsDown,
-    /// will appear if an UpdateNode was patched to not buffer its input completely, but to process it in smaller batches. The rule will fire for an UPDATE query that is fed by a full collection scan, and that does not use any other indexes and sub-queries.
-    PatchUpdateStatements,
-    /// will appear if either the edge or path output variable in an AQL traversal was optimized away, or if a FILTER condition from the query was moved in the TraversalNode for early pruning of results.
-    OptimizeTraversals,
-    /// will appear when a sub query was pulled out in its surrounding scope, e.g. FOR x IN (FOR y IN collection FILTER y.value >= 5 RETURN y.test) RETURN x.a would become FOR tmp IN collection FILTER tmp.value >= 5 LET x = tmp.test RETURN x.a
-    InlineSubQueries,
-    /// will appear when a geo index is utilized.
-    GeoIndexOptimizer,
-    /// will appear when a SORT RAND() expression is removed by moving the random iteration into an EnumerateCollectionNode. This optimizer rule is specific for the MMFiles storage engine.
-    RemoveSortRand,
-    /// will appear when an EnumerationCollectionNode that would have extracted an entire document was modified to return only a projection of each document. This optimizer rule is specific for the RocksDB storage engine.
-    ReduceExtractionToProjection,
-    #[cfg(feature = "cluster")]
-    /// will appear when query parts get distributed in a cluster. This is not an optimization rule, and it cannot be turned off.
-    DistributeInCluster,
-    #[cfg(feature = "cluster")]
-    /// will appear when scatter, gather, and remote nodes are inserted into a distributed query. This is not an optimization rule, and it cannot be turned off.
-    ScatterInCluster,
-    #[cfg(feature = "cluster")]
-    /// will appear when filters are moved up in a distributed execution plan. Filters are moved as far up in the plan as possible to make result sets as small as possible as early as possible.
-    DistributeFilterCalcToCluster,
-    #[cfg(feature = "cluster")]
-    /// will appear if sorts are moved up in a distributed query. Sorts are moved as far up in the plan as possible to make result sets as small as possible as early as possible.
-    DistributeSortToCluster,
-    #[cfg(feature = "cluster")]
-    /// will appear if a RemoteNode is followed by a ScatterNode, and the ScatterNode is only followed by calculations or the SingletonNode. In this case, there is no need to distribute the calculation, and it will be handled centrally.
-    RemoveUnnecessaryRemoteScatter,
-    #[cfg(feature = "cluster")]
-    /// will appear if a RemoveNode can be pushed into the same query part that enumerates over the documents of a collection. This saves inter-cluster round-trips between the EnumerateCollectionNode and the RemoveNode.
-    UnDistributeRemoveAfterEnumColl,
-    /// Can be used to specify a rule that has not been added to this enum yet.
-    Custom(String),
-}
-
-impl OptimizerRule {
-    /// Constructs an optimizer rule from the string slice as used in the
-    /// *ArangoDB* API.
-    pub fn from_api_str(api_str: &str) -> Self {
-        use self::OptimizerRule::*;
-        match api_str {
-            "all" => All,
-            "move-calculations-up" => MoveCalculationsUp,
-            "move-filters-up" => MoveFiltersUp,
-            "sort-in-values" => SortInValues,
-            "remove-unnecessary-filters" => RemoveUnnecessaryFilters,
-            "remove-redundant-calculations" => RemoveRedundantCalculations,
-            "remove-unnecessary-calculations" => RemoveUnnecessaryCalculations,
-            "remove-redundant-sorts" => RemoveRedundantSorts,
-            "interchange-adjacent-enumerations" => InterchangeAdjacentEnumerations,
-            "remove-collect-variables" => RemoveCollectVariables,
-            "propagate-constant-attributes" => PropagateConstantAttributes,
-            "replace-or-with-in" => ReplaceOrWithIn,
-            "remove-redundant-or" => RemoveRedundantOr,
-            "use-indexes" => UseIndexes,
-            "remove-filter-covered-by-index" => RemoveFilterCoveredByIndex,
-            "remove-filter-covered-by-traversal" => RemoveFilterCoveredByTraversal,
-            "use-index-for-sort" => UseIndexForSort,
-            "move-calculations-down" => MoveCalculationsDown,
-            "patch-update-statements" => PatchUpdateStatements,
-            "optimize-traversals" => OptimizeTraversals,
-            "inline-subqueries" => InlineSubQueries,
-            "geo-index-optimizer" => GeoIndexOptimizer,
-            "remove-sort-rand" => RemoveSortRand,
-            "reduce-extraction-to-projection" => ReduceExtractionToProjection,
-            #[cfg(feature = "cluster")]
-            "distribute-in-cluster" => DistributeInCluster,
-            #[cfg(feature = "cluster")]
-            "scatter-in-cluster" => ScatterInCluster,
-            #[cfg(feature = "cluster")]
-            "distribute-filtercalc-to-cluster" => DistributeFilterCalcToCluster,
-            #[cfg(feature = "cluster")]
-            "distribute-sort-to-cluster" => DistributeSortToCluster,
-            #[cfg(feature = "cluster")]
-            "remove-unnecessary-remote-scatter" => RemoveUnnecessaryRemoteScatter,
-            #[cfg(feature = "cluster")]
-            "undistribute-remove-after-enum-coll" => UnDistributeRemoveAfterEnumColl,
-            rule => Custom(rule.to_owned()),
-        }
-    }
-
-    /// Returns this optimizer rule as a string slice to be used with the
-    /// *ArangoDB* API.
-    pub fn as_api_str(&self) -> &str {
-        use self::OptimizerRule::*;
-        match *self {
-            All => "all",
-            MoveCalculationsUp => "move-calculations-up",
-            MoveFiltersUp => "move-filters-up",
-            SortInValues => "sort-in-values",
-            RemoveUnnecessaryFilters => "remove-unnecessary-filters",
-            RemoveRedundantCalculations => "remove-redundant-calculations",
-            RemoveUnnecessaryCalculations => "remove-unnecessary-calculations",
-            RemoveRedundantSorts => "remove-redundant-sorts",
-            InterchangeAdjacentEnumerations => "interchange-adjacent-enumerations",
-            RemoveCollectVariables => "remove-collect-variables",
-            PropagateConstantAttributes => "propagate-constant-attributes",
-            ReplaceOrWithIn => "replace-or-with-in",
-            RemoveRedundantOr => "remove-redundant-or",
-            UseIndexes => "use-indexes",
-            RemoveFilterCoveredByIndex => "remove-filter-covered-by-index",
-            RemoveFilterCoveredByTraversal => "remove-filter-covered-by-traversal",
-            UseIndexForSort => "use-index-for-sort",
-            MoveCalculationsDown => "move-calculations-down",
-            PatchUpdateStatements => "patch-update-statements",
-            OptimizeTraversals => "optimize-traversals",
-            InlineSubQueries => "inline-subqueries",
-            GeoIndexOptimizer => "geo-index-optimizer",
-            RemoveSortRand => "remove-sort-rand",
-            ReduceExtractionToProjection => "reduce-extraction-to-projection",
-            #[cfg(feature = "cluster")]
-            DistributeInCluster => "distribute-in-cluster",
-            #[cfg(feature = "cluster")]
-            ScatterInCluster => "scatter-in-cluster",
-            #[cfg(feature = "cluster")]
-            DistributeFilterCalcToCluster => "distribute-filtercalc-to-cluster",
-            #[cfg(feature = "cluster")]
-            DistributeSortToCluster => "distribute-sort-to-cluster",
-            #[cfg(feature = "cluster")]
-            RemoveUnnecessaryRemoteScatter => "remove-unnecessary-remote-scatter",
-            #[cfg(feature = "cluster")]
-            UnDistributeRemoveAfterEnumColl => "undistribute-remove-after-enum-coll",
-            Custom(ref rule) => rule,
-        }
-    }
-}
-
-/// The execution node types will appear in the execution plan as output of
-/// the explain method.
-///
-/// This enum defines all possible execution nodes as listed in the official
-/// documentation of *ArangoDB*.
-///
-/// Source: [https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-execution-nodes]
-///
-/// Last update: 10/08/2017
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum ExecutionNode {
-    /// the purpose of a SingletonNode is to produce an empty document that is used as input for other processing steps. Each execution plan will contain exactly one SingletonNode as its top node.
-    SingletonNode,
-    /// enumeration over documents of a collection (given in its collection attribute) without using an index.
-    EnumerateCollectionNode,
-    /// enumeration over one or many indexes (given in its indexes attribute) of a collection. The index ranges are specified in the condition attribute of the node.
-    IndexNode,
-    /// enumeration over a list of (non-collection) values.
-    EnumerateListNode,
-    /// only lets values pass that satisfy a filter condition. Will appear once per FILTER statement.
-    FilterNode,
-    /// limits the number of results passed to other processing steps. Will appear once per LIMIT statement.
-    LimitNode,
-    /// evaluates an expression. The expression result may be used by other nodes, e.g. FilterNode, EnumerateListNode, SortNode etc.
-    CalculationNode,
-    /// executes a sub-query.
-    SubQueryNode,
-    /// performs a sort of its input values.
-    SortNode,
-    /// aggregates its input and produces new output variables. This will appear once per COLLECT statement.
-    AggregateNode,
-    /// returns data to the caller. Will appear in each read-only query at least once. Sub-queries will also contain ReturnNodes.
-    ReturnNode,
-    /// inserts documents into a collection (given in its collection attribute).Will appear exactly once in a query that contains an INSERT statement.
-    InsertNode,
-    /// removes documents from a collection (given in its collection attribute).Will appear exactly once in a query that contains a REMOVE statement.
-    RemoveNode,
-    /// replaces documents in a collection (given in its collection attribute).Will appear exactly once in a query that contains a REPLACE statement.
-    ReplaceNode,
-    /// updates documents in a collection (given in its collection attribute).Will appear exactly once in a query that contains an UPDATE statement.
-    UpdateNode,
-    /// upserts documents in a collection (given in its collection attribute).Will appear exactly once in a query that contains an UPSERT statement.
-    UpsertNode,
-    /// will be inserted if FILTER statements turn out to be never satisfiable. The NoResultsNode will pass an empty result set into the processing pipeline.
-    NoResultsNode,
-    #[cfg(feature = "cluster")]
-    /// used on a coordinator to fan-out data to one or multiple shards.
-    ScatterNode,
-    #[cfg(feature = "cluster")]
-    /// used on a coordinator to aggregate results from one or many shards into a combined stream of results.
-    GatherNode,
-    #[cfg(feature = "cluster")]
-    /// used on a coordinator to fan-out data to one or multiple shards, taking into account a collection's shard key.
-    DistributeNode,
-    #[cfg(feature = "cluster")]
-    /// a RemoteNode will perform communication with another ArangoDB instances in the cluster. For example, the cluster coordinator will need to communicate with other servers to fetch the actual data from the shards. It will do so via RemoteNodes. The data servers themselves might again pull further data from the coordinator, and thus might also employ RemoteNodes. So, all of the above cluster relevant nodes will be accompanied by a RemoteNode.
-    RemoteNode,
-    /// Can be used to specify a execution node that has not been added to this enum yet.
-    Unlisted(String),
-}
-
-impl ExecutionNode {
-    /// Constructs an execution node from the string slice as used in the
-    /// *ArangoDB* API.
-    pub fn from_api_str(api_str: &str) -> Self {
-        use self::ExecutionNode::*;
-        match api_str {
-            "SingletonNode" => SingletonNode,
-            "EnumerateCollectionNode" => EnumerateCollectionNode,
-            "IndexNode" => IndexNode,
-            "EnumerateListNode" => EnumerateListNode,
-            "FilterNode" => FilterNode,
-            "LimitNode" => LimitNode,
-            "CalculationNode" => CalculationNode,
-            "SubqueryNode" => SubQueryNode,
-            "SortNode" => SortNode,
-            "AggregateNode" => AggregateNode,
-            "ReturnNode" => ReturnNode,
-            "InsertNode" => InsertNode,
-            "RemoveNode" => RemoveNode,
-            "ReplaceNode" => ReplaceNode,
-            "UpdateNode" => UpdateNode,
-            "UpsertNode" => UpsertNode,
-            "NoResultsNode" => NoResultsNode,
-            #[cfg(feature = "cluster")]
-            "ScatterNode" => ScatterNode,
-            #[cfg(feature = "cluster")]
-            "GatherNode" => GatherNode,
-            #[cfg(feature = "cluster")]
-            "DistributeNode" => DistributeNode,
-            #[cfg(feature = "cluster")]
-            "RemoteNode" => RemoteNode,
-            node => Unlisted(node.to_owned()),
-        }
-    }
-
-    /// Returns this execution node as a string slice to be used with the
-    /// *ArangoDB* API.
-    pub fn as_api_str(&self) -> &str {
-        use self::ExecutionNode::*;
-        match *self {
-            SingletonNode => "SingletonNode",
-            EnumerateCollectionNode => "EnumerateCollectionNode",
-            IndexNode => "IndexNode",
-            EnumerateListNode => "EnumerateListNode",
-            FilterNode => "FilterNode",
-            LimitNode => "LimitNode",
-            CalculationNode => "CalculationNode",
-            SubQueryNode => "SubqueryNode",
-            SortNode => "SortNode",
-            AggregateNode => "AggregateNode",
-            ReturnNode => "ReturnNode",
-            InsertNode => "InsertNode",
-            RemoveNode => "RemoveNode",
-            ReplaceNode => "ReplaceNode",
-            UpdateNode => "UpdateNode",
-            UpsertNode => "UpsertNode",
-            NoResultsNode => "NoResultsNode",
-            #[cfg(feature = "cluster")]
-            ScatterNode => "ScatterNode",
-            #[cfg(feature = "cluster")]
-            GatherNode => "GatherNode",
-            #[cfg(feature = "cluster")]
-            DistributeNode => "DistributeNode",
-            #[cfg(feature = "cluster")]
-            RemoteNode => "RemoteNode",
-            Unlisted(ref node) => node,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
+    use serde_json;
+
+    use aql::OptimizerRule;
     use super::*;
 
     #[test]
@@ -1102,15 +698,15 @@ mod tests {
         let mut new_cursor = NewCursor::from(query);
         assert!(new_cursor.options().is_none());
 
-        new_cursor.options_mut().optimizer_rules_mut()
+        new_cursor.options_mut().optimizer_mut().rules_mut()
             .include(OptimizerRule::UseIndexes)
             .exclude(OptimizerRule::MoveFiltersUp);
         let new_cursor = new_cursor;
 
         assert!(new_cursor.options().is_some());
-        assert!(new_cursor.options().unwrap().optimizer_rules().is_some());
+        assert!(new_cursor.options().unwrap().optimizer().is_some());
 
-        let optimizer_rules = new_cursor.options().unwrap().optimizer_rules().unwrap();
+        let optimizer_rules = new_cursor.options().unwrap().optimizer().unwrap().rules();
         assert!(optimizer_rules.includes(&OptimizerRule::UseIndexes));
         assert!(optimizer_rules.excludes(&OptimizerRule::MoveFiltersUp));
     }
@@ -1177,5 +773,73 @@ mod tests {
         assert_eq!(None, new_cursor.is_count());
         assert_eq!(Some(32768), new_cursor.memory_limit());
         assert_eq!(Some(30), new_cursor.ttl());
+    }
+
+    #[test]
+    fn serialize_new_cursor_with_cursor_options_set() {
+        let mut query = Query::new("FOR u IN users FILTER u.name = @name RETURN u.name");
+        query.set_parameter("name".to_owned(), "simone".to_owned());
+        let query = query;
+
+        let mut new_cursor = NewCursor::from(query);
+        assert!(new_cursor.options().is_none());
+
+        {
+            let cursor_options = new_cursor.options_mut();
+            cursor_options.set_fail_on_warning(true);
+            cursor_options.set_full_count(Some(false));
+            cursor_options.set_max_warning_count(None);
+            cursor_options.set_max_plans(5);
+
+            #[cfg(feature = "rocksdb")] {
+                cursor_options.set_intermediate_commit_count(1);
+            }
+            #[cfg(feature = "enterprise")] {
+                cursor_options.set_satellite_sync_wait(false);
+            }
+        }
+        let new_cursor = new_cursor;
+
+        let json_cursor = serde_json::to_string(&new_cursor).unwrap();
+
+        #[cfg(all(not(feature = "rocksdb"), not(feature = "enterprise")))] {
+            assert_eq!(r#"{"query":"FOR u IN users FILTER u.name = @name RETURN u.name","bindVars":{"name":"simone"},"options":{"failOnWarning":true,"fullCount":false,"maxPlans":5}}"#, &json_cursor);
+        }
+        #[cfg(all(feature = "rocksdb", not(feature = "enterprise")))] {
+            assert_eq!(r#"{"query":"FOR u IN users FILTER u.name = @name RETURN u.name","bindVars":{"name":"simone"},"options":{"failOnWarning":true,"fullCount":false,"maxPlans":5,"intermediateCommitCount":1}}"#, &json_cursor);
+        }
+        #[cfg(all(not(feature = "rocksdb"), feature = "enterprise"))] {
+            assert_eq!(r#"{"query":"FOR u IN users FILTER u.name = @name RETURN u.name","bindVars":{"name":"simone"},"options":{"failOnWarning":true,"fullCount":false,"maxPlans":5,"satelliteSyncWait":false}}"#, &json_cursor);
+        }
+        #[cfg(all(feature = "rocksdb", feature = "enterprise"))] {
+            assert_eq!(r#"{"query":"FOR u IN users FILTER u.name = @name RETURN u.name","bindVars":{"name":"simone"},"options":{"failOnWarning":true,"fullCount":false,"maxPlans":5,"intermediateCommitCount":1,"satelliteSyncWait":false}}"#, &json_cursor);
+        }
+    }
+
+    #[test]
+    fn serialize_new_cursor_with_optimizer_rules_set() {
+        let mut query = Query::new("FOR u IN users FILTER u.name = @name RETURN u.name");
+        query.set_parameter("name".to_owned(), "simone".to_owned());
+        let query = query;
+
+        let mut new_cursor = NewCursor::from(query);
+        assert!(new_cursor.options().is_none());
+
+        new_cursor.options_mut().optimizer_mut().rules_mut()
+            .exclude(OptimizerRule::All)
+            .exclude(OptimizerRule::MoveFiltersUp)
+            .include(OptimizerRule::UseIndexForSort)
+            .include(OptimizerRule::InlineSubQueries)
+            ;
+        let new_cursor = new_cursor;
+
+        let json_cursor = serde_json::to_string(&new_cursor).unwrap();
+
+        assert!(json_cursor.starts_with(r#"{"query":"FOR u IN users FILTER u.name = @name RETURN u.name","bindVars":{"name":"simone"},"options":{"optimizer":{"rules":["#));
+        assert!(json_cursor.ends_with(r#"]}}}"#));
+        assert!(json_cursor.contains("-all"));
+        assert!(json_cursor.contains("-move-filters-up"));
+        assert!(json_cursor.contains("+use-index-for-sort"));
+        assert!(json_cursor.contains("+inline-subqueries"));
     }
 }

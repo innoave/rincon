@@ -12,6 +12,7 @@ use test_fixture::*;
 use arangodb_client::api::method::ErrorCode;
 use arangodb_client::api::query::Query;
 use arangodb_client::api::types::{EMPTY, Empty, JsonValue};
+use arangodb_client::aql::OptimizerRule;
 use arangodb_client::collection::CreateCollection;
 use arangodb_client::connection::Error;
 use arangodb_client::cursor::*;
@@ -229,7 +230,7 @@ fn query_with_optimizer_rules() {
 
         let mut new_cursor = NewCursor::from(query);
 
-            new_cursor.options_mut().optimizer_rules_mut()
+            new_cursor.options_mut().optimizer_mut().rules_mut()
                 .exclude(OptimizerRule::All)
                 .include(OptimizerRule::InterchangeAdjacentEnumerations)
                 .include(OptimizerRule::InlineSubQueries)

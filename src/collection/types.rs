@@ -95,15 +95,16 @@ pub struct NewCollection {
     #[serde(skip_serializing_if = "Option::is_none")]
     wait_for_sync: Option<bool>,
 
+    #[cfg(feature = "cluster")]
     /// In a cluster, this value determines the number of shards to create for
     /// the collection.
     /// (The default is 1)
     ///
     /// In a single server setup, this option is meaningless.
-    #[cfg(feature = "cluster")]
     #[serde(skip_serializing_if = "Option::is_none")]
     number_of_shards: Option<u16>,
 
+    #[cfg(feature = "cluster")]
     /// (The default is [ "_key" ])
     ///
     /// In a cluster, this attribute determines which document attributes are
@@ -115,10 +116,10 @@ pub struct NewCollection {
     /// Note: Values of shard key attributes cannot be changed once set.
     ///
     /// In a single server setup, this option is meaningless.
-    #[cfg(feature = "cluster")]
     #[serde(skip_serializing_if = "Option::is_none")]
     shard_keys: Option<String>,
 
+    #[cfg(feature = "cluster")]
     /// The replication factor.
     /// (The default is 1)
     ///
@@ -133,10 +134,10 @@ pub struct NewCollection {
     /// take over, usually without an error being reported.
     ///
     /// In a single server setup, this option is meaningless.
-    #[cfg(feature = "cluster")]
     #[serde(skip_serializing_if = "Option::is_none")]
     replication_factor: Option<u16>,
 
+    #[cfg(feature = "mmfiles")]
     /// If true then the collection data is kept in-memory only and not made
     /// persistent.
     /// (The default is false)
@@ -151,18 +152,18 @@ pub struct NewCollection {
     /// collections only, and not for data that cannot be re-created otherwise.
     ///
     /// This option is meaningful for the MMFiles storage engine only.
-    #[cfg(feature = "mmfiles")]
     #[serde(skip_serializing_if = "Option::is_none")]
     is_volatile: Option<bool>,
 
+    #[cfg(feature = "mmfiles")]
     /// Whether or not the collection will be compacted.
     /// (default is true)
     ///
     /// This option is meaningful for the MMFiles storage engine only.
-    #[cfg(feature = "mmfiles")]
     #[serde(skip_serializing_if = "Option::is_none")]
     do_compact: Option<bool>,
 
+    #[cfg(feature = "mmfiles")]
     /// The number of buckets into which indexes using a hash table are split.
     /// (The default is 16)
     ///
@@ -178,17 +179,16 @@ pub struct NewCollection {
     /// the next time.
     ///
     /// This option is meaningful for the MMFiles storage engine only.
-    #[cfg(feature = "mmfiles")]
     #[serde(skip_serializing_if = "Option::is_none")]
     index_buckets: Option<u16>,
 
+    #[cfg(feature = "mmfiles")]
     /// The maximal size of a journal or datafile in bytes.
     /// (The default is a configuration parameter)
     ///
     /// The value must be at least 1048576 (1 MiB).
     ///
     /// This option is meaningful for the MMFiles storage engine only.
-    #[cfg(feature = "mmfiles")]
     #[serde(skip_serializing_if = "Option::is_none")]
     journal_size: Option<u64>,
 }
@@ -326,102 +326,102 @@ impl NewCollection {
         self.wait_for_sync
     }
 
-    /// Sets the number of shards that shall be created for this collection.
     #[cfg(feature = "cluster")]
+    /// Sets the number of shards that shall be created for this collection.
     pub fn set_number_of_shards<S>(&mut self, number_of_shards: S)
         where S: Into<Option<u16>>
     {
         self.number_of_shards = number_of_shards.into();
     }
 
-    /// Returns the number of shards that shall be created for this collection.
     #[cfg(feature = "cluster")]
+    /// Returns the number of shards that shall be created for this collection.
     pub fn number_of_shards(&self) -> Option<u16> {
         self.number_of_shards
     }
 
-    /// Sets the keys to determine the shard for a collection.
     #[cfg(feature = "cluster")]
+    /// Sets the keys to determine the shard for a collection.
     pub fn set_shard_keys<K>(&mut self, shard_keys: K)
         where K: Into<Option<String>>
     {
         self.shard_keys = shard_keys.into();
     }
 
-    /// Returns the keys to determine the shard for a collection.
     #[cfg(feature = "cluster")]
+    /// Returns the keys to determine the shard for a collection.
     pub fn shard_keys(&self) -> Option<&String> {
         self.shard_keys.as_ref()
     }
 
-    /// Sets the number of copies that are kept of each shard.
     #[cfg(feature = "cluster")]
+    /// Sets the number of copies that are kept of each shard.
     pub fn set_replication_factor<R>(&mut self, replication_factor: R)
         where R: Into<Option<u16>>
     {
         self.replication_factor = replication_factor.into();
     }
 
-    /// Returns the number of copies that are kept of each shard.
     #[cfg(feature = "cluster")]
+    /// Returns the number of copies that are kept of each shard.
     pub fn replication_factor(&self) -> Option<u16> {
         self.replication_factor
     }
 
-    /// Sets whether this collection is going to be a volatile collection.
     #[cfg(feature = "mmfiles")]
+    /// Sets whether this collection is going to be a volatile collection.
     pub fn set_volatile<V>(&mut self, volatile: V)
         where V: Into<Option<bool>>
     {
         self.is_volatile = volatile.into();
     }
 
-    /// Returns whether this collection is going to be a volatile collection.
     #[cfg(feature = "mmfiles")]
+    /// Returns whether this collection is going to be a volatile collection.
     pub fn is_volatile(&self) -> Option<bool> {
         self.is_volatile
     }
 
-    /// Sets whether this collection is going to be compacted.
     #[cfg(feature = "mmfiles")]
+    /// Sets whether this collection is going to be compacted.
     pub fn set_do_compact<C>(&mut self, do_compact: C)
         where C: Into<Option<bool>>
     {
         self.do_compact = do_compact.into();
     }
 
-    /// Returns whether this collection is going to be compacted.
     #[cfg(feature = "mmfiles")]
+    /// Returns whether this collection is going to be compacted.
     pub fn is_do_compact(&self) -> Option<bool> {
         self.do_compact
     }
 
+    #[cfg(feature = "mmfiles")]
     /// Sets the number of buckets into which indexes using a hash table
     /// are split.
-    #[cfg(feature = "mmfiles")]
     pub fn set_index_buckets<B>(&mut self, index_buckets: B)
         where B: Into<Option<u16>>
     {
         self.index_buckets = index_buckets.into();
     }
 
+    #[cfg(feature = "mmfiles")]
     /// Returns the number of buckets into which indexes using a hash table
     /// are split.
-    #[cfg(feature = "mmfiles")]
     pub fn index_buckets(&self) -> Option<u16> {
         self.index_buckets
     }
 
-    /// Sets the maximal size of a journal or datafile in bytes.
     #[cfg(feature = "mmfiles")]
+    /// Sets the maximal size of a journal or datafile in bytes.
     pub fn set_journal_size<J>(&mut self, journal_size: J)
         where J: Into<Option<u64>>
     {
         self.journal_size = journal_size.into();
     }
 
-    /// Returns the maximal size of a journal or datafile in bytes.
     #[cfg(feature = "mmfiles")]
+    /// Returns the maximal size of a journal or datafile in bytes.
     pub fn journal_size(&self) -> Option<u64> {
         self.journal_size
     }
@@ -555,8 +555,8 @@ pub struct BasicCollectionProperties {
     /// the file system before returning the response.
     wait_for_sync: bool,
 
-    /// Whether this collection is volatile.
     #[cfg(feature = "mmfiles")]
+    /// Whether this collection is volatile.
     is_volatile: bool,
 }
 
@@ -593,8 +593,8 @@ impl BasicCollectionProperties {
         self.wait_for_sync
     }
 
-    /// Returns whether this collection is a volatile collection.
     #[cfg(feature = "mmfiles")]
+    /// Returns whether this collection is a volatile collection.
     pub fn is_volatile(&self) -> bool {
         self.is_volatile
     }
@@ -629,32 +629,32 @@ pub struct CollectionProperties {
     /// the file system before returning the response.
     wait_for_sync: bool,
 
-    /// The number of shards of the collection.
     #[cfg(feature = "cluster")]
+    /// The number of shards of the collection.
     number_of_shards: u16,
 
-    /// The keys used to identify the shards of a collection.
     #[cfg(feature = "cluster")]
+    /// The keys used to identify the shards of a collection.
     shard_keys: String,
 
-    /// The number of copies that are kept of each shard.
     #[cfg(feature = "cluster")]
+    /// The number of copies that are kept of each shard.
     replication_factor: u64,
 
-    /// Whether this collection is volatile.
     #[cfg(feature = "mmfiles")]
+    /// Whether this collection is volatile.
     is_volatile: bool,
 
-    /// Whether this collection is compacted.
     #[cfg(feature = "mmfiles")]
+    /// Whether this collection is compacted.
     do_compact: bool,
 
-    /// The number of buckets into which indexes using a hash table are split.
     #[cfg(feature = "mmfiles")]
+    /// The number of buckets into which indexes using a hash table are split.
     index_buckets: u16,
 
-    /// The maximal size of a journal or datafile in bytes.
     #[cfg(feature = "mmfiles")]
+    /// The maximal size of a journal or datafile in bytes.
     journal_size: u64,
 }
 
@@ -696,45 +696,45 @@ impl CollectionProperties {
         self.wait_for_sync
     }
 
-    /// Returns the number of shards for this collection.
     #[cfg(feature = "cluster")]
+    /// Returns the number of shards for this collection.
     pub fn number_of_shards(&self) -> u16 {
         self.number_of_shards
     }
 
-    /// Returns the keys to determine the shard for a collection.
     #[cfg(feature = "cluster")]
+    /// Returns the keys to determine the shard for a collection.
     pub fn shard_keys(&self) -> &str {
         &self.shard_keys
     }
 
-    /// Returns the number of copies that are kept of each shard.
     #[cfg(feature = "cluster")]
+    /// Returns the number of copies that are kept of each shard.
     pub fn replication_factor(&self) -> u64 {
         self.replication_factor
     }
 
-    /// Returns whether this collection is a volatile collection.
     #[cfg(feature = "mmfiles")]
+    /// Returns whether this collection is a volatile collection.
     pub fn is_volatile(&self) -> bool {
         self.is_volatile
     }
 
-    /// Returns whether this collection is compacted.
     #[cfg(feature = "mmfiles")]
+    /// Returns whether this collection is compacted.
     pub fn is_do_compact(&self) -> bool {
         self.do_compact
     }
 
+    #[cfg(feature = "mmfiles")]
     /// Returns the number of buckets into which indexes using a hash table
     /// are split.
-    #[cfg(feature = "mmfiles")]
     pub fn index_buckets(&self) -> u16 {
         self.index_buckets
     }
 
-    /// Returns the maximal size of a journal or datafile in bytes.
     #[cfg(feature = "mmfiles")]
+    /// Returns the maximal size of a journal or datafile in bytes.
     pub fn journal_size(&self) -> u64 {
         self.journal_size
     }
@@ -750,8 +750,8 @@ pub struct CollectionPropertiesUpdate {
     /// the file system before returning the response.
     wait_for_sync: Option<bool>,
 
-    /// The maximal size of a journal or datafile in bytes.
     #[cfg(feature = "mmfiles")]
+    /// The maximal size of a journal or datafile in bytes.
     journal_size: Option<u64>,
 }
 
@@ -780,16 +780,16 @@ impl CollectionPropertiesUpdate {
         self.wait_for_sync
     }
 
-    /// Sets the maximal size of a journal or datafile in bytes.
     #[cfg(feature = "mmfiles")]
+    /// Sets the maximal size of a journal or datafile in bytes.
     pub fn set_journal_size<J>(&mut self, journal_size: J)
         where J: Into<Option<u64>>
     {
         self.journal_size = journal_size.into();
     }
 
-    /// Returns the maximal size of a journal or datafile in bytes.
     #[cfg(feature = "mmfiles")]
+    /// Returns the maximal size of a journal or datafile in bytes.
     pub fn journal_size(&self) -> Option<u64> {
         self.journal_size
     }
