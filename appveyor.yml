@@ -48,11 +48,9 @@ install:
 
 build: false
 
-before_build:
-  - docker-compose up
-
 test_script:
   - pwd
+  - docker-compose up
   - cargo test lib --all-features %cargoflags%
   - cargo test --verbose %cargoflags%
   
