@@ -39,10 +39,10 @@ impl Query {
     }
 
     /// Sets the value of a named parameter.
-    pub fn set_parameter<T>(&mut self, name: String, value: T)
-    where T: Into<Value>
+    pub fn set_parameter<N, T>(&mut self, name: N, value: T)
+    where N: Into<String>, T: Into<Value>
     {
-        self.params.insert(name, value.into());
+        self.params.insert(name.into(), value.into());
     }
 
     /// Returns the value of a named parameter.
@@ -353,6 +353,12 @@ impl UnwrapValue for Vec<u8> {
     }
 }
 
+impl<'a> From<&'a str> for Value {
+    fn from(value: &str) -> Self {
+        Value::String(value.to_string())
+    }
+}
+
 impl From<String> for Value {
     fn from(value: String) -> Self {
         Value::String(value)
@@ -434,6 +440,12 @@ impl From<u16> for Value {
 impl From<u8> for Value {
     fn from(value: u8) -> Self {
         Value::U8(value)
+    }
+}
+
+impl<'a> From<Vec<&'a str>> for Value {
+    fn from(value: Vec<&str>) -> Self {
+        Value::VecString(value.iter().map(|v| v.to_string()).collect())
     }
 }
 
@@ -576,7 +588,7 @@ mod tests {
     #[test]
     fn query_set_string_parameter() {
         let mut query = Query::new("FOR u IN users FILTER u.name = @name RETURN u.name");
-        query.set_parameter("name".to_owned(), "simone".to_owned());
+        query.set_parameter("name", "simone");
 
         assert_eq!(Some(&Value::String("simone".to_owned())), query.params.get("name"));
     }
@@ -584,7 +596,7 @@ mod tests {
     #[test]
     fn query_set_bool_parameter() {
         let mut query = Query::new("FOR u IN users FILTER u.active = @active RETURN u.name");
-        query.set_parameter("active".to_owned(), true);
+        query.set_parameter("active", true);
 
         assert_eq!(Some(&Value::Bool(true)), query.params.get("active"));
     }
@@ -592,7 +604,7 @@ mod tests {
     #[test]
     fn query_set_i64_parameter() {
         let mut query = Query::new("FOR u IN users FILTER u.id = @id RETURN u.name");
-        query.set_parameter("id".to_owned(), -1828359i64);
+        query.set_parameter("id", -1828359i64);
 
         assert_eq!(Some(&Value::I64(-1828359)), query.params.get("id"));
     }
@@ -601,7 +613,7 @@ mod tests {
     fn query_set_vec_of_u64_parameter() {
         let mut query = Query::new("FOR u IN users FILTER u.id in @ids RETURN u.name");
         let ids: Vec<u64> = vec![1, 2, 3, 4, 5];
-        query.set_parameter("ids".to_owned(), ids);
+        query.set_parameter("ids", ids);
 
         assert_eq!(Some(&Value::VecU64(vec![1, 2, 3, 4, 5])), query.params.get("ids"));
     }
@@ -635,7 +647,7 @@ mod tests {
     fn query_get_vec_of_f32_parameter() {
         let mut query = Query::new("FOR u IN users FILTER u.id in @ids RETURN u.name");
         let ids = vec![1.1, 2.2, 3.3, 4.4, 5.5];
-        query.set_parameter("ids".to_owned(), Value::VecF32(ids));
+        query.set_parameter("ids", Value::VecF32(ids));
 
         assert_eq!(Some(&vec![1.1f32, 2.2, 3.3, 4.4, 5.5]), query.parameter("ids"));
     }

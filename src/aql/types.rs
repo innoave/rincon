@@ -471,7 +471,8 @@ pub struct EnumerateListNode {
     dependencies: Vec<ExecutionNodeId>,
     estimated_cost: f64,
     estimated_nr_items: u64,
-
+    in_variable: ExecutionVariable,
+    out_variable: ExecutionVariable,
 }
 
 impl EnumerateListNode {
@@ -480,6 +481,8 @@ impl EnumerateListNode {
         dependencies: Deps,
         estimated_cost: f64,
         estimated_nr_items: u64,
+        in_variable: ExecutionVariable,
+        out_variable: ExecutionVariable,
     ) -> Self
         where
             Deps: IntoIterator<Item=ExecutionNodeId>,
@@ -489,6 +492,8 @@ impl EnumerateListNode {
             dependencies: Vec::from_iter(dependencies.into_iter()),
             estimated_cost,
             estimated_nr_items,
+            in_variable,
+            out_variable,
         }
     }
 }
@@ -612,7 +617,9 @@ pub struct SubQueryNode {
     dependencies: Vec<ExecutionNodeId>,
     estimated_cost: f64,
     estimated_nr_items: u64,
-
+    sub_query: ExplainedSubQuery,
+    out_variable: ExecutionVariable,
+    is_const: bool,
 }
 
 impl SubQueryNode {
@@ -620,7 +627,10 @@ impl SubQueryNode {
         id: ExecutionNodeId,
         dependencies: Deps,
         estimated_cost: f64,
-        estimated_nr_items: u64
+        estimated_nr_items: u64,
+        sub_query: ExplainedSubQuery,
+        out_variable: ExecutionVariable,
+        is_const: bool,
     ) -> Self
         where
             Deps: IntoIterator<Item=ExecutionNodeId>,
@@ -630,6 +640,9 @@ impl SubQueryNode {
             dependencies: Vec::from_iter(dependencies.into_iter()),
             estimated_cost,
             estimated_nr_items,
+            sub_query,
+            out_variable,
+            is_const,
         }
     }
 }
@@ -670,24 +683,36 @@ pub struct AggregateNode {
     dependencies: Vec<ExecutionNodeId>,
     estimated_cost: f64,
     estimated_nr_items: u64,
-
+    out_variable: Option<ExecutionVariable>,
+    groups: Vec<ExecutionGroup>,
+    aggregates: Vec<ExecutionAggregate>,
+    collect_options: CollectOptions,
 }
 
 impl AggregateNode {
-    pub fn new<Deps>(
+    pub fn new<Deps, Out>(
         id: ExecutionNodeId,
         dependencies: Deps,
         estimated_cost: f64,
-        estimated_nr_items: u64
+        estimated_nr_items: u64,
+        out_variable: Out,
+        groups: Vec<ExecutionGroup>,
+        aggregates: Vec<ExecutionAggregate>,
+        collect_options: CollectOptions,
     ) -> Self
         where
             Deps: IntoIterator<Item=ExecutionNodeId>,
+            Out: Into<Option<ExecutionVariable>>
     {
         AggregateNode {
             id,
             dependencies: Vec::from_iter(dependencies.into_iter()),
             estimated_cost,
             estimated_nr_items,
+            out_variable: out_variable.into(),
+            groups,
+            aggregates,
+            collect_options,
         }
     }
 }
@@ -732,24 +757,41 @@ pub struct InsertNode {
     dependencies: Vec<ExecutionNodeId>,
     estimated_cost: f64,
     estimated_nr_items: u64,
-
+    database: String,
+    collection: String,
+    in_variable: ExecutionVariable,
+    out_variable_new: Option<ExecutionVariable>,
+    modification_flags: ModificationOptions,
 }
 
 impl InsertNode {
-    pub fn new<Deps>(
+    pub fn new<Deps, Db, Cll, OvN>(
         id: ExecutionNodeId,
         dependencies: Deps,
         estimated_cost: f64,
-        estimated_nr_items: u64
+        estimated_nr_items: u64,
+        database: Db,
+        collection: Cll,
+        in_variable: ExecutionVariable,
+        out_variable_new: OvN,
+        modification_flags: ModificationOptions,
     ) -> Self
         where
             Deps: IntoIterator<Item=ExecutionNodeId>,
+            Db: Into<String>,
+            Cll: Into<String>,
+            OvN: Into<Option<ExecutionVariable>>,
     {
         InsertNode {
             id,
             dependencies: Vec::from_iter(dependencies.into_iter()),
             estimated_cost,
             estimated_nr_items,
+            database: database.into(),
+            collection: collection.into(),
+            in_variable,
+            out_variable_new: out_variable_new.into(),
+            modification_flags,
         }
     }
 }
@@ -762,24 +804,41 @@ pub struct RemoveNode {
     dependencies: Vec<ExecutionNodeId>,
     estimated_cost: f64,
     estimated_nr_items: u64,
-
+    database: String,
+    collection: String,
+    in_variable: ExecutionVariable,
+    out_variable_old: Option<ExecutionVariable>,
+    modification_flags: ModificationOptions,
 }
 
 impl RemoveNode {
-    pub fn new<Deps>(
+    pub fn new<Deps, Db, Cll, OvO>(
         id: ExecutionNodeId,
         dependencies: Deps,
         estimated_cost: f64,
-        estimated_nr_items: u64
+        estimated_nr_items: u64,
+        database: Db,
+        collection: Cll,
+        in_variable: ExecutionVariable,
+        out_variable_old: OvO,
+        modification_flags: ModificationOptions,
     ) -> Self
         where
             Deps: IntoIterator<Item=ExecutionNodeId>,
+            Db: Into<String>,
+            Cll: Into<String>,
+            OvO: Into<Option<ExecutionVariable>>,
     {
         RemoveNode {
             id,
             dependencies: Vec::from_iter(dependencies.into_iter()),
             estimated_cost,
             estimated_nr_items,
+            database: database.into(),
+            collection: collection.into(),
+            in_variable,
+            out_variable_old: out_variable_old.into(),
+            modification_flags,
         }
     }
 }
@@ -792,24 +851,49 @@ pub struct ReplaceNode {
     dependencies: Vec<ExecutionNodeId>,
     estimated_cost: f64,
     estimated_nr_items: u64,
-
+    database: String,
+    collection: String,
+    in_doc_variable: ExecutionVariable,
+    in_key_variable: Option<ExecutionVariable>,
+    out_variable_old: Option<ExecutionVariable>,
+    out_variable_new: Option<ExecutionVariable>,
+    modification_flags: ModificationOptions,
 }
 
 impl ReplaceNode {
-    pub fn new<Deps>(
+    pub fn new<Deps, Db, Cll, IkV, OvO, OvN>(
         id: ExecutionNodeId,
         dependencies: Deps,
         estimated_cost: f64,
-        estimated_nr_items: u64
+        estimated_nr_items: u64,
+        database: Db,
+        collection: Cll,
+        in_doc_variable: ExecutionVariable,
+        in_key_variable: IkV,
+        out_variable_old: OvO,
+        out_variable_new: OvN,
+        modification_flags: ModificationOptions,
     ) -> Self
         where
             Deps: IntoIterator<Item=ExecutionNodeId>,
+            Db: Into<String>,
+            Cll: Into<String>,
+            IkV: Into<Option<ExecutionVariable>>,
+            OvO: Into<Option<ExecutionVariable>>,
+            OvN: Into<Option<ExecutionVariable>>,
     {
         ReplaceNode {
             id,
             dependencies: Vec::from_iter(dependencies.into_iter()),
             estimated_cost,
             estimated_nr_items,
+            database: database.into(),
+            collection: collection.into(),
+            in_doc_variable,
+            in_key_variable: in_key_variable.into(),
+            out_variable_old: out_variable_old.into(),
+            out_variable_new: out_variable_new.into(),
+            modification_flags,
         }
     }
 }
@@ -822,24 +906,49 @@ pub struct UpdateNode {
     dependencies: Vec<ExecutionNodeId>,
     estimated_cost: f64,
     estimated_nr_items: u64,
-
+    database: String,
+    collection: String,
+    in_doc_variable: ExecutionVariable,
+    in_key_variable: Option<ExecutionVariable>,
+    out_variable_old: Option<ExecutionVariable>,
+    out_variable_new: Option<ExecutionVariable>,
+    modification_flags: ModificationOptions,
 }
 
 impl UpdateNode {
-    pub fn new<Deps>(
+    pub fn new<Deps, Db, Cll, IkV, OvO, OvN>(
         id: ExecutionNodeId,
         dependencies: Deps,
         estimated_cost: f64,
-        estimated_nr_items: u64
+        estimated_nr_items: u64,
+        database: Db,
+        collection: Cll,
+        in_doc_variable: ExecutionVariable,
+        in_key_variable: IkV,
+        out_variable_old: OvO,
+        out_variable_new: OvN,
+        modification_flags: ModificationOptions,
     ) -> Self
         where
             Deps: IntoIterator<Item=ExecutionNodeId>,
+            Db: Into<String>,
+            Cll: Into<String>,
+            IkV: Into<Option<ExecutionVariable>>,
+            OvO: Into<Option<ExecutionVariable>>,
+            OvN: Into<Option<ExecutionVariable>>,
     {
         UpdateNode {
             id,
             dependencies: Vec::from_iter(dependencies.into_iter()),
             estimated_cost,
             estimated_nr_items,
+            database: database.into(),
+            collection: collection.into(),
+            in_doc_variable,
+            in_key_variable: in_key_variable.into(),
+            out_variable_old: out_variable_old.into(),
+            out_variable_new: out_variable_new.into(),
+            modification_flags,
         }
     }
 }
@@ -852,24 +961,50 @@ pub struct UpsertNode {
     dependencies: Vec<ExecutionNodeId>,
     estimated_cost: f64,
     estimated_nr_items: u64,
-
+    database: String,
+    collection: String,
+    in_doc_variable: ExecutionVariable,
+    in_key_variable: Option<ExecutionVariable>,
+    insert_variable: ExecutionVariable,
+    update_variable: ExecutionVariable,
+    is_replace: bool,
+    modification_flags: ModificationOptions,
 }
 
 impl UpsertNode {
-    pub fn new<Deps>(
+    pub fn new<Deps, Db, Cll, IkV>(
         id: ExecutionNodeId,
         dependencies: Deps,
         estimated_cost: f64,
         estimated_nr_items: u64,
+        database: Db,
+        collection: Cll,
+        in_doc_variable: ExecutionVariable,
+        in_key_variable: IkV,
+        insert_variable: ExecutionVariable,
+        update_variable: ExecutionVariable,
+        is_replace: bool,
+        modification_flags: ModificationOptions,
     ) -> Self
         where
             Deps: IntoIterator<Item=ExecutionNodeId>,
+            Db: Into<String>,
+            Cll: Into<String>,
+            IkV: Into<Option<ExecutionVariable>>,
     {
         UpsertNode {
             id,
             dependencies: Vec::from_iter(dependencies.into_iter()),
             estimated_cost,
             estimated_nr_items,
+            database: database.into(),
+            collection: collection.into(),
+            in_doc_variable,
+            in_key_variable: in_key_variable.into(),
+            insert_variable,
+            update_variable,
+            is_replace,
+            modification_flags,
         }
     }
 }
@@ -882,7 +1017,6 @@ pub struct NoResultsNode {
     dependencies: Vec<ExecutionNodeId>,
     estimated_cost: f64,
     estimated_nr_items: u64,
-
 }
 
 impl NoResultsNode {
@@ -905,6 +1039,7 @@ impl NoResultsNode {
 }
 
 #[cfg(feature = "cluster")]
+//TODO add node specific fields
 /// Used on a coordinator to fan-out data to one or multiple shards.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ScatterNode {
@@ -936,6 +1071,7 @@ impl ScatterNode {
 }
 
 #[cfg(feature = "cluster")]
+//TODO add node specific fields
 /// Used on a coordinator to aggregate results from one or many shards into a
 /// combined stream of results.
 #[derive(Clone, Debug, PartialEq)]
@@ -968,6 +1104,7 @@ impl GatherNode {
 }
 
 #[cfg(feature = "cluster")]
+//TODO add node specific fields
 /// Used on a coordinator to fan-out data to one or multiple shards, taking
 /// into account a collection's shard key.
 #[derive(Clone, Debug, PartialEq)]
@@ -1000,6 +1137,7 @@ impl DistributeNode {
 }
 
 #[cfg(feature = "cluster")]
+//TODO add node specific fields
 /// A RemoteNode will perform communication with another ArangoDB instances in
 /// the cluster. For example, the cluster coordinator will need to communicate
 /// with other servers to fetch the actual data from the shards. It will do so
@@ -1055,7 +1193,7 @@ pub struct GenericExecutionNode {
     limit: Option<u64>,
     full_count: Option<bool>,
     #[serde(rename = "subquery")]
-    sub_query: Option<Box<GenericExecutionNode>>,
+    sub_query: Option<ExplainedSubQuery>,
     is_const: Option<bool>,
     can_throw: Option<bool>,
     expression_type: Option<String>,
@@ -1063,6 +1201,17 @@ pub struct GenericExecutionNode {
     expression: Option<ExecutionExpression>,
     condition: Option<ExecutionExpression>,
     reverse: Option<bool>,
+    groups: Option<Vec<ExecutionGroup>>,
+    aggregates: Option<Vec<ExecutionAggregate>>,
+    collect_options: Option<CollectOptions>,
+    modification_flags: Option<ModificationOptions>,
+    in_doc_variable: Option<ExecutionVariable>,
+    in_key_variable: Option<ExecutionVariable>,
+    out_variable_old: Option<ExecutionVariable>,
+    out_variable_new: Option<ExecutionVariable>,
+    insert_variable: Option<ExecutionVariable>,
+    update_variable: Option<ExecutionVariable>,
+    is_replace: Option<bool>,
 }
 
 impl GenericExecutionNode {
@@ -1082,7 +1231,7 @@ impl GenericExecutionNode {
         offset: Option<u64>,
         limit: Option<u64>,
         full_count: Option<bool>,
-        sub_query: Option<Box<GenericExecutionNode>>,
+        sub_query: Option<ExplainedSubQuery>,
         is_const: Option<bool>,
         can_throw: Option<bool>,
         expression_type: Option<String>,
@@ -1090,6 +1239,17 @@ impl GenericExecutionNode {
         expression: Option<ExecutionExpression>,
         condition: Option<ExecutionExpression>,
         reverse: Option<bool>,
+        groups: Option<Vec<ExecutionGroup>>,
+        aggregates: Option<Vec<ExecutionAggregate>>,
+        collect_options: Option<CollectOptions>,
+        modification_flags: Option<ModificationOptions>,
+        in_doc_variable: Option<ExecutionVariable>,
+        in_key_variable: Option<ExecutionVariable>,
+        out_variable_old: Option<ExecutionVariable>,
+        out_variable_new: Option<ExecutionVariable>,
+        insert_variable: Option<ExecutionVariable>,
+        update_variable: Option<ExecutionVariable>,
+        is_replace: Option<bool>,
     ) -> Self {
         GenericExecutionNode {
             kind,
@@ -1115,6 +1275,17 @@ impl GenericExecutionNode {
             expression,
             condition,
             reverse,
+            groups,
+            aggregates,
+            collect_options,
+            modification_flags,
+            in_doc_variable,
+            in_key_variable,
+            out_variable_old,
+            out_variable_new,
+            insert_variable,
+            update_variable,
+            is_replace,
         }
     }
 
@@ -1178,7 +1349,7 @@ impl GenericExecutionNode {
         self.full_count
     }
 
-    pub fn sub_query(&self) -> Option<&Box<GenericExecutionNode>> {
+    pub fn sub_query(&self) -> Option<&ExplainedSubQuery> {
         self.sub_query.as_ref()
     }
 
@@ -1208,6 +1379,50 @@ impl GenericExecutionNode {
 
     pub fn is_reverse(&self) -> Option<bool> {
         self.reverse
+    }
+
+    pub fn groups(&self) -> Option<&Vec<ExecutionGroup>> {
+        self.groups.as_ref()
+    }
+
+    pub fn aggregates(&self) -> Option<&Vec<ExecutionAggregate>> {
+        self.aggregates.as_ref()
+    }
+
+    pub fn collect_options(&self) -> Option<&CollectOptions> {
+        self.collect_options.as_ref()
+    }
+
+    pub fn modification_flags(&self) -> Option<&ModificationOptions> {
+        self.modification_flags.as_ref()
+    }
+
+    pub fn in_doc_variable(&self) -> Option<&ExecutionVariable> {
+        self.in_doc_variable.as_ref()
+    }
+
+    pub fn in_key_variable(&self) -> Option<&ExecutionVariable> {
+        self.in_key_variable.as_ref()
+    }
+
+    pub fn out_variable_old(&self) -> Option<&ExecutionVariable> {
+        self.out_variable_old.as_ref()
+    }
+
+    pub fn out_variable_new(&self) -> Option<&ExecutionVariable> {
+        self.out_variable_new.as_ref()
+    }
+
+    pub fn insert_variable(&self) -> Option<&ExecutionVariable> {
+        self.insert_variable.as_ref()
+    }
+
+    pub fn update_variable(&self) -> Option<&ExecutionVariable> {
+        self.update_variable.as_ref()
+    }
+
+    pub fn is_replace(&self) -> Option<bool> {
+        self.is_replace
     }
 }
 
@@ -1241,6 +1456,17 @@ impl<'de> Deserialize<'de> for ExecutionNode {
             expression,
             condition,
             reverse,
+            groups,
+            aggregates,
+            collect_options,
+            modification_flags,
+            in_doc_variable,
+            in_key_variable,
+            out_variable_old,
+            out_variable_new,
+            insert_variable,
+            update_variable,
+            is_replace,
         } = GenericExecutionNode::deserialize(deserializer)?;
         match kind {
             ExecutionNodeType::SingletonNode =>
@@ -1280,14 +1506,15 @@ impl<'de> Deserialize<'de> for ExecutionNode {
                     })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
-            ExecutionNodeType::ReturnNode => match in_variable {
-                Some(in_variable) =>
-                    Ok(Return(ReturnNode {
+            ExecutionNodeType::EnumerateListNode => match (in_variable, out_variable) {
+                (Some(in_variable), Some(out_variable)) =>
+                    Ok(EnumerateList(EnumerateListNode {
                         id,
                         dependencies,
                         estimated_cost,
                         estimated_nr_items,
                         in_variable,
+                        out_variable,
                     })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
@@ -1329,8 +1556,135 @@ impl<'de> Deserialize<'de> for ExecutionNode {
                     })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
+            ExecutionNodeType::SubQueryNode => match (sub_query, out_variable, is_const) {
+                (Some(sub_query), Some(out_variable), Some(is_const)) =>
+                    Ok(SubQuery(SubQueryNode {
+                        id,
+                        dependencies,
+                        estimated_cost,
+                        estimated_nr_items,
+                        sub_query,
+                        out_variable,
+                        is_const,
+                    })),
+                _ => Err(D::Error::custom("Unsupported type/fields combination")),
+            },
             ExecutionNodeType::SortNode =>
                 Ok(Sort(SortNode {
+                    id,
+                    dependencies,
+                    estimated_cost,
+                    estimated_nr_items,
+                })),
+            ExecutionNodeType::AggregateNode => match (groups, aggregates, collect_options) {
+                (Some(groups), Some(aggregates), Some(collect_options)) =>
+                    Ok(Aggregate(AggregateNode {
+                        id,
+                        dependencies,
+                        estimated_cost,
+                        estimated_nr_items,
+                        out_variable,
+                        groups,
+                        aggregates,
+                        collect_options,
+                    })),
+                _ => Err(D::Error::custom("Unsupported type/fields combination")),
+            }
+            ExecutionNodeType::ReturnNode => match in_variable {
+                Some(in_variable) =>
+                    Ok(Return(ReturnNode {
+                        id,
+                        dependencies,
+                        estimated_cost,
+                        estimated_nr_items,
+                        in_variable,
+                    })),
+                _ => Err(D::Error::custom("Unsupported type/fields combination")),
+            },
+            ExecutionNodeType::InsertNode => match (database, collection, in_variable, modification_flags) {
+                (Some(database), Some(collection), Some(in_variable), Some(modification_flags)) =>
+                    Ok(Insert(InsertNode {
+                        id,
+                        dependencies,
+                        estimated_cost,
+                        estimated_nr_items,
+                        database,
+                        collection,
+                        in_variable,
+                        out_variable_new,
+                        modification_flags,
+                    })),
+                _ => Err(D::Error::custom("Unsupported type/fields combination")),
+            },
+            ExecutionNodeType::RemoveNode => match (database, collection, in_variable, modification_flags) {
+                (Some(database), Some(collection), Some(in_variable), Some(modification_flags)) =>
+                    Ok(Remove(RemoveNode {
+                        id,
+                        dependencies,
+                        estimated_cost,
+                        estimated_nr_items,
+                        database,
+                        collection,
+                        in_variable,
+                        out_variable_old,
+                        modification_flags,
+                    })),
+                _ => Err(D::Error::custom("Unsupported type/fields combination")),
+            },
+            ExecutionNodeType::ReplaceNode => match (database, collection, in_doc_variable, modification_flags) {
+                (Some(database), Some(collection), Some(in_doc_variable), Some(modification_flags)) =>
+                    Ok(Replace(ReplaceNode {
+                        id,
+                        dependencies,
+                        estimated_cost,
+                        estimated_nr_items,
+                        database,
+                        collection,
+                        in_doc_variable,
+                        in_key_variable,
+                        out_variable_old,
+                        out_variable_new,
+                        modification_flags,
+                    })),
+                _ => Err(D::Error::custom("Unsupported type/fields combination")),
+            },
+            ExecutionNodeType::UpdateNode => match (database, collection, in_doc_variable, modification_flags) {
+                (Some(database), Some(collection), Some(in_doc_variable), Some(modification_flags)) =>
+                    Ok(Update(UpdateNode {
+                        id,
+                        dependencies,
+                        estimated_cost,
+                        estimated_nr_items,
+                        database,
+                        collection,
+                        in_doc_variable,
+                        in_key_variable,
+                        out_variable_old,
+                        out_variable_new,
+                        modification_flags,
+                    })),
+                _ => Err(D::Error::custom("Unsupported type/fields combination")),
+            },
+            ExecutionNodeType::UpsertNode => match (database, collection, in_doc_variable, insert_variable, update_variable, is_replace, modification_flags) {
+                (Some(database), Some(collection), Some(in_doc_variable), Some(insert_variable), Some(update_variable), Some(is_replace), Some(modification_flags)) =>
+                    Ok(Upsert(UpsertNode {
+                        id,
+                        dependencies,
+                        estimated_cost,
+                        estimated_nr_items,
+                        database,
+                        collection,
+                        in_doc_variable,
+                        in_key_variable,
+                        insert_variable,
+                        update_variable,
+                        is_replace,
+                        modification_flags,
+                    })),
+                _ => Err(D::Error::custom("Unsupported type/fields combination")),
+            },
+            ExecutionNodeType::NoResultsNode =>
+                Ok(NoResults(NoResultsNode {
                     id,
                     dependencies,
                     estimated_cost,
@@ -1362,6 +1716,17 @@ impl<'de> Deserialize<'de> for ExecutionNode {
                     expression,
                     condition,
                     reverse,
+                    groups,
+                    aggregates,
+                    collect_options,
+                    modification_flags,
+                    in_doc_variable,
+                    in_key_variable,
+                    out_variable_old,
+                    out_variable_new,
+                    insert_variable,
+                    update_variable,
+                    is_replace,
                 })),
         }
     }
@@ -1443,7 +1808,7 @@ impl ExecutionNodeType {
             "CalculationNode" => CalculationNode,
             "SubqueryNode" => SubQueryNode,
             "SortNode" => SortNode,
-            "AggregateNode" => AggregateNode,
+            "CollectNode" => AggregateNode,
             "ReturnNode" => ReturnNode,
             "InsertNode" => InsertNode,
             "RemoveNode" => RemoveNode,
@@ -1477,7 +1842,7 @@ impl ExecutionNodeType {
             CalculationNode => "CalculationNode",
             SubQueryNode => "SubqueryNode",
             SortNode => "SortNode",
-            AggregateNode => "AggregateNode",
+            AggregateNode => "CollectNode",
             ReturnNode => "ReturnNode",
             InsertNode => "InsertNode",
             RemoveNode => "RemoveNode",
@@ -1504,6 +1869,26 @@ impl<'de> Deserialize<'de> for ExecutionNodeType {
     {
         let value = String::deserialize(deserializer)?;
         Ok(ExecutionNodeType::from_api_str(&value))
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExplainedSubQuery {
+    nodes: Vec<ExecutionNode>,
+}
+
+impl ExplainedSubQuery {
+    pub fn new(
+        nodes: Vec<ExecutionNode>,
+    ) -> Self {
+        ExplainedSubQuery {
+            nodes,
+        }
+    }
+
+    pub fn nodes(&self) -> &[ExecutionNode] {
+        &self.nodes
     }
 }
 
@@ -1683,6 +2068,203 @@ impl ExecutionStats {
 
     pub fn plans_created(&self) -> u32 {
         self.plans_created
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExecutionGroup {
+    in_variable: ExecutionVariable,
+    out_variable: ExecutionVariable,
+}
+
+impl ExecutionGroup {
+    pub fn new(
+        in_variable: ExecutionVariable,
+        out_variable: ExecutionVariable,
+    ) -> Self {
+        ExecutionGroup {
+            in_variable,
+            out_variable,
+        }
+    }
+
+    pub fn in_variable(&self) -> &ExecutionVariable {
+        &self.in_variable
+    }
+
+    pub fn out_variable(&self) -> &ExecutionVariable {
+        &self.out_variable
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExecutionAggregate {
+    #[serde(rename = "type")]
+    kind: String,
+    in_variable: ExecutionVariable,
+    out_variable: ExecutionVariable,
+}
+
+impl ExecutionAggregate {
+    pub fn new<Knd>(
+        kind: Knd,
+        in_variable: ExecutionVariable,
+        out_variable: ExecutionVariable,
+    ) -> Self
+        where
+            Knd: Into<String>,
+    {
+        ExecutionAggregate {
+            kind: kind.into(),
+            in_variable,
+            out_variable,
+        }
+    }
+
+    pub fn kind(&self) -> &str {
+        &self.kind
+    }
+
+    pub fn in_variable(&self) -> &ExecutionVariable {
+        &self.in_variable
+    }
+
+    pub fn out_variable(&self) -> &ExecutionVariable {
+        &self.out_variable
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectOptions {
+    method: CollectMethod,
+}
+
+impl CollectOptions {
+    pub fn new(method: CollectMethod) -> Self {
+        CollectOptions {
+            method,
+        }
+    }
+
+    pub fn method(&self) -> &CollectMethod {
+        &self.method
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum CollectMethod {
+    Sorted,
+    Hash,
+    Custom(String),
+}
+
+impl CollectMethod {
+    pub fn from_api_str(value: &str) -> Self {
+        use self::CollectMethod::*;
+        match value {
+            "sorted" => Sorted,
+            "hash" => Hash,
+            _ => Custom(value.to_owned()),
+        }
+    }
+
+    pub fn as_api_str(&self) -> &str {
+        use self::CollectMethod::*;
+        match *self {
+            Sorted => "sorted",
+            Hash => "hash",
+            Custom(ref method) => method,
+        }
+    }
+}
+
+impl Serialize for CollectMethod {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        self.as_api_str().serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for CollectMethod {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        let value = String::deserialize(deserializer)?;
+        Ok(CollectMethod::from_api_str(&value))
+    }
+}
+
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModificationOptions {
+    ignore_errors: bool,
+    wait_for_sync: bool,
+    null_means_remove: bool,
+    merge_objects: bool,
+    ignore_document_not_found: bool,
+    read_complete_input: bool,
+    use_is_restore: bool,
+    consult_aql_write_filter: bool,
+}
+
+impl ModificationOptions {
+    pub fn new(
+        ignore_errors: bool,
+        wait_for_sync: bool,
+        null_means_remove: bool,
+        merge_objects: bool,
+        ignore_document_not_found: bool,
+        read_complete_input: bool,
+        use_is_restore: bool,
+        consult_aql_write_filter: bool,
+    ) -> Self {
+        ModificationOptions {
+            ignore_errors,
+            wait_for_sync,
+            null_means_remove,
+            merge_objects,
+            ignore_document_not_found,
+            read_complete_input,
+            use_is_restore,
+            consult_aql_write_filter,
+        }
+    }
+
+    pub fn is_ignore_errors(&self) -> bool {
+        self.ignore_errors
+    }
+
+    pub fn is_wait_for_sync(&self) -> bool {
+        self.wait_for_sync
+    }
+
+    pub fn is_null_means_remove(&self) -> bool {
+        self.null_means_remove
+    }
+
+    pub fn is_merge_objects(&self) -> bool {
+        self.merge_objects
+    }
+
+    pub fn is_ignore_document_not_found(&self) -> bool {
+        self.ignore_document_not_found
+    }
+
+    pub fn is_read_complete_input(&self) -> bool {
+        self.read_complete_input
+    }
+
+    pub fn is_use_is_restore(&self) -> bool {
+        self.use_is_restore
+    }
+
+    pub fn is_consult_aql_write_filter(&self) -> bool {
+        self.consult_aql_write_filter
     }
 }
 

@@ -680,7 +680,7 @@ mod tests {
     #[test]
     fn convert_query_into_new_cursor_to_be_created() {
         let mut query = Query::new("FOR u IN users FILTER u.name = @name RETURN u.name");
-        query.set_parameter("name".to_owned(), "simone".to_owned());
+        query.set_parameter("name", "simone");
         let query = query;
 
         let new_cursor: NewCursor = query.into();
@@ -692,7 +692,7 @@ mod tests {
     #[test]
     fn set_optimizer_rule_cursor_option_on_a_newly_initialized_new_cursor() {
         let mut query = Query::new("FOR u IN users FILTER u.name = @name RETURN u.name");
-        query.set_parameter("name".to_owned(), "simone".to_owned());
+        query.set_parameter("name".to_owned(), "simone");
         let query = query;
 
         let mut new_cursor = NewCursor::from(query);
@@ -714,7 +714,7 @@ mod tests {
     #[test]
     fn set_cursor_options_on_newly_initialized_new_cursor() {
         let mut query = Query::new("FOR u IN users FILTER u.name = @name RETURN u.name");
-        query.set_parameter("name".to_owned(), "simone".to_owned());
+        query.set_parameter("name", "simone".to_owned());
         let query = query;
 
         let mut new_cursor = NewCursor::from(query);
@@ -778,7 +778,7 @@ mod tests {
     #[test]
     fn serialize_new_cursor_with_cursor_options_set() {
         let mut query = Query::new("FOR u IN users FILTER u.name = @name RETURN u.name");
-        query.set_parameter("name".to_owned(), "simone".to_owned());
+        query.set_parameter("name", "simone");
         let query = query;
 
         let mut new_cursor = NewCursor::from(query);
@@ -819,7 +819,7 @@ mod tests {
     #[test]
     fn serialize_new_cursor_with_optimizer_rules_set() {
         let mut query = Query::new("FOR u IN users FILTER u.name = @name RETURN u.name");
-        query.set_parameter("name".to_owned(), "simone".to_owned());
+        query.set_parameter("name", "simone");
         let query = query;
 
         let mut new_cursor = NewCursor::from(query);
