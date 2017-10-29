@@ -51,6 +51,6 @@ build: false
 test_script:
   - pwd
   - docker-compose up
-  - cargo test lib --all-features %cargoflags%
+  - cargo test --lib --all-features %cargoflags%
   - cargo test --verbose %cargoflags%
   
