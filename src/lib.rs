@@ -42,6 +42,7 @@ pub mod authentication;
 pub mod collection;
 pub mod cursor;
 pub mod database;
+pub mod document;
 pub mod index;
 pub mod user;
 

@@ -9,13 +9,13 @@
 [![Apache-2.0][lib]][lil]
 [![Join the chat][gcb]][gcl]
 
-[crb]: https://img.shields.io/crates/v/arangodb_client.svg?style=flat-square
+[crb]: https://img.shields.io/crates/v/arangodb_client.svg
 [dcb]: https://docs.rs/arangodb_client/badge.svg
-[tcb]: https://img.shields.io/travis/innoave/arangodb-rust-driver/master.svg?style=flat-square
-[avb]: https://img.shields.io/appveyor/ci/innoave/arangodb-rust-driver.svg?style=flat-square
-[cvb]: https://img.shields.io/codecov/c/github/innoave/arangodb-rust-driver/master.svg?style=flat-square
-[lib]: https://img.shields.io/badge/license-Apache%2D%2D2%2E0-blue.svg?style=flat-square
-[gcb]: https://badges.gitter.im/innoave/general.svg?style=flat-square
+[tcb]: https://travis-ci.org/innoave/arangodb-rust-driver.svg?branch=master
+[avb]: https://ci.appveyor.com/api/projects/status/github/innoave/arangodb-rust-driver?branch=master&svg=true
+[cvb]: https://codecov.io/gh/innoave/arangodb-rust-driver/branch/master/graph/badge.svg
+[lib]: https://img.shields.io/badge/license-Apache%2D%2D2%2E0-blue.svg
+[gcb]: https://badges.gitter.im/innoave/arangodb-rust-driver.svg
 
 [crl]: https://crates.io/crates/arangodb_client
 [dcl]: https://docs.rs/arangodb_client
