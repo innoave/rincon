@@ -9,6 +9,8 @@ use std::slice::Iter;
 use serde::de::{Deserialize, Deserializer, DeserializeOwned};
 use serde::ser::Serialize;
 
+use arango_protocol::{VALUE_FALSE, VALUE_TRUE};
+
 pub trait Method {
     type Result: DeserializeOwned;
     const RETURN_TYPE: RpcReturnType;
@@ -47,6 +49,12 @@ impl Parameters {
         }
     }
 
+    pub fn new() -> Self {
+        Parameters {
+            list: Vec::new(),
+        }
+    }
+
     pub fn with_capacity(capacity: usize) -> Self {
         Parameters {
             list: Vec::with_capacity(capacity),
@@ -61,9 +69,20 @@ impl Parameters {
         ParameterIter(self.list.iter())
     }
 
-    pub fn push<K, V>(&mut self, name: K, value: V)
+    pub fn insert<K, V>(&mut self, name: K, value: V)
         where K: Into<String>, V: Into<String>
     {
+        self.list.push((name.into(), value.into()));
+    }
+
+    pub fn insert_bool<K>(&mut self, name: K, value: bool)
+        where K: Into<String>
+    {
+        let value = if value {
+            VALUE_TRUE
+        } else {
+            VALUE_FALSE
+        };
         self.list.push((name.into(), value.into()));
     }
 }

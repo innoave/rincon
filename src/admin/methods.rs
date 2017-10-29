@@ -1,6 +1,6 @@
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use consts::{FIELD_CODE, PARAM_DETAILS, PATH_ADMIN, PATH_API_VERSION,
+use arango_protocol::{FIELD_CODE, PARAM_DETAILS, PATH_ADMIN, PATH_API_VERSION,
     PATH_DATABASE, PATH_TARGET_VERSION, VALUE_TRUE};
 use super::types::*;
 
@@ -89,7 +89,7 @@ impl Prepare for GetServerVersion {
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::with_capacity(1);
         if self.details {
-            params.push(PARAM_DETAILS, VALUE_TRUE);
+            params.insert(PARAM_DETAILS, VALUE_TRUE);
         }
         params
     }

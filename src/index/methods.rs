@@ -1,6 +1,6 @@
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use consts::{FIELD_CODE, FIELD_ID, PARAM_COLLECTION, PATH_API_INDEX};
+use arango_protocol::{FIELD_CODE, FIELD_ID, PARAM_COLLECTION, PATH_API_INDEX};
 use super::types::*;
 
 /// Returns an `IndexList` with an attribute indexes containing an array of all
@@ -54,7 +54,7 @@ impl Prepare for GetIndexList {
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::with_capacity(1);
-        params.push("collection", self.collection_name.as_ref());
+        params.insert("collection", self.collection_name.as_ref());
         params
     }
 
@@ -157,7 +157,7 @@ impl Prepare for CreateIndex {
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::with_capacity(1);
-        params.push(PARAM_COLLECTION, self.collection_name.as_ref());
+        params.insert(PARAM_COLLECTION, self.collection_name.as_ref());
         params
     }
 

@@ -2,9 +2,10 @@
 use std::collections::HashMap;
 use std::iter::{FromIterator, IntoIterator};
 
-use regex::Regex;
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
+
+use arango_protocol::{Handle, HandleOption};
 
 const INDEX_TYPE_PRIMARY: &str = "primary";
 const INDEX_TYPE_HASH: &str = "hash";
@@ -16,10 +17,6 @@ const INDEX_TYPE_GEO2: &str = "geo2";
 const INDEX_TYPE_FULLTEXT: &str = "fulltext";
 const INDEX_TYPE_EDGE: &str = "edge";
 
-const CAPTURE_COLLECTION_NAME: &str = "coll";
-const CAPTURE_INDEX_KEY: &str = "key";
-const REGEX_INDEX_ID: &str = "^((?P<coll>[^/]+)/)?(?P<key>[^/]+)$";
-
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum IndexIdOption {
     Qualified(IndexId),
@@ -28,24 +25,20 @@ pub enum IndexIdOption {
 
 impl IndexIdOption {
     pub fn from_str(value: &str) -> Result<Self, String> {
-        let re = Regex::new(REGEX_INDEX_ID).unwrap();
-        if let Some(caps) = re.captures(value) {
-            match (caps.name(CAPTURE_COLLECTION_NAME), caps.name(CAPTURE_INDEX_KEY)) {
-                (Some(collection_name), Some(index_key)) =>
-                    Ok(IndexIdOption::Qualified(IndexId {
-                        collection_name: collection_name.as_str().to_owned(),
-                        index_key: index_key.as_str().to_owned(),
-                    })),
-                (None, Some(index_key)) =>
-                    Ok(IndexIdOption::Local(IndexKey(
-                        index_key.as_str().to_owned()
-                    ))),
-                (_, None) =>
-                    Err(format!("Index id does not have a key: {:?}", value)),
-            }
-        } else {
-            Err(format!("Invalid index id: {:?}", value))
-        }
+        let handle_option = HandleOption::from_str("index id", value)?;
+        Ok(match handle_option {
+            HandleOption::Qualified(handle) => {
+                let (collection_name, index_key) = handle.deconstruct();
+                IndexIdOption::Qualified(IndexId {
+                    collection_name,
+                    index_key,
+                })
+            },
+            HandleOption::Local(handle_key) => {
+                let value = handle_key.deconstruct();
+                IndexIdOption::Local(IndexKey(value))
+            },
+        })
     }
 }
 
@@ -84,7 +77,7 @@ impl IndexId {
         let collection_name = collection_name.into();
         assert!(!collection_name.contains('/'), "A collection name must not contain any '/' character");
         let index_key = index_key.into();
-        assert!(!collection_name.contains('/'), "An index key must not contain any '/' character");
+        assert!(!index_key.contains('/'), "An index key must not contain any '/' character");
         IndexId {
             collection_name,
             index_key,
@@ -92,22 +85,12 @@ impl IndexId {
     }
 
     pub fn from_str(value: &str) -> Result<Self, String> {
-        let re = Regex::new(REGEX_INDEX_ID).unwrap();
-        if let Some(caps) = re.captures(value) {
-            match (caps.name(CAPTURE_COLLECTION_NAME), caps.name(CAPTURE_INDEX_KEY)) {
-                (Some(collection_name), Some(index_key)) =>
-                    Ok(IndexId {
-                        collection_name: collection_name.as_str().to_owned(),
-                        index_key: index_key.as_str().to_owned(),
-                    }),
-                (None, Some(_)) =>
-                    Err(format!("Index id does not have a collection name: {:?}", value)),
-                (_, None) =>
-                    Err(format!("Index id does not have an index key: {:?}", value)),
-            }
-        } else {
-            Err(format!("Invalid index id: {:?}", value))
-        }
+        let handle = Handle::from_str("index id", value)?;
+        let (collection_name, index_key) = handle.deconstruct();
+        Ok(IndexId {
+            collection_name,
+            index_key,
+        })
     }
 
     pub fn as_string(&self) -> String {
@@ -155,15 +138,19 @@ impl IndexKey {
         where K: Into<String>
     {
         let index_key = index_key.into();
-        assert!(!index_key.contains('/'), "An index key must not contain any '/' character");
+        assert!(!index_key.contains('/'), "An index key must not contain any '/' character, but got: {:?}", &index_key);
         IndexKey(index_key)
     }
 
     pub fn from_str(value: &str) -> Result<Self, String> {
+        IndexKey::from_string(value.to_owned())
+    }
+
+    pub fn from_string(value: String) -> Result<Self, String> {
         if value.contains('/') {
             Err(format!("An index key must not contain any '/' character, but got: {:?}", &value))
         } else {
-            Ok(IndexKey(value.to_owned()))
+            Ok(IndexKey(value))
         }
     }
 
@@ -192,7 +179,7 @@ impl<'de> Deserialize<'de> for IndexKey {
     {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;
-        IndexKey::from_str(&value).map_err(D::Error::custom)
+        IndexKey::from_string(value).map_err(D::Error::custom)
     }
 }
 
@@ -1187,7 +1174,7 @@ mod tests {
     #[test]
     fn get_index_id_from_str_without_collection_name() {
         let result = IndexId::from_str("12341");
-        assert_eq!(Err("Index id does not have a collection name: \"12341\"".to_owned()), result);
+        assert_eq!(Err("index id does not have a context: \"12341\"".to_owned()), result);
     }
 
     #[test]

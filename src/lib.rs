@@ -46,4 +46,4 @@ pub mod document;
 pub mod index;
 pub mod user;
 
-mod consts;
+mod arango_protocol;

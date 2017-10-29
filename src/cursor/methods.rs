@@ -6,7 +6,7 @@ use serde::de::DeserializeOwned;
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use api::query::Query;
 use api::types::Empty;
-use consts::{FIELD_CODE, PATH_API_CURSOR};
+use arango_protocol::{FIELD_CODE, PATH_API_CURSOR};
 use super::types::*;
 
 /// Executes a query and returns a cursor with the first result set.

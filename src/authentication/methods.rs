@@ -1,7 +1,7 @@
 
 use api::auth::Credentials;
 use api::method::{Method, Parameters, Operation, Prepare, RpcReturnType};
-use consts::{FIELD_CODE, PATH_OPEN_AUTH};
+use arango_protocol::{FIELD_CODE, PATH_OPEN_AUTH};
 use super::types::*;
 
 /// Authenticates a user.
