@@ -1,7 +1,7 @@
 
 version: '0.1.0.{build}'
 
-os: Visual Studio 2015
+image: Visual Studio 2017
 
 environment:
   matrix:
@@ -44,18 +44,15 @@ install:
   - set PATH=%PATH%;%USERPROFILE%\.cargo\bin
   - rustc -vV
   - cargo -vV
-  - choco install docker-compose
+#  - choco install docker-compose
 
-# 'cargo test' takes care of building for us, so disable Appveyor's build stage. This prevents
-# the "directory does not contain a project or solution file" error.
 build: false
 
-# Uses 'cargo test' to run tests and build. Alternatively, the project may call compiled programs
-# directly or perform other testing commands. Rust will automatically be placed in the PATH
-# environment variable.
+before_build:
+  - docker-compose up
+
 test_script:
   - pwd
-  - docker-compose up
   - cargo test lib --all-features %cargoflags%
   - cargo test --verbose %cargoflags%
   
