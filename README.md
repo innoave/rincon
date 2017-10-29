@@ -20,7 +20,7 @@
 [tcl]: https://travis-ci.org/innoave/arangodb-rust-driver/
 [cvl]: https://codecov.io/github/innoave/arangodb-rust-driver?branch=master
 [lil]: https://www.apache.org/licenses/LICENSE-2.0
-[gcl]: https://gitter.im/innoave/arangodb_client
+[gcl]: https://gitter.im/innoave/arangodb-rust-driver
 
 An ArangoDB client for Rust. It enables low level access to ArangoDB in a
 typesafe and Rust idiomatic manner. 
