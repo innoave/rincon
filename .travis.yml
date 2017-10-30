@@ -1,3 +1,8 @@
+sudo: required
+
+services:
+  - docker
+
 language: rust
 
 rust:
@@ -15,6 +20,8 @@ env:
 
 before_install:
   - sudo apt-get update
+  - pwd
+  - docker-compose up
 
 addons:
   apt:
