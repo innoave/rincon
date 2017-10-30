@@ -4,6 +4,11 @@ volumes:
   db-data:
     external: false
 
+networks:
+  default:
+    external:
+      name: nat
+      
 services:
   arangodb:
     image: arangodb:3.2.5
