@@ -12,6 +12,69 @@ use api::query::{Query, Value};
 use api::types::JsonValue;
 use index::Index;
 
+const EXECUTION_NODE_TYPE_SINGLETON_NODE: &str = "SingletonNode";
+const EXECUTION_NODE_TYPE_ENUMERATE_COLLECTION_NODE: &str = "EnumerateCollectionNode";
+const EXECUTION_NODE_TYPE_INDEX_NODE: &str = "IndexNode";
+const EXECUTION_NODE_TYPE_ENUMERATE_LIST_NODE: &str = "EnumerateListNode";
+const EXECUTION_NODE_TYPE_FILTER_NODE: &str = "FilterNode";
+const EXECUTION_NODE_TYPE_LIMIT_NODE: &str = "LimitNode";
+const EXECUTION_NODE_TYPE_CALCULATION_NODE: &str = "CalculationNode";
+const EXECUTION_NODE_TYPE_SUBQUERY_NODE: &str = "SubqueryNode";
+const EXECUTION_NODE_TYPE_SORT_NODE: &str = "SortNode";
+const EXECUTION_NODE_TYPE_COLLECT_NODE: &str = "CollectNode";
+const EXECUTION_NODE_TYPE_RETURN_NODE: &str = "ReturnNode";
+const EXECUTION_NODE_TYPE_INSERT_NODE: &str = "InsertNode";
+const EXECUTION_NODE_TYPE_REMOVE_NODE: &str = "RemoveNode";
+const EXECUTION_NODE_TYPE_REPLACE_NODE: &str = "ReplaceNode";
+const EXECUTION_NODE_TYPE_UPDATE_NODE: &str = "UpdateNode";
+const EXECUTION_NODE_TYPE_UPSERT_NODE: &str = "UpsertNode";
+const EXECUTION_NODE_TYPE_NO_RESULTS_NODE: &str = "NoResultsNode";
+#[cfg(feature = "cluster")]
+const EXECUTION_NODE_TYPE_SCATTER_NODE: &str = "ScatterNode";
+#[cfg(feature = "cluster")]
+const EXECUTION_NODE_TYPE_GATHER_NODE: &str = "GatherNode";
+#[cfg(feature = "cluster")]
+const EXECUTION_NODE_TYPE_DISTRIBUTE_NODE: &str = "DistributeNode";
+#[cfg(feature = "cluster")]
+const EXECUTION_NODE_TYPE_REMOTE_NODE: &str = "RemoteNode";
+
+const OPTIMIZER_RULE_ALL: &str = "all";
+const OPTIMIZER_RULE_MOVE_CALCULATIONS_UP: &str = "move-calculations-up";
+const OPTIMIZER_RULE_MOVE_FILTERS_UP: &str = "move-filters-up";
+const OPTIMIZER_RULE_SORT_IN_VALUES: &str = "sort-in-values";
+const OPTIMIZER_RULE_REMOVE_UNNECESSARY_FILTERS: &str = "remove-unnecessary-filters";
+const OPTIMIZER_RULE_REMOVE_REDUNDANT_CALCULATIONS: &str = "remove-redundant-calculations";
+const OPTIMIZER_RULE_REMOVE_UNNECESSARY_CALCULATIONS: &str = "remove-unnecessary-calculations";
+const OPTIMIZER_RULE_REMOVE_REDUNDANT_SORTS: &str = "remove-redundant-sorts";
+const OPTIMIZER_RULE_INTERCHANGE_ADJACENT_ENUMERATIONS: &str = "interchange-adjacent-enumerations";
+const OPTIMIZER_RULE_REMOVE_COLLECT_VARIABLES: &str = "remove-collect-variables";
+const OPTIMIZER_RULE_PROPAGATE_CONSTANT_ATTRIBUTES: &str = "propagate-constant-attributes";
+const OPTIMIZER_RULE_REPLACE_OR_WITH_IN: &str = "replace-or-with-in";
+const OPTIMIZER_RULE_REMOVE_REDUNDANT_OR: &str = "remove-redundant-or";
+const OPTIMIZER_RULE_USE_INDEXES: &str = "use-indexes";
+const OPTIMIZER_RULE_REMOVE_FILTER_COVERED_BY_INDEX: &str = "remove-filter-covered-by-index";
+const OPTIMIZER_RULE_REMOVE_FILTER_COVERED_BY_TRAVERSAL: &str = "remove-filter-covered-by-traversal";
+const OPTIMIZER_RULE_USE_INDEX_FOR_SORT: &str = "use-index-for-sort";
+const OPTIMIZER_RULE_MOVE_CALCULATIONS_DOWN: &str = "move-calculations-down";
+const OPTIMIZER_RULE_PATCH_UPDATE_STATEMENTS: &str = "patch-update-statements";
+const OPTIMIZER_RULE_OPTIMIZE_TRAVERSALS: &str = "optimize-traversals";
+const OPTIMIZER_RULE_INLINE_SUBQUERIES: &str = "inline-subqueries";
+const OPTIMIZER_RULE_GEO_INDEX_OPTIMIZER: &str = "geo-index-optimizer";
+const OPTIMIZER_RULE_REMOVE_SORT_RAND: &str = "remove-sort-rand";
+const OPTIMIZER_RULE_REDUCE_EXTRACTION_TO_PROJECTION: &str = "reduce-extraction-to-projection";
+#[cfg(feature = "cluster")]
+const OPTIMIZER_RULE_DISTRIBUTE_IN_CLUSTER: &str = "distribute-in-cluster";
+#[cfg(feature = "cluster")]
+const OPTIMIZER_RULE_SCATTER_IN_CLUSTER: &str = "scatter-in-cluster";
+#[cfg(feature = "cluster")]
+const OPTIMIZER_RULE_DISTRIBUTE_FILTERCALC_TO_CLUSTER: &str = "distribute-filtercalc-to-cluster";
+#[cfg(feature = "cluster")]
+const OPTIMIZER_RULE_DISTRIBUTE_SORT_TO_CLUSTER: &str = "distribute-sort-to-cluster";
+#[cfg(feature = "cluster")]
+const OPTIMIZER_RULE_REMOVE_UNNECESSARY_REMOTE_SCATTER: &str = "remove-unnecessary-remote-scatter";
+#[cfg(feature = "cluster")]
+const OPTIMIZER_RULE_UNDISTRIBUTE_REMOVE_AFTER_ENUM_COLL: &str = "undistribute-remove-after-enum-coll";
+
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ParsedQuery {
@@ -1799,31 +1862,31 @@ impl ExecutionNodeType {
     pub fn from_api_str(api_str: &str) -> Self {
         use self::ExecutionNodeType::*;
         match api_str {
-            "SingletonNode" => SingletonNode,
-            "EnumerateCollectionNode" => EnumerateCollectionNode,
-            "IndexNode" => IndexNode,
-            "EnumerateListNode" => EnumerateListNode,
-            "FilterNode" => FilterNode,
-            "LimitNode" => LimitNode,
-            "CalculationNode" => CalculationNode,
-            "SubqueryNode" => SubQueryNode,
-            "SortNode" => SortNode,
-            "CollectNode" => AggregateNode,
-            "ReturnNode" => ReturnNode,
-            "InsertNode" => InsertNode,
-            "RemoveNode" => RemoveNode,
-            "ReplaceNode" => ReplaceNode,
-            "UpdateNode" => UpdateNode,
-            "UpsertNode" => UpsertNode,
-            "NoResultsNode" => NoResultsNode,
+            EXECUTION_NODE_TYPE_SINGLETON_NODE => SingletonNode,
+            EXECUTION_NODE_TYPE_ENUMERATE_COLLECTION_NODE => EnumerateCollectionNode,
+            EXECUTION_NODE_TYPE_INDEX_NODE => IndexNode,
+            EXECUTION_NODE_TYPE_ENUMERATE_LIST_NODE => EnumerateListNode,
+            EXECUTION_NODE_TYPE_FILTER_NODE => FilterNode,
+            EXECUTION_NODE_TYPE_LIMIT_NODE => LimitNode,
+            EXECUTION_NODE_TYPE_CALCULATION_NODE => CalculationNode,
+            EXECUTION_NODE_TYPE_SUBQUERY_NODE => SubQueryNode,
+            EXECUTION_NODE_TYPE_SORT_NODE => SortNode,
+            EXECUTION_NODE_TYPE_COLLECT_NODE => AggregateNode,
+            EXECUTION_NODE_TYPE_RETURN_NODE => ReturnNode,
+            EXECUTION_NODE_TYPE_INSERT_NODE => InsertNode,
+            EXECUTION_NODE_TYPE_REMOVE_NODE => RemoveNode,
+            EXECUTION_NODE_TYPE_REPLACE_NODE => ReplaceNode,
+            EXECUTION_NODE_TYPE_UPDATE_NODE => UpdateNode,
+            EXECUTION_NODE_TYPE_UPSERT_NODE => UpsertNode,
+            EXECUTION_NODE_TYPE_NO_RESULTS_NODE => NoResultsNode,
             #[cfg(feature = "cluster")]
-            "ScatterNode" => ScatterNode,
+            EXECUTION_NODE_TYPE_SCATTER_NODE => ScatterNode,
             #[cfg(feature = "cluster")]
-            "GatherNode" => GatherNode,
+            EXECUTION_NODE_TYPE_GATHER_NODE => GatherNode,
             #[cfg(feature = "cluster")]
-            "DistributeNode" => DistributeNode,
+            EXECUTION_NODE_TYPE_DISTRIBUTE_NODE => DistributeNode,
             #[cfg(feature = "cluster")]
-            "RemoteNode" => RemoteNode,
+            EXECUTION_NODE_TYPE_REMOTE_NODE => RemoteNode,
             node => Unlisted(node.to_owned()),
         }
     }
@@ -1833,31 +1896,31 @@ impl ExecutionNodeType {
     pub fn as_api_str(&self) -> &str {
         use self::ExecutionNodeType::*;
         match *self {
-            SingletonNode => "SingletonNode",
-            EnumerateCollectionNode => "EnumerateCollectionNode",
-            IndexNode => "IndexNode",
-            EnumerateListNode => "EnumerateListNode",
-            FilterNode => "FilterNode",
-            LimitNode => "LimitNode",
-            CalculationNode => "CalculationNode",
-            SubQueryNode => "SubqueryNode",
-            SortNode => "SortNode",
-            AggregateNode => "CollectNode",
-            ReturnNode => "ReturnNode",
-            InsertNode => "InsertNode",
-            RemoveNode => "RemoveNode",
-            ReplaceNode => "ReplaceNode",
-            UpdateNode => "UpdateNode",
-            UpsertNode => "UpsertNode",
-            NoResultsNode => "NoResultsNode",
+            SingletonNode => EXECUTION_NODE_TYPE_SINGLETON_NODE,
+            EnumerateCollectionNode => EXECUTION_NODE_TYPE_ENUMERATE_COLLECTION_NODE,
+            IndexNode => EXECUTION_NODE_TYPE_INDEX_NODE,
+            EnumerateListNode => EXECUTION_NODE_TYPE_ENUMERATE_LIST_NODE,
+            FilterNode => EXECUTION_NODE_TYPE_FILTER_NODE,
+            LimitNode => EXECUTION_NODE_TYPE_LIMIT_NODE,
+            CalculationNode => EXECUTION_NODE_TYPE_CALCULATION_NODE,
+            SubQueryNode => EXECUTION_NODE_TYPE_SUBQUERY_NODE,
+            SortNode => EXECUTION_NODE_TYPE_SORT_NODE,
+            AggregateNode => EXECUTION_NODE_TYPE_COLLECT_NODE,
+            ReturnNode => EXECUTION_NODE_TYPE_RETURN_NODE,
+            InsertNode => EXECUTION_NODE_TYPE_INSERT_NODE,
+            RemoveNode => EXECUTION_NODE_TYPE_REMOVE_NODE,
+            ReplaceNode => EXECUTION_NODE_TYPE_REPLACE_NODE,
+            UpdateNode => EXECUTION_NODE_TYPE_UPDATE_NODE,
+            UpsertNode => EXECUTION_NODE_TYPE_UPSERT_NODE,
+            NoResultsNode => EXECUTION_NODE_TYPE_NO_RESULTS_NODE,
             #[cfg(feature = "cluster")]
-            ScatterNode => "ScatterNode",
+            ScatterNode => EXECUTION_NODE_TYPE_SCATTER_NODE,
             #[cfg(feature = "cluster")]
-            GatherNode => "GatherNode",
+            GatherNode => EXECUTION_NODE_TYPE_GATHER_NODE,
             #[cfg(feature = "cluster")]
-            DistributeNode => "DistributeNode",
+            DistributeNode => EXECUTION_NODE_TYPE_DISTRIBUTE_NODE,
             #[cfg(feature = "cluster")]
-            RemoteNode => "RemoteNode",
+            RemoteNode => EXECUTION_NODE_TYPE_REMOTE_NODE,
             Unlisted(ref node) => node,
         }
     }
@@ -2650,42 +2713,42 @@ impl OptimizerRule {
     pub fn from_api_str(api_str: &str) -> Self {
         use self::OptimizerRule::*;
         match api_str {
-            "all" => All,
-            "move-calculations-up" => MoveCalculationsUp,
-            "move-filters-up" => MoveFiltersUp,
-            "sort-in-values" => SortInValues,
-            "remove-unnecessary-filters" => RemoveUnnecessaryFilters,
-            "remove-redundant-calculations" => RemoveRedundantCalculations,
-            "remove-unnecessary-calculations" => RemoveUnnecessaryCalculations,
-            "remove-redundant-sorts" => RemoveRedundantSorts,
-            "interchange-adjacent-enumerations" => InterchangeAdjacentEnumerations,
-            "remove-collect-variables" => RemoveCollectVariables,
-            "propagate-constant-attributes" => PropagateConstantAttributes,
-            "replace-or-with-in" => ReplaceOrWithIn,
-            "remove-redundant-or" => RemoveRedundantOr,
-            "use-indexes" => UseIndexes,
-            "remove-filter-covered-by-index" => RemoveFilterCoveredByIndex,
-            "remove-filter-covered-by-traversal" => RemoveFilterCoveredByTraversal,
-            "use-index-for-sort" => UseIndexForSort,
-            "move-calculations-down" => MoveCalculationsDown,
-            "patch-update-statements" => PatchUpdateStatements,
-            "optimize-traversals" => OptimizeTraversals,
-            "inline-subqueries" => InlineSubQueries,
-            "geo-index-optimizer" => GeoIndexOptimizer,
-            "remove-sort-rand" => RemoveSortRand,
-            "reduce-extraction-to-projection" => ReduceExtractionToProjection,
+            OPTIMIZER_RULE_ALL => All,
+            OPTIMIZER_RULE_MOVE_CALCULATIONS_UP => MoveCalculationsUp,
+            OPTIMIZER_RULE_MOVE_FILTERS_UP => MoveFiltersUp,
+            OPTIMIZER_RULE_SORT_IN_VALUES => SortInValues,
+            OPTIMIZER_RULE_REMOVE_UNNECESSARY_FILTERS => RemoveUnnecessaryFilters,
+            OPTIMIZER_RULE_REMOVE_REDUNDANT_CALCULATIONS => RemoveRedundantCalculations,
+            OPTIMIZER_RULE_REMOVE_UNNECESSARY_CALCULATIONS => RemoveUnnecessaryCalculations,
+            OPTIMIZER_RULE_REMOVE_REDUNDANT_SORTS => RemoveRedundantSorts,
+            OPTIMIZER_RULE_INTERCHANGE_ADJACENT_ENUMERATIONS => InterchangeAdjacentEnumerations,
+            OPTIMIZER_RULE_REMOVE_COLLECT_VARIABLES => RemoveCollectVariables,
+            OPTIMIZER_RULE_PROPAGATE_CONSTANT_ATTRIBUTES => PropagateConstantAttributes,
+            OPTIMIZER_RULE_REPLACE_OR_WITH_IN => ReplaceOrWithIn,
+            OPTIMIZER_RULE_REMOVE_REDUNDANT_OR => RemoveRedundantOr,
+            OPTIMIZER_RULE_USE_INDEXES => UseIndexes,
+            OPTIMIZER_RULE_REMOVE_FILTER_COVERED_BY_INDEX => RemoveFilterCoveredByIndex,
+            OPTIMIZER_RULE_REMOVE_FILTER_COVERED_BY_TRAVERSAL => RemoveFilterCoveredByTraversal,
+            OPTIMIZER_RULE_USE_INDEX_FOR_SORT => UseIndexForSort,
+            OPTIMIZER_RULE_MOVE_CALCULATIONS_DOWN => MoveCalculationsDown,
+            OPTIMIZER_RULE_PATCH_UPDATE_STATEMENTS => PatchUpdateStatements,
+            OPTIMIZER_RULE_OPTIMIZE_TRAVERSALS => OptimizeTraversals,
+            OPTIMIZER_RULE_INLINE_SUBQUERIES => InlineSubQueries,
+            OPTIMIZER_RULE_GEO_INDEX_OPTIMIZER => GeoIndexOptimizer,
+            OPTIMIZER_RULE_REMOVE_SORT_RAND => RemoveSortRand,
+            OPTIMIZER_RULE_REDUCE_EXTRACTION_TO_PROJECTION => ReduceExtractionToProjection,
             #[cfg(feature = "cluster")]
-            "distribute-in-cluster" => DistributeInCluster,
+            OPTIMIZER_RULE_DISTRIBUTE_IN_CLUSTER => DistributeInCluster,
             #[cfg(feature = "cluster")]
-            "scatter-in-cluster" => ScatterInCluster,
+            OPTIMIZER_RULE_SCATTER_IN_CLUSTER => ScatterInCluster,
             #[cfg(feature = "cluster")]
-            "distribute-filtercalc-to-cluster" => DistributeFilterCalcToCluster,
+            OPTIMIZER_RULE_DISTRIBUTE_FILTERCALC_TO_CLUSTER => DistributeFilterCalcToCluster,
             #[cfg(feature = "cluster")]
-            "distribute-sort-to-cluster" => DistributeSortToCluster,
+            OPTIMIZER_RULE_DISTRIBUTE_SORT_TO_CLUSTER => DistributeSortToCluster,
             #[cfg(feature = "cluster")]
-            "remove-unnecessary-remote-scatter" => RemoveUnnecessaryRemoteScatter,
+            OPTIMIZER_RULE_REMOVE_UNNECESSARY_REMOTE_SCATTER => RemoveUnnecessaryRemoteScatter,
             #[cfg(feature = "cluster")]
-            "undistribute-remove-after-enum-coll" => UnDistributeRemoveAfterEnumColl,
+            OPTIMIZER_RULE_UNDISTRIBUTE_REMOVE_AFTER_ENUM_COLL => UnDistributeRemoveAfterEnumColl,
             rule => Custom(rule.to_owned()),
         }
     }
@@ -2695,42 +2758,42 @@ impl OptimizerRule {
     pub fn as_api_str(&self) -> &str {
         use self::OptimizerRule::*;
         match *self {
-            All => "all",
-            MoveCalculationsUp => "move-calculations-up",
-            MoveFiltersUp => "move-filters-up",
-            SortInValues => "sort-in-values",
-            RemoveUnnecessaryFilters => "remove-unnecessary-filters",
-            RemoveRedundantCalculations => "remove-redundant-calculations",
-            RemoveUnnecessaryCalculations => "remove-unnecessary-calculations",
-            RemoveRedundantSorts => "remove-redundant-sorts",
-            InterchangeAdjacentEnumerations => "interchange-adjacent-enumerations",
-            RemoveCollectVariables => "remove-collect-variables",
-            PropagateConstantAttributes => "propagate-constant-attributes",
-            ReplaceOrWithIn => "replace-or-with-in",
-            RemoveRedundantOr => "remove-redundant-or",
-            UseIndexes => "use-indexes",
-            RemoveFilterCoveredByIndex => "remove-filter-covered-by-index",
-            RemoveFilterCoveredByTraversal => "remove-filter-covered-by-traversal",
-            UseIndexForSort => "use-index-for-sort",
-            MoveCalculationsDown => "move-calculations-down",
-            PatchUpdateStatements => "patch-update-statements",
-            OptimizeTraversals => "optimize-traversals",
-            InlineSubQueries => "inline-subqueries",
-            GeoIndexOptimizer => "geo-index-optimizer",
-            RemoveSortRand => "remove-sort-rand",
-            ReduceExtractionToProjection => "reduce-extraction-to-projection",
+            All => OPTIMIZER_RULE_ALL,
+            MoveCalculationsUp => OPTIMIZER_RULE_MOVE_CALCULATIONS_UP,
+            MoveFiltersUp => OPTIMIZER_RULE_MOVE_FILTERS_UP,
+            SortInValues => OPTIMIZER_RULE_SORT_IN_VALUES,
+            RemoveUnnecessaryFilters => OPTIMIZER_RULE_REMOVE_UNNECESSARY_FILTERS,
+            RemoveRedundantCalculations => OPTIMIZER_RULE_REMOVE_REDUNDANT_CALCULATIONS,
+            RemoveUnnecessaryCalculations => OPTIMIZER_RULE_REMOVE_UNNECESSARY_CALCULATIONS,
+            RemoveRedundantSorts => OPTIMIZER_RULE_REMOVE_REDUNDANT_SORTS,
+            InterchangeAdjacentEnumerations => OPTIMIZER_RULE_INTERCHANGE_ADJACENT_ENUMERATIONS,
+            RemoveCollectVariables => OPTIMIZER_RULE_REMOVE_COLLECT_VARIABLES,
+            PropagateConstantAttributes => OPTIMIZER_RULE_PROPAGATE_CONSTANT_ATTRIBUTES,
+            ReplaceOrWithIn => OPTIMIZER_RULE_REPLACE_OR_WITH_IN,
+            RemoveRedundantOr => OPTIMIZER_RULE_REMOVE_REDUNDANT_OR,
+            UseIndexes => OPTIMIZER_RULE_USE_INDEXES,
+            RemoveFilterCoveredByIndex => OPTIMIZER_RULE_REMOVE_FILTER_COVERED_BY_INDEX,
+            RemoveFilterCoveredByTraversal => OPTIMIZER_RULE_REMOVE_FILTER_COVERED_BY_TRAVERSAL,
+            UseIndexForSort => OPTIMIZER_RULE_USE_INDEX_FOR_SORT,
+            MoveCalculationsDown => OPTIMIZER_RULE_MOVE_CALCULATIONS_DOWN,
+            PatchUpdateStatements => OPTIMIZER_RULE_PATCH_UPDATE_STATEMENTS,
+            OptimizeTraversals => OPTIMIZER_RULE_OPTIMIZE_TRAVERSALS,
+            InlineSubQueries => OPTIMIZER_RULE_INLINE_SUBQUERIES,
+            GeoIndexOptimizer => OPTIMIZER_RULE_GEO_INDEX_OPTIMIZER,
+            RemoveSortRand => OPTIMIZER_RULE_REMOVE_SORT_RAND,
+            ReduceExtractionToProjection => OPTIMIZER_RULE_REDUCE_EXTRACTION_TO_PROJECTION,
             #[cfg(feature = "cluster")]
-            DistributeInCluster => "distribute-in-cluster",
+            DistributeInCluster => OPTIMIZER_RULE_DISTRIBUTE_IN_CLUSTER,
             #[cfg(feature = "cluster")]
-            ScatterInCluster => "scatter-in-cluster",
+            ScatterInCluster => OPTIMIZER_RULE_SCATTER_IN_CLUSTER,
             #[cfg(feature = "cluster")]
-            DistributeFilterCalcToCluster => "distribute-filtercalc-to-cluster",
+            DistributeFilterCalcToCluster => OPTIMIZER_RULE_DISTRIBUTE_FILTERCALC_TO_CLUSTER,
             #[cfg(feature = "cluster")]
-            DistributeSortToCluster => "distribute-sort-to-cluster",
+            DistributeSortToCluster => OPTIMIZER_RULE_DISTRIBUTE_SORT_TO_CLUSTER,
             #[cfg(feature = "cluster")]
-            RemoveUnnecessaryRemoteScatter => "remove-unnecessary-remote-scatter",
+            RemoveUnnecessaryRemoteScatter => OPTIMIZER_RULE_REMOVE_UNNECESSARY_REMOTE_SCATTER,
             #[cfg(feature = "cluster")]
-            UnDistributeRemoveAfterEnumColl => "undistribute-remove-after-enum-coll",
+            UnDistributeRemoveAfterEnumColl => OPTIMIZER_RULE_UNDISTRIBUTE_REMOVE_AFTER_ENUM_COLL,
             Custom(ref rule) => rule,
         }
     }

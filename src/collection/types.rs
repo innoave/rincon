@@ -1,9 +1,23 @@
 
 use std::mem;
-use std::u8;
+use std::i32;
 
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
+
+const COLLECTION_TYPE_DOCUMENTS: i32 = 2;
+const COLLECTION_TYPE_EDGES: i32 = 3;
+
+const COLLECTION_STATUS_NEW_BORN: i32 = 1;
+const COLLECTION_STATUS_UNLOADED: i32 = 2;
+const COLLECTION_STATUS_LOADED: i32 = 3;
+const COLLECTION_STATUS_BEING_UNLOADED: i32 = 4;
+const COLLECTION_STATUS_DELETED: i32 = 5;
+const COLLECTION_STATUS_BEING_LOADED: i32 = 6;
+const COLLECTION_STATUS_CORRUPTED: i32 = i32::MAX;
+
+const KEY_GENERATOR_TYPE_TRADITIONAL: &str = "traditional";
+const KEY_GENERATOR_TYPE_AUTO_INCREMENT: &str = "autoincrement";
 
 /// This struct holds attributes of a collection.
 ///
@@ -873,10 +887,10 @@ impl Serialize for CollectionType {
     {
         use self::CollectionType::*;
         let type_id = match *self {
-            Documents => 2,
-            Edges => 3,
+            Documents => COLLECTION_TYPE_DOCUMENTS,
+            Edges => COLLECTION_TYPE_EDGES,
         };
-        serializer.serialize_u8(type_id)
+        serializer.serialize_i32(type_id)
     }
 }
 
@@ -886,11 +900,11 @@ impl<'de> Deserialize<'de> for CollectionType {
     {
         use serde::de::Error;
         use self::CollectionType::*;
-        let value = u64::deserialize(deserializer)?;
+        let value = i32::deserialize(deserializer)?;
         match value {
-            2 => Ok(Documents),
-            3 => Ok(Edges),
-            _ => Err(D::Error::custom(format!("u64 out of range: {}", value))),
+            COLLECTION_TYPE_DOCUMENTS => Ok(Documents),
+            COLLECTION_TYPE_EDGES => Ok(Edges),
+            _ => Err(D::Error::custom(format!("Unknown collection type: {:?}", value))),
         }
     }
 }
@@ -920,15 +934,15 @@ impl Serialize for CollectionStatus {
     {
         use self::CollectionStatus::*;
         let status_id = match *self {
-            NewBorn => 1,
-            Unloaded => 2,
-            Loaded => 3,
-            BeingUnloaded => 4,
-            Deleted => 5,
-            BeingLoaded => 6,
-            Corrupted => u8::MAX,
+            NewBorn => COLLECTION_STATUS_NEW_BORN,
+            Unloaded => COLLECTION_STATUS_UNLOADED,
+            Loaded => COLLECTION_STATUS_LOADED,
+            BeingUnloaded => COLLECTION_STATUS_BEING_UNLOADED,
+            Deleted => COLLECTION_STATUS_DELETED,
+            BeingLoaded => COLLECTION_STATUS_BEING_LOADED,
+            Corrupted => COLLECTION_STATUS_CORRUPTED,
         };
-        serializer.serialize_u8(status_id)
+        serializer.serialize_i32(status_id)
     }
 }
 
@@ -937,14 +951,14 @@ impl<'de> Deserialize<'de> for CollectionStatus {
         where D: Deserializer<'de>
     {
         use self::CollectionStatus::*;
-        let value = u64::deserialize(deserializer)?;
+        let value = i32::deserialize(deserializer)?;
         match value {
-            1 => Ok(NewBorn),
-            2 => Ok(Unloaded),
-            3 => Ok(Loaded),
-            4 => Ok(BeingUnloaded),
-            5 => Ok(Deleted),
-            6 => Ok(BeingLoaded),
+            COLLECTION_STATUS_NEW_BORN => Ok(NewBorn),
+            COLLECTION_STATUS_UNLOADED => Ok(Unloaded),
+            COLLECTION_STATUS_LOADED => Ok(Loaded),
+            COLLECTION_STATUS_BEING_UNLOADED => Ok(BeingUnloaded),
+            COLLECTION_STATUS_DELETED => Ok(Deleted),
+            COLLECTION_STATUS_BEING_LOADED => Ok(BeingLoaded),
             _ => Ok(Corrupted),
         }
     }
@@ -965,8 +979,8 @@ impl Serialize for KeyGeneratorType {
     {
         use self::KeyGeneratorType::*;
         let type_str = match *self {
-            Traditional => "traditional",
-            AutoIncrement => "autoincrement",
+            Traditional => KEY_GENERATOR_TYPE_TRADITIONAL,
+            AutoIncrement => KEY_GENERATOR_TYPE_AUTO_INCREMENT,
         };
         serializer.serialize_str(type_str)
     }
@@ -980,9 +994,9 @@ impl<'de> Deserialize<'de> for KeyGeneratorType {
         use self::KeyGeneratorType::*;
         let value = String::deserialize(deserializer)?;
         match &value[..] {
-            "traditional" => Ok(Traditional),
-            "autoincrement" => Ok(AutoIncrement),
-            _ => Err(D::Error::custom(format!("Unknown KeyGeneratorType: {}", value))),
+            KEY_GENERATOR_TYPE_TRADITIONAL => Ok(Traditional),
+            KEY_GENERATOR_TYPE_AUTO_INCREMENT => Ok(AutoIncrement),
+            _ => Err(D::Error::custom(format!("Unknown KeyGeneratorType: {:?}", value))),
         }
     }
 }

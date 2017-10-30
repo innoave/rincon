@@ -8,6 +8,10 @@ use serde::ser::{Serialize, Serializer};
 use api::types::{Empty, JsonValue};
 use super::DEFAULT_ROOT_PASSWORD;
 
+const PERMISSION_READ_WRITE: &str = "rw";
+const PERMISSION_READ_ONLY: &str = "ro";
+const PERMISSION_NONE: &str = "none";
+
 /// This struct contains the properties of a user.
 ///
 /// The type parameter `E` specifies the type of the extra data about the
@@ -309,19 +313,19 @@ impl Permission {
     pub fn from_str(value: &str) -> Result<Self, String> {
         use self::Permission::*;
         match value {
-            "rw"   => Ok(ReadWrite),
-            "ro"   => Ok(ReadOnly),
-            "none" => Ok(None),
-            _      => Err(format!("Not a valid permission string: {}", value)),
+            PERMISSION_READ_WRITE => Ok(ReadWrite),
+            PERMISSION_READ_ONLY => Ok(ReadOnly),
+            PERMISSION_NONE => Ok(None),
+            _ => Err(format!("Not a valid permission string: {:?}", value)),
         }
     }
 
     pub fn as_str(&self) -> &'static str {
         use self::Permission::*;
         match *self {
-            ReadWrite => "rw",
-            ReadOnly  => "ro",
-            None      => "none",
+            ReadWrite => PERMISSION_READ_WRITE,
+            ReadOnly => PERMISSION_READ_ONLY,
+            None => PERMISSION_NONE,
         }
     }
 }
