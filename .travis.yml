@@ -23,7 +23,10 @@ before_install:
   
 before_script:
   - docker network create nat
-  - docker-compose up
+  - docker-compose up -d
+
+after_script:
+  - docker-compose down
 
 addons:
   apt:

@@ -50,7 +50,8 @@ build: false
 
 test_script:
   - pwd
-  - docker-compose up
+  - docker-compose up -d
   - cargo test --lib --all-features %cargoflags%
   - cargo test --verbose %cargoflags%
+  - docker-compose down
   
