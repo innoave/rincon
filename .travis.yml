@@ -20,7 +20,9 @@ env:
 
 before_install:
   - sudo apt-get update
-  - pwd
+  
+before_script:
+  - docker network create nat
   - docker-compose up
 
 addons:
