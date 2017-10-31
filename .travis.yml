@@ -28,6 +28,12 @@ before_script:
 after_script:
   - docker-compose down
 
+script:
+  - cargo build --lib --all-features --verbose
+  - cargo test --lib --all-features --verbose
+  - cargo build --verbose
+  - cargo test --verbose
+
 addons:
   apt:
     packages:
