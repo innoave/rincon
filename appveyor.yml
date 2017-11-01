@@ -45,17 +45,19 @@ install:
   - rustc -vV
   - cargo -vV
   - docker -v
-#  - choco install docker-compose
   - docker-compose -v
 
 build: false
 
 test_script:
   - pwd
-  - docker-compose up -d --verbose
+# currently no windows amd64 docker image available
+#  - docker-compose up -d
   - cargo build --lib --all-features --verbose %cargoflags%
   - cargo test --lib --all-features --verbose %cargoflags%
-  - cargo build --verbose %cargoflags%
-  - cargo test --verbose %cargoflags%
-  - docker-compose down --verbose
-  
+  - cargo build --lib --verbose %cargoflags%
+  - cargo test --lib --verbose %cargoflags%
+# arangodb docker image not working on windows server 2016 
+#  - cargo build --verbose %cargoflags%
+#  - cargo test --verbose %cargoflags%
+#  - docker-compose down
