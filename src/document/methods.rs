@@ -1,4 +1,5 @@
 
+use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
@@ -9,14 +10,14 @@ use super::types::*;
 #[derive(Clone, Debug, PartialEq)]
 pub struct InsertDocument<T> {
     collection_name: String,
-    document: T,
+    document: NewDocument<T>,
     wait_for_sync: Option<bool>,
     return_new: Option<bool>,
     silent: Option<bool>,
 }
 
 impl<T> InsertDocument<T> {
-    pub fn new<N>(collection_name: N, document: T) -> Self
+    pub fn new<N>(collection_name: N, document: NewDocument<T>) -> Self
         where N: Into<String>
     {
         InsertDocument {
@@ -27,10 +28,47 @@ impl<T> InsertDocument<T> {
             silent: None,
         }
     }
+
+    pub fn collection_name(&self) -> &str {
+        &self.collection_name
+    }
+
+    pub fn document(&self) -> &NewDocument<T> {
+        &self.document
+    }
+
+    pub fn with_force_wait_for_sync(&mut self, force_wait_for_sync: bool) -> &mut Self {
+        self.wait_for_sync = Some(force_wait_for_sync);
+        self
+    }
+
+    pub fn is_force_wait_for_sync(&self) -> bool {
+        self.wait_for_sync.unwrap_or(false)
+    }
+
+    pub fn with_return_new(mut self, return_new: bool) -> Self {
+        self.return_new = Some(return_new);
+        self
+    }
+
+    pub fn is_return_new(&self) -> bool {
+        self.return_new.unwrap_or(false)
+    }
+
+    pub fn with_silent(mut self, silent: bool) -> Self {
+        self.silent = Some(silent);
+        self
+    }
+
+    pub fn is_silent(&self) -> bool {
+        self.silent.unwrap_or(false)
+    }
 }
 
-impl<T> Method for InsertDocument<T> {
-    type Result = Document;
+impl<T> Method for InsertDocument<T>
+    where T: DeserializeOwned
+{
+    type Result = Document<T>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
         code_field: Some(FIELD_CODE),
@@ -40,7 +78,7 @@ impl<T> Method for InsertDocument<T> {
 impl<T> Prepare for InsertDocument<T>
     where T: Serialize
 {
-    type Content = T;
+    type Content = NewDocument<T>;
 
     fn operation(&self) -> Operation {
         Operation::Create

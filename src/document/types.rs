@@ -170,16 +170,102 @@ impl<'de> Deserialize<'de> for DocumentKey {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
-pub struct Document {
-    id: DocumentId,
-    key: String,
-    revision: String,
-    bytes: Vec<u8>,
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Revision(String);
+
+impl Revision {
+    pub fn new<R>(value: R) -> Self
+        where R: Into<String>
+    {
+        Revision(value.into())
+    }
+
+    pub fn from_string(value: String) -> Self {
+        Revision(value)
+    }
+
+    pub fn into_string(self) -> String {
+        self.0
+    }
+
+    pub fn from_str(value: &str) -> Self {
+        Revision(value.to_owned())
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
 }
 
-impl Document {
-    pub fn bytes(&self) -> &[u8] {
-        &self.bytes
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Document<T> {
+    #[serde(rename = "_id")]
+    id: DocumentId,
+    #[serde(rename = "_key")]
+    key: DocumentKey,
+    #[serde(rename = "_rev")]
+    revision: Revision,
+    content: T,
+}
+
+impl<T> Document<T> {
+    pub fn id(&self) -> &DocumentId {
+        &self.id
+    }
+
+    pub fn key(&self) -> &DocumentKey {
+        &self.key
+    }
+
+    pub fn revision(&self) -> &Revision {
+        &self.revision
+    }
+
+    pub fn content(&self) -> &T {
+        &self.content
+    }
+
+    pub fn unwrap_content(self) -> T {
+        self.content
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewDocument<T> {
+    #[serde(rename = "_key")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    key: Option<DocumentKey>,
+    content: T,
+}
+
+impl<T> NewDocument<T> {
+    pub fn from_content(content: T) -> Self {
+        NewDocument {
+            key: None,
+            content,
+        }
+    }
+
+    pub fn with_key<K>(mut self, key: K) -> Self
+        where K: Into<Option<DocumentKey>>
+    {
+        self.key = key.into();
+        self
+    }
+
+    pub fn key(&self) -> Option<&DocumentKey> {
+        self.key.as_ref()
+    }
+
+    pub fn content(&self) -> &T {
+        &self.content
+    }
+}
+
+impl<T> From<T> for NewDocument<T> {
+    fn from(content: T) -> Self {
+        NewDocument::from_content(content)
     }
 }

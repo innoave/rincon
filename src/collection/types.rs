@@ -33,7 +33,6 @@ pub struct Collection {
 
     /// The type of the collection.
     #[serde(rename = "type")]
-
     kind: CollectionType,
 
     /// The status of the collection.
