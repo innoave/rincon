@@ -44,14 +44,18 @@ install:
   - set PATH=%PATH%;%USERPROFILE%\.cargo\bin
   - rustc -vV
   - cargo -vV
+  - docker -v
 #  - choco install docker-compose
+  - docker-compose -v
 
 build: false
 
 test_script:
   - pwd
-  - docker-compose up -d
-  - cargo test --lib --all-features %cargoflags%
+  - docker-compose up -d --verbose
+  - cargo build --lib --all-features --verbose %cargoflags%
+  - cargo test --lib --all-features --verbose %cargoflags%
+  - cargo build --verbose %cargoflags%
   - cargo test --verbose %cargoflags%
-  - docker-compose down
+  - docker-compose down --verbose
   
