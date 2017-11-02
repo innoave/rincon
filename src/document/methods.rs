@@ -3,7 +3,7 @@ use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use arango_protocol::{FIELD_CODE, FIELD_ID, FIELD_RESULT, PARAM_RETURN_NEW, PARAM_SILENT,
+use arango::protocol::{FIELD_CODE, FIELD_ID, FIELD_RESULT, PARAM_RETURN_NEW, PARAM_SILENT,
     PARAM_WAIT_FOR_SYNC, PATH_API_DOCUMENT, PATH_PROPERTIES, PATH_RENAME};
 use super::types::*;
 
@@ -37,31 +37,37 @@ impl<T> InsertDocument<T> {
         &self.document
     }
 
-    pub fn with_force_wait_for_sync(&mut self, force_wait_for_sync: bool) -> &mut Self {
-        self.wait_for_sync = Some(force_wait_for_sync);
+    pub fn with_force_wait_for_sync<Wfs>(mut self, force_wait_for_sync: Wfs) -> Self
+        where Wfs: Into<Option<bool>>
+    {
+        self.wait_for_sync = force_wait_for_sync.into();
         self
     }
 
-    pub fn is_force_wait_for_sync(&self) -> bool {
-        self.wait_for_sync.unwrap_or(false)
+    pub fn is_force_wait_for_sync(&self) -> Option<bool> {
+        self.wait_for_sync
     }
 
-    pub fn with_return_new(mut self, return_new: bool) -> Self {
-        self.return_new = Some(return_new);
+    pub fn with_return_new<Rn>(mut self, return_new: Rn) -> Self
+        where Rn: Into<Option<bool>>
+    {
+        self.return_new = return_new.into();
         self
     }
 
-    pub fn is_return_new(&self) -> bool {
-        self.return_new.unwrap_or(false)
+    pub fn is_return_new(&self) -> Option<bool> {
+        self.return_new
     }
 
-    pub fn with_silent(mut self, silent: bool) -> Self {
-        self.silent = Some(silent);
+    pub fn with_silent<S>(mut self, silent: S) -> Self
+        where S: Into<Option<bool>>
+    {
+        self.silent = silent.into();
         self
     }
 
-    pub fn is_silent(&self) -> bool {
-        self.silent.unwrap_or(false)
+    pub fn is_silent(&self) -> Option<bool> {
+        self.silent
     }
 }
 

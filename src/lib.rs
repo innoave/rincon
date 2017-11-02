@@ -43,7 +43,8 @@ pub mod collection;
 pub mod cursor;
 pub mod database;
 pub mod document;
+pub mod graph;
 pub mod index;
 pub mod user;
 
-mod arango_protocol;
+mod arango;

@@ -19,7 +19,7 @@ use url::percent_encoding::DEFAULT_ENCODE_SET;
 use api::auth::{Authentication, Credentials, Jwt};
 use api::method::{Method, Operation, Prepare, RpcReturnType};
 use api::method as api;
-use arango_protocol::PATH_DB;
+use arango::protocol::PATH_DB;
 use datasource::DataSource;
 
 const DEFAULT_USER_AGENT: &str = "Mozilla/5.0 (compatible; ArangoDB-RustDriver/1.1)";

@@ -2,7 +2,7 @@
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
-use arango_protocol::{Handle, HandleOption};
+use arango::protocol::{Handle, HandleOption};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum DocumentIdOption {

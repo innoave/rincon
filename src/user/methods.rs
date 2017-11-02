@@ -7,7 +7,7 @@ use serde::ser::Serialize;
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use api::types::Empty;
-use arango_protocol::{FIELD_CODE, FIELD_RESULT, PATH_DATABASE, PATH_API_USER};
+use arango::protocol::{FIELD_CODE, FIELD_RESULT, PATH_DATABASE, PATH_API_USER};
 use super::types::*;
 
 /// Creates a new user.

@@ -9,7 +9,7 @@ use std::slice::Iter;
 use serde::de::{Deserialize, Deserializer, DeserializeOwned};
 use serde::ser::Serialize;
 
-use arango_protocol::{VALUE_FALSE, VALUE_TRUE};
+use arango::protocol::{VALUE_FALSE, VALUE_TRUE};
 
 pub trait Method {
     type Result: DeserializeOwned;

@@ -5,7 +5,7 @@ use std::iter::{FromIterator, IntoIterator};
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
-use arango_protocol::{Handle, HandleOption};
+use arango::protocol::{Handle, HandleOption};
 
 const INDEX_TYPE_PRIMARY: &str = "primary";
 const INDEX_TYPE_HASH: &str = "hash";

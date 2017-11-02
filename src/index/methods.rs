@@ -1,6 +1,6 @@
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use arango_protocol::{FIELD_CODE, FIELD_ID, PARAM_COLLECTION, PATH_API_INDEX};
+use arango::protocol::{FIELD_CODE, FIELD_ID, PARAM_COLLECTION, PATH_API_INDEX};
 use super::types::*;
 
 /// Returns an `IndexList` with an attribute indexes containing an array of all

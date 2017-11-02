@@ -1,7 +1,7 @@
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use api::query::Query;
-use arango_protocol::{FIELD_CODE, PATH_API_EXPLAIN, PATH_API_QUERY};
+use arango::protocol::{FIELD_CODE, PATH_API_EXPLAIN, PATH_API_QUERY};
 use super::types::*;
 
 #[derive(Clone, Debug, PartialEq)]

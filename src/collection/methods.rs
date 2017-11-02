@@ -1,9 +1,9 @@
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use arango_protocol::{FIELD_CODE, FIELD_ID, FIELD_RESULT, PARAM_EXCLUDE_SYSTEM,
+use arango::protocol::{FIELD_CODE, FIELD_ID, FIELD_RESULT, PARAM_EXCLUDE_SYSTEM,
     PATH_API_COLLECTION, PATH_PROPERTIES, PATH_RENAME, VALUE_TRUE};
 #[cfg(feature = "cluster")]
-use arango_protocol::{PARAM_WAIT_FOR_SYNC_REPLICATION, VALUE_ZERO};
+use arango::protocol::{PARAM_WAIT_FOR_SYNC_REPLICATION, VALUE_ZERO};
 use super::types::*;
 
 /// Retrieves a list of existing collections.
