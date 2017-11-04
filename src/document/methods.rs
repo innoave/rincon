@@ -1,10 +1,12 @@
 
+use std::fmt::Debug;
+
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use arango::protocol::{FIELD_CODE, FIELD_ID, FIELD_RESULT, PARAM_RETURN_NEW, PARAM_SILENT,
-    PARAM_WAIT_FOR_SYNC, PATH_API_DOCUMENT, PATH_PROPERTIES, PATH_RENAME};
+use arango::protocol::{FIELD_CODE, PARAM_RETURN_NEW, PARAM_SILENT,
+    PARAM_WAIT_FOR_SYNC, PATH_API_DOCUMENT};
 use super::types::*;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -72,7 +74,7 @@ impl<T> InsertDocument<T> {
 }
 
 impl<T> Method for InsertDocument<T>
-    where T: DeserializeOwned
+    where T: DeserializeOwned + Debug
 {
     type Result = Document<T>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -82,7 +84,7 @@ impl<T> Method for InsertDocument<T>
 }
 
 impl<T> Prepare for InsertDocument<T>
-    where T: Serialize
+    where T: Serialize + Debug
 {
     type Content = NewDocument<T>;
 

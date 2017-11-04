@@ -28,7 +28,7 @@ extern crate native_tls;
 extern crate regex;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
-extern crate serde_json;
+#[macro_use] extern crate serde_json;
 extern crate tokio_core;
 extern crate url;
 
