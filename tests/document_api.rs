@@ -10,9 +10,7 @@ extern crate arangodb_client;
 mod test_fixture;
 
 use test_fixture::*;
-use arangodb_client::api::method::ErrorCode;
 use arangodb_client::collection::CreateCollection;
-use arangodb_client::connection::Error;
 use arangodb_client::document::*;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

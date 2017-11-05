@@ -45,11 +45,6 @@ pub const PARAM_WAIT_FOR_SYNC: &str = "waitForSync";
 #[cfg(feature = "cluster")]
 pub const PARAM_WAIT_FOR_SYNC_REPLICATION: &str = "waitForSyncReplication";
 
-pub const VALUE_FALSE: &str = "false";
-pub const VALUE_TRUE: &str = "true";
-#[cfg(feature = "cluster")]
-pub const VALUE_ZERO: &str = "0";
-
 
 const CAPTURE_CONTEXT_NAME: &str = "ctx";
 const CAPTURE_ELEMENT_KEY: &str = "key";
@@ -113,27 +108,6 @@ pub struct Handle {
 }
 
 impl Handle {
-    pub fn new<C, K>(context: C, key: K) -> Self
-        where C: Into<String>, K: Into<String>
-    {
-        let context = context.into();
-        assert!(!context.contains('/'), "A context name must not contain any '/' character");
-        let key = key.into();
-        assert!(!key.contains('/'), "A handle key must not contain any '/' character");
-        Handle {
-            context,
-            key,
-        }
-    }
-
-    pub fn deconstruct(self) -> (String, String) {
-        let mut handle = self;
-        (
-            mem::replace(&mut handle.context, String::new()),
-            mem::replace(&mut handle.key, String::new()),
-        )
-    }
-
     pub fn from_str(handle_name: &str, value: &str) -> Result<Self, String> {
         let re = Regex::new(REGEX_ID_CAPTURE).unwrap();
         if let Some(caps) = re.captures(value) {
@@ -153,16 +127,16 @@ impl Handle {
         }
     }
 
+    pub fn deconstruct(self) -> (String, String) {
+        let mut handle = self;
+        (
+            mem::replace(&mut handle.context, String::new()),
+            mem::replace(&mut handle.key, String::new()),
+        )
+    }
+
     pub fn as_string(&self) -> String {
         self.context.to_owned() + "/" + &self.key
-    }
-
-    pub fn context(&self) -> &str {
-        &self.context
-    }
-
-    pub fn key(&self) -> &str {
-        &self.key
     }
 }
 
@@ -194,14 +168,6 @@ impl<'de> Deserialize<'de> for Handle {
 pub struct HandleKey(String);
 
 impl HandleKey {
-    pub fn new<K>(handle_key: K) -> Self
-        where K: Into<String>
-    {
-        let handle_key = handle_key.into();
-        assert!(!handle_key.contains('/'), "A handle key must not contain any '/' character, but got: {:?}", &handle_key);
-        HandleKey(handle_key)
-    }
-
     pub fn deconstruct(self) -> String {
         let mut handle_key = self;
         mem::replace(&mut handle_key.0, String::new())
@@ -214,14 +180,6 @@ impl HandleKey {
         } else {
             Ok(HandleKey(value))
         }
-    }
-
-    pub fn from_str(handle_name: &str, value: &str) -> Result<Self, String> {
-        HandleKey::from_string(handle_name, value.to_owned())
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
     }
 }
 
@@ -255,33 +213,33 @@ mod tests {
 
     #[test]
     fn get_handle_key_from_str() {
-        let handle_key = HandleKey::from_str("index id", "12341").unwrap();
-        assert_eq!("12341", handle_key.as_str());
+        let handle_key = HandleKey::from_string("index id", "12341".to_owned()).unwrap();
+        assert_eq!("12341", &handle_key.0);
     }
 
     #[test]
     fn get_handle_key_from_str_with_slash_character_in_the_middle() {
-        let result = HandleKey::from_str("index id", "mine/12341");
+        let result = HandleKey::from_string("index id", "mine/12341".to_owned());
         assert_eq!(Err("A index id key must not contain any '/' character, but got: \"mine/12341\"".to_owned()), result);
     }
 
     #[test]
     fn get_handle_key_from_str_with_slash_character_at_the_beginning() {
-        let result = HandleKey::from_str("index id", "/12341");
+        let result = HandleKey::from_string("index id", "/12341".to_owned());
         assert_eq!(Err("A index id key must not contain any '/' character, but got: \"/12341\"".to_owned()), result);
     }
 
     #[test]
     fn get_handle_key_from_str_with_slash_character_at_the_end() {
-        let result = HandleKey::from_str("index id", "12341/");
+        let result = HandleKey::from_string("index id", "12341/".to_owned());
         assert_eq!(Err("A index id key must not contain any '/' character, but got: \"12341/\"".to_owned()), result);
     }
 
     #[test]
     fn get_handle_from_str() {
         let handle = Handle::from_str("index id", "mine/12341").unwrap();
-        assert_eq!("mine", handle.context());
-        assert_eq!("12341", handle.key());
+        assert_eq!("mine", &handle.context);
+        assert_eq!("12341", &handle.key);
         assert_eq!("mine/12341", &handle.as_string());
     }
 
@@ -306,12 +264,12 @@ mod tests {
     #[test]
     fn get_handle_option_from_str_with_context_and_key() {
         let handle_option = HandleOption::from_str("index id", "mine/12341").unwrap();
-        assert_eq!(HandleOption::from(Handle::new("mine", "12341")), handle_option);
+        assert_eq!(HandleOption::Qualified(Handle { context: "mine".to_owned(), key: "12341".to_owned() }), handle_option);
     }
 
     #[test]
     fn get_handle_option_from_str_with_key_only() {
         let handle_option = HandleOption::from_str("index id", "12341").unwrap();
-        assert_eq!(HandleOption::from(HandleKey::new("12341")), handle_option);
+        assert_eq!(HandleOption::Local(HandleKey("12341".to_owned())), handle_option);
     }
 }
