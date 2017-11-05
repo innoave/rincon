@@ -70,6 +70,10 @@ impl Prepare for ListCollections {
         params
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         None
     }
@@ -191,6 +195,10 @@ impl Prepare for CreateCollection {
         params
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.collection)
     }
@@ -284,6 +292,10 @@ impl Prepare for DropCollection {
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         None
     }
@@ -341,6 +353,10 @@ impl Prepare for GetCollection {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 
@@ -402,6 +418,10 @@ impl Prepare for GetCollectionProperties {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 
@@ -471,6 +491,10 @@ impl Prepare for ChangeCollectionProperties {
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.updates)
     }
@@ -528,6 +552,10 @@ impl Prepare for RenameCollection {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 

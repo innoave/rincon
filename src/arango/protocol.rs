@@ -13,6 +13,9 @@ pub const FIELD_ENTITY_NEW: &str = "new";
 pub const FIELD_ID: &str = "id";
 pub const FIELD_RESULT: &str = "result";
 
+pub const HEADER_IF_MATCH: &str = "If-Match";
+pub const HEADER_IF_NON_MATCH: &str = "If-None-Match";
+
 pub const PATH_ADMIN: &str = "/_admin";
 pub const PATH_API_COLLECTION: &str = "/_api/collection";
 pub const PATH_API_CURSOR: &str = "/_api/cursor";

@@ -48,6 +48,10 @@ impl Prepare for ParseQuery {
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.options)
     }
@@ -94,6 +98,10 @@ impl Prepare for ExplainQuery {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 

@@ -165,10 +165,13 @@ impl Connection {
                 },
                 Authentication::None => {},
             }
+            for &(ref name, ref value) in prepare.header().iter() {
+                headers.set_raw(name.to_owned(), value.to_owned());
+            }
         }
         if let Some(content) = prepare.content() {
             let json = serialize_payload(content)?;
-//            trace!("Payload: {:?}", String::from_utf8(json.clone()));
+            trace!("| request body: {:?}", String::from_utf8(json.clone()));
             request.headers_mut().set(ContentType::json());
             request.headers_mut().set(ContentLength(json.len() as u64));
             request.set_body(json);
@@ -299,6 +302,10 @@ mod tests {
 
         fn parameters(&self) -> Parameters {
             Parameters::from_iter(self.params.iter())
+        }
+
+        fn header(&self) -> Parameters {
+            Parameters::empty()
         }
 
         fn content(&self) -> Option<&Self::Content> {

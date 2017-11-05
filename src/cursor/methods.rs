@@ -66,6 +66,10 @@ impl<T> Prepare for CreateCursor<T> {
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.query)
     }
@@ -136,6 +140,10 @@ impl Prepare for DeleteCursor {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 
@@ -216,6 +224,10 @@ impl<T> Prepare for ReadNextBatchFromCursor<T> {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 

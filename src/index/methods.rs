@@ -58,6 +58,10 @@ impl Prepare for GetIndexList {
         params
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         None
     }
@@ -101,6 +105,10 @@ impl Prepare for GetIndex {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 
@@ -161,6 +169,10 @@ impl Prepare for CreateIndex {
         params
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.index)
     }
@@ -204,6 +216,10 @@ impl Prepare for DeleteIndex {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 

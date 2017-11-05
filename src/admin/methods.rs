@@ -38,6 +38,10 @@ impl Prepare for GetTargetVersion {
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         None
     }
@@ -92,6 +96,10 @@ impl Prepare for GetServerVersion {
             params.insert(PARAM_DETAILS, VALUE_TRUE);
         }
         params
+    }
+
+    fn header(&self) -> Parameters {
+        Parameters::empty()
     }
 
     fn content(&self) -> Option<&Self::Content> {

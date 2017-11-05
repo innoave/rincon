@@ -380,7 +380,6 @@ impl<'de, T> Deserialize<'de> for Document<T>
                     (None, _, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_ID)),
                     (_, None, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_KEY)),
                     (_, _, None, _) => Err(A::Error::missing_field(FIELD_ENTITY_REVISION)),
-                    (_, _, _, None) => Err(A::Error::missing_field(FIELD_ENTITY_NEW)),
                 }
             }
         }

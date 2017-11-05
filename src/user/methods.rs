@@ -64,6 +64,10 @@ impl<E> Prepare for CreateUser<E>
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.user)
     }
@@ -118,6 +122,10 @@ impl<E> Prepare for ListAvailableUsers<E>
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         None
     }
@@ -169,6 +177,10 @@ impl Prepare for RemoveUser {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 
@@ -241,6 +253,10 @@ impl<E> Prepare for GetUser<E>
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 
@@ -322,6 +338,10 @@ impl<E> Prepare for ModifyUser<E>
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 
@@ -410,6 +430,10 @@ impl<E> Prepare for ReplaceUser<E>
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.updates)
     }
@@ -474,6 +498,10 @@ impl Prepare for ListDatabasesForUser {
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         None
     }
@@ -529,6 +557,10 @@ impl Prepare for GetDatabaseAccessLevel {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 
@@ -600,6 +632,10 @@ impl Prepare for SetDatabaseAccessLevel {
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.access_level)
     }
@@ -660,6 +696,10 @@ impl Prepare for ResetDatabaseAccessLevel {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 
@@ -727,6 +767,10 @@ impl Prepare for GetCollectionAccessLevel {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 
@@ -811,6 +855,10 @@ impl Prepare for SetCollectionAccessLevel {
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.access_level)
     }
@@ -880,6 +928,10 @@ impl Prepare for ResetCollectionAccessLevel {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 

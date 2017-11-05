@@ -22,9 +22,15 @@ pub trait Method {
 
 pub trait Prepare {
     type Content: Serialize;
+
     fn operation(&self) -> Operation;
+
     fn path(&self) -> String;
+
     fn parameters(&self) -> Parameters;
+
+    fn header(&self) -> Parameters;
+
     fn content(&self) -> Option<&Self::Content>;
 }
 

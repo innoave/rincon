@@ -95,6 +95,10 @@ impl<T> Prepare for InsertDocument<T>
         params
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.document)
     }
@@ -186,7 +190,27 @@ impl<T> Prepare for InsertDocumentReturnNew<T>
         params
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.document)
     }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct GetDocument {
+    id: DocumentId,
+    if_match: Option<String>,
+    if_non_match: Option<String>,
+}
+
+
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct GetDocumentHeader {
+    id: DocumentId,
+    if_match: Option<String>,
+    if_non_match: Option<String>,
 }

@@ -53,6 +53,10 @@ impl Prepare for Authenticate {
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.request)
     }

@@ -41,6 +41,10 @@ impl Prepare for GetCurrentDatabase {
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         None
     }
@@ -86,6 +90,10 @@ impl Prepare for ListDatabases {
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         None
     }
@@ -124,6 +132,10 @@ impl Prepare for ListAccessibleDatabases {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 
@@ -213,6 +225,10 @@ impl<E> Prepare for CreateDatabase<E>
         Parameters::empty()
     }
 
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.database)
     }
@@ -273,6 +289,10 @@ impl Prepare for DropDatabase {
     }
 
     fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
         Parameters::empty()
     }
 
