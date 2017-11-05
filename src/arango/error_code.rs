@@ -13,6 +13,8 @@
 //!
 //! Last updated: 09/17/2017
 
+use serde::de::{Deserialize, Deserializer};
+
 /// This macro defines an `ErrorCode` enum with the given variants. In addition
 /// it implements the `description` function that returns a short description
 /// of the error code as well as the `from_u16` function that maps `u16` values
@@ -87,6 +89,15 @@ macro_rules! error_code_enum {
         impl ::std::cmp::Ord for ErrorCode {
             fn cmp(&self, other: &Self) -> ::std::cmp::Ordering {
                 self.as_u16().cmp(&other.as_u16())
+            }
+        }
+
+        impl<'de> Deserialize<'de> for ErrorCode {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                where D: Deserializer<'de>
+            {
+                let value = u16::deserialize(deserializer)?;
+                Ok(ErrorCode::from_u16(value))
             }
         }
     }

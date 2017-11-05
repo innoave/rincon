@@ -754,7 +754,7 @@ impl Method for GetCollectionAccessLevel {
 }
 
 impl Prepare for GetCollectionAccessLevel {
-    type Content = Empty;
+    type Content = ();
 
     fn operation(&self) -> Operation {
         Operation::Read

@@ -17,8 +17,7 @@ use url;
 use url::percent_encoding::DEFAULT_ENCODE_SET;
 
 use api::auth::{Authentication, Credentials, Jwt};
-use api::method::{Method, Operation, Prepare, RpcReturnType};
-use api::method as api;
+use api::method::{self, Method, Operation, Prepare, RpcReturnType};
 use arango::protocol::PATH_DB;
 use datasource::DataSource;
 
@@ -28,7 +27,7 @@ pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=Error>>;
 
 #[derive(Debug)]
 pub enum Error {
-    ApiError(api::Error),
+    ApiError(method::Error),
     CommunicationFailed(hyper::Error),
     JsonError(serde_json::Error),
     HttpError(StatusCode),
@@ -74,9 +73,9 @@ impl From<StatusCode> for Error {
     }
 }
 
-impl From<StatusCode> for api::ErrorCode {
+impl From<StatusCode> for method::ErrorCode {
     fn from(status_code: StatusCode) -> Self {
-        api::ErrorCode::from_u16(status_code.as_u16())
+        method::ErrorCode::from_u16(status_code.as_u16())
     }
 }
 
@@ -131,8 +130,8 @@ impl Connection {
         }
     }
 
-    pub fn prepare_request<P>(&self, prepare: &P) -> Result<Request, Error>
-        where P: Prepare
+    pub fn prepare_request<'p, P>(&self, prepare: &'p P) -> Result<Request, Error>
+        where P: 'p + Prepare
     {
         let operation = prepare.operation();
         let http_method = http_method_for_operation(&operation);
@@ -166,7 +165,7 @@ impl Connection {
                 Authentication::None => {},
             }
             for &(ref name, ref value) in prepare.header().iter() {
-                headers.set_raw(name.to_owned(), value.to_owned());
+                headers.set_raw(name.to_string(), value.to_string());
             }
         }
         if let Some(content) = prepare.content() {
@@ -214,13 +213,13 @@ fn parse_return_type<M>(return_type: &RpcReturnType, status_code: StatusCode, pa
     } else {
         debug!("| response body: {}", String::from_utf8_lossy(payload));
         let api_error = serde_json::from_slice(payload).unwrap_or_else(|_| {
-            let error_code = api::ErrorCode::from(status_code);
+            let error_code = method::ErrorCode::from(status_code);
             let message = if payload.is_empty() {
                 error_code.description().to_owned()
             } else {
                 String::from_utf8_lossy(payload).to_string()
             };
-            api::Error::new(status_code.as_u16(), error_code, message)
+            method::Error::new(status_code.as_u16(), error_code, message)
         });
         Err(Error::ApiError(api_error))
     }
@@ -240,6 +239,7 @@ fn http_method_for_operation(operation: &Operation) -> hyper::Method {
         Operation::Modify => Method::Patch,
         Operation::Replace => Method::Put,
         Operation::Delete => Method::Delete,
+        Operation::ReadHeader => Method::Head,
     }
 }
 
@@ -262,7 +262,7 @@ fn build_request_uri<P>(datasource: &DataSource, prepare: &P) -> Uri
         for &(ref key, ref value) in prepare.parameters().iter() {
             request_uri.push_str(&percent_encode(key));
             request_uri.push('=');
-            request_uri.push_str(&percent_encode(value));
+            request_uri.push_str(&percent_encode(&value.to_string()));
             request_uri.push('&');
         }
         request_uri.pop();

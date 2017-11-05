@@ -54,7 +54,7 @@ impl Prepare for GetIndexList {
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::with_capacity(1);
-        params.insert("collection", self.collection_name.as_ref());
+        params.insert(PARAM_COLLECTION, self.collection_name.to_owned());
         params
     }
 
@@ -165,7 +165,7 @@ impl Prepare for CreateIndex {
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::with_capacity(1);
-        params.insert(PARAM_COLLECTION, self.collection_name.as_ref());
+        params.insert(PARAM_COLLECTION, self.collection_name.to_owned());
         params
     }
 

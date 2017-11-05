@@ -8,9 +8,12 @@ use std::mem;
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
-use api::query::{Query, Value};
-use api::types::JsonValue;
+use api::query::Query;
+use api::types::{JsonValue, Value};
 use index::Index;
+
+const COLLECT_METHOD_SORTED: &str = "sorted";
+const COLLECT_METHOD_HASH: &str = "hash";
 
 const EXECUTION_NODE_TYPE_SINGLETON_NODE: &str = "SingletonNode";
 const EXECUTION_NODE_TYPE_ENUMERATE_COLLECTION_NODE: &str = "EnumerateCollectionNode";
@@ -2228,8 +2231,8 @@ impl CollectMethod {
     pub fn from_api_str(value: &str) -> Self {
         use self::CollectMethod::*;
         match value {
-            "sorted" => Sorted,
-            "hash" => Hash,
+            COLLECT_METHOD_SORTED => Sorted,
+            COLLECT_METHOD_HASH => Hash,
             _ => Custom(value.to_owned()),
         }
     }
@@ -2237,8 +2240,8 @@ impl CollectMethod {
     pub fn as_api_str(&self) -> &str {
         use self::CollectMethod::*;
         match *self {
-            Sorted => "sorted",
-            Hash => "hash",
+            Sorted => COLLECT_METHOD_SORTED,
+            Hash => COLLECT_METHOD_HASH,
             Custom(ref method) => method,
         }
     }

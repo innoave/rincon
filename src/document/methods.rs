@@ -1,12 +1,13 @@
 
 use std::fmt::Debug;
+use std::marker::PhantomData;
 
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use arango::protocol::{FIELD_CODE, PARAM_RETURN_NEW, PARAM_SILENT,
-    PARAM_WAIT_FOR_SYNC, PATH_API_DOCUMENT};
+use arango::protocol::{FIELD_CODE, HEADER_IF_MATCH, HEADER_IF_NON_MATCH,
+    PARAM_RETURN_NEW, PARAM_SILENT, PARAM_WAIT_FOR_SYNC, PATH_API_DOCUMENT};
 use super::types::*;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -85,12 +86,12 @@ impl<T> Prepare for InsertDocument<T>
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::new();
-        params.insert_bool(PARAM_RETURN_NEW, false);
+        params.insert(PARAM_RETURN_NEW, false);
         if let Some(wait_for_sync) = self.wait_for_sync {
-            params.insert_bool(PARAM_WAIT_FOR_SYNC, wait_for_sync);
+            params.insert(PARAM_WAIT_FOR_SYNC, wait_for_sync);
         }
         if let Some(silent) = self.silent {
-            params.insert_bool(PARAM_SILENT, silent);
+            params.insert(PARAM_SILENT, silent);
         }
         params
     }
@@ -180,12 +181,12 @@ impl<T> Prepare for InsertDocumentReturnNew<T>
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::new();
-        params.insert_bool(PARAM_RETURN_NEW, true);
+        params.insert(PARAM_RETURN_NEW, true);
         if let Some(wait_for_sync) = self.wait_for_sync {
-            params.insert_bool(PARAM_WAIT_FOR_SYNC, wait_for_sync);
+            params.insert(PARAM_WAIT_FOR_SYNC, wait_for_sync);
         }
         if let Some(silent) = self.silent {
-            params.insert_bool(PARAM_SILENT, silent);
+            params.insert(PARAM_SILENT, silent);
         }
         params
     }
@@ -200,17 +201,96 @@ impl<T> Prepare for InsertDocumentReturnNew<T>
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct GetDocument {
+pub struct GetDocument<T> {
     id: DocumentId,
     if_match: Option<String>,
     if_non_match: Option<String>,
+    content: PhantomData<T>,
 }
 
+impl<T> Method for GetDocument<T>
+    where T: DeserializeOwned
+{
+    type Result = Document<T>;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some(FIELD_CODE),
+    };
+}
 
+impl<T> Prepare for GetDocument<T> {
+    type Content = ();
+
+    fn operation(&self) -> Operation {
+        Operation::Read
+    }
+
+    fn path(&self) -> String {
+        String::from(PATH_API_DOCUMENT) + "/" + &self.id.as_string()
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
+        let mut header = Parameters::new();
+        if let Some(ref if_match) = self.if_match {
+            header.insert(HEADER_IF_MATCH, if_match.to_owned());
+        }
+        if let Some(ref if_non_match) = self.if_non_match {
+            header.insert(HEADER_IF_NON_MATCH, if_non_match.to_owned());
+        }
+        header
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
+    }
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct GetDocumentHeader {
     id: DocumentId,
     if_match: Option<String>,
     if_non_match: Option<String>,
+}
+
+impl Method for GetDocumentHeader {
+    type Result = DocumentHeader;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some(FIELD_CODE),
+    };
+}
+
+impl Prepare for GetDocumentHeader {
+    type Content = ();
+
+    fn operation(&self) -> Operation {
+        Operation::ReadHeader
+    }
+
+    fn path(&self) -> String {
+        String::from(PATH_API_DOCUMENT) + "/" + &self.id.as_string()
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
+        let mut header = Parameters::new();
+        if let Some(ref if_match) = self.if_match {
+            header.insert(HEADER_IF_MATCH, if_match.to_owned());
+        }
+        if let Some(ref if_non_match) = self.if_non_match {
+            header.insert(HEADER_IF_NON_MATCH, if_non_match.to_owned());
+        }
+        header
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
+    }
 }

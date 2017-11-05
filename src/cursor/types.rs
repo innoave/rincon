@@ -2,8 +2,8 @@
 use std::collections::HashMap;
 use std::mem;
 
-use api::query::{Query, Value};
-use api::types::JsonValue;
+use api::query::Query;
+use api::types::{JsonValue, Value};
 use aql::Optimizer;
 
 /// A temporary cursor for retrieving query results.

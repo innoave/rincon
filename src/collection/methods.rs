@@ -1,9 +1,9 @@
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use arango::protocol::{FIELD_CODE, FIELD_ID, FIELD_RESULT, PARAM_EXCLUDE_SYSTEM,
-    PATH_API_COLLECTION, PATH_PROPERTIES, PATH_RENAME, VALUE_TRUE};
+    PATH_API_COLLECTION, PATH_PROPERTIES, PATH_RENAME};
 #[cfg(feature = "cluster")]
-use arango::protocol::{PARAM_WAIT_FOR_SYNC_REPLICATION, VALUE_ZERO};
+use arango::protocol::PARAM_WAIT_FOR_SYNC_REPLICATION;
 use super::types::*;
 
 /// Retrieves a list of existing collections.
@@ -65,7 +65,7 @@ impl Prepare for ListCollections {
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::with_capacity(1);
         if self.exclude_system {
-            params.insert(PARAM_EXCLUDE_SYSTEM, VALUE_TRUE);
+            params.insert(PARAM_EXCLUDE_SYSTEM, true);
         }
         params
     }
@@ -190,7 +190,7 @@ impl Prepare for CreateCollection {
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::with_capacity(1);
         if !self.wait_for_sync_replication {
-            params.insert(PARAM_WAIT_FOR_SYNC_REPLICATION, VALUE_ZERO);
+            params.insert(PARAM_WAIT_FOR_SYNC_REPLICATION, 0);
         }
         params
     }

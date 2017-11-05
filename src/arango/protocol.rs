@@ -83,13 +83,6 @@ impl HandleOption {
             Err(format!("Invalid {}: {:?}", handle_name, value))
         }
     }
-
-    pub fn as_string(&self) -> String {
-        match *self {
-            HandleOption::Qualified(ref handle) => handle.as_string(),
-            HandleOption::Local(ref handle_key) => handle_key.as_str().to_owned(),
-        }
-    }
 }
 
 impl Serialize for HandleOption {
@@ -242,7 +235,7 @@ impl Serialize for HandleKey {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
     {
-        serializer.serialize_str(self.as_str())
+        serializer.serialize_str(&self.0)
     }
 }
 

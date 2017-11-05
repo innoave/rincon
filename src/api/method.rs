@@ -1,15 +1,14 @@
 
-mod error_code;
-pub use self::error_code::ErrorCode;
+pub use arango::error_code::ErrorCode;
 
 use std::fmt::{self, Debug, Display};
 use std::iter::{ExactSizeIterator, FromIterator, Iterator};
 use std::slice::Iter;
 
-use serde::de::{Deserialize, Deserializer, DeserializeOwned};
+use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
-use arango::protocol::{VALUE_FALSE, VALUE_TRUE};
+use api::types::Value;
 
 pub trait Method {
     type Result: DeserializeOwned;
@@ -41,11 +40,12 @@ pub enum Operation {
     Modify,
     Replace,
     Delete,
+    ReadHeader,
 }
 
 #[derive(Clone, PartialEq)]
 pub struct Parameters {
-    list: Vec<(String, String)>,
+    list: Vec<(String, Value)>,
 }
 
 impl Parameters {
@@ -72,23 +72,14 @@ impl Parameters {
     }
 
     pub fn iter(&self) -> ParameterIter {
-        ParameterIter(self.list.iter())
+        ParameterIter {
+            inner: self.list.iter(),
+        }
     }
 
     pub fn insert<K, V>(&mut self, name: K, value: V)
-        where K: Into<String>, V: Into<String>
+        where K: Into<String>, V: Into<Value>
     {
-        self.list.push((name.into(), value.into()));
-    }
-
-    pub fn insert_bool<K>(&mut self, name: K, value: bool)
-        where K: Into<String>
-    {
-        let value = if value {
-            VALUE_TRUE
-        } else {
-            VALUE_FALSE
-        };
         self.list.push((name.into(), value.into()));
     }
 }
@@ -104,7 +95,7 @@ impl Default for Parameters {
 impl Debug for Parameters {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str("Parameters")
-            .and_then(|_| f.debug_list().entries(self.list.iter()).finish())
+            .and_then(|_| f.debug_list().entries(self.iter()).finish())
     }
 }
 
@@ -116,7 +107,7 @@ impl Display for Parameters {
             for &(ref key, ref value) in self.list.iter() {
                 display.push_str(key);
                 display.push('=');
-                display.push_str(value);
+                display.push_str(&value.to_string());
                 display.push(',');
                 display.push(' ');
             }
@@ -129,7 +120,7 @@ impl Display for Parameters {
 }
 
 impl<K, V> From<Vec<(K, V)>> for Parameters
-    where K: Into<String>, V: Into<String>
+    where K: Into<String>, V: Into<Value>
 {
     fn from(list: Vec<(K, V)>) -> Self {
         Parameters::from_iter(list)
@@ -137,7 +128,7 @@ impl<K, V> From<Vec<(K, V)>> for Parameters
 }
 
 impl<K, V> FromIterator<(K, V)> for Parameters
-    where K: Into<String>, V: Into<String>
+    where K: Into<String>, V: Into<Value>
 {
     fn from_iter<T: IntoIterator<Item=(K, V)>>(iter: T) -> Parameters {
         Parameters {
@@ -146,10 +137,10 @@ impl<K, V> FromIterator<(K, V)> for Parameters
     }
 }
 
-impl<'a, K, V> FromIterator<&'a (K, V)> for Parameters
-    where K: Into<String> + Clone, V: Into<String> + Clone
+impl<'i, K, V> FromIterator<&'i (K, V)> for Parameters
+    where K: Into<String> + Clone, V: Into<Value> + Clone
 {
-    fn from_iter<T: IntoIterator<Item=&'a (K, V)>>(iter: T) -> Parameters {
+    fn from_iter<T: IntoIterator<Item=&'i (K, V)>>(iter: T) -> Parameters {
         Parameters {
             list: Vec::from_iter(iter.into_iter().map(|&(ref k, ref v)|
                 (k.clone().into(), v.clone().into()))),
@@ -158,7 +149,7 @@ impl<'a, K, V> FromIterator<&'a (K, V)> for Parameters
 }
 
 impl<K, V> Extend<(K, V)> for Parameters
-    where K: Into<String>, V: Into<String>
+    where K: Into<String>, V: Into<Value>
 {
     fn extend<T: IntoIterator<Item=(K, V)>>(&mut self, iter: T) {
         self.list.extend(iter.into_iter().map(|(k, v)| (k.into(), v.into())));
@@ -166,23 +157,25 @@ impl<K, V> Extend<(K, V)> for Parameters
 }
 
 #[derive(Debug)]
-pub struct ParameterIter<'a>(Iter<'a, (String, String)>);
+pub struct ParameterIter<'i> {
+    inner: Iter<'i, (String, Value)>,
+}
 
-impl<'a> Iterator for ParameterIter<'a> {
-    type Item = &'a (String, String);
+impl<'i> Iterator for ParameterIter<'i> {
+    type Item = &'i (String, Value);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
+        self.inner.next()
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        self.0.size_hint()
+        self.inner.size_hint()
     }
 }
 
-impl<'a> ExactSizeIterator for ParameterIter<'a> {
+impl<'i> ExactSizeIterator for ParameterIter<'i> {
     fn len(&self) -> usize {
-        self.0.len()
+        self.inner.len()
     }
 }
 
@@ -238,14 +231,5 @@ impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(&format!("Error {}: {} (Status: {})",
             &self.error_code.as_u16(), &self.message, &self.status_code))
-    }
-}
-
-impl<'de> Deserialize<'de> for ErrorCode {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
-    {
-        let value = u16::deserialize(deserializer)?;
-        Ok(ErrorCode::from_u16(value))
     }
 }
