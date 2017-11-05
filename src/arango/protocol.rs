@@ -9,6 +9,7 @@ pub const FIELD_CODE: &str = "code";
 pub const FIELD_ENTITY_ID: &str = "_id";
 pub const FIELD_ENTITY_KEY: &str = "_key";
 pub const FIELD_ENTITY_REVISION: &str = "_rev";
+pub const FIELD_ENTITY_NEW: &str = "new";
 pub const FIELD_ID: &str = "id";
 pub const FIELD_RESULT: &str = "result";
 

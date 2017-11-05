@@ -5,8 +5,9 @@ use std::marker::PhantomData;
 use serde::de::{Deserialize, DeserializeOwned, Deserializer, MapAccess, Visitor};
 use serde::ser::{Serialize, Serializer};
 
+use api::types::JsonString;
 use arango::protocol::{FIELD_ENTITY_ID, FIELD_ENTITY_KEY, FIELD_ENTITY_REVISION,
-    Handle, HandleOption};
+    FIELD_ENTITY_NEW, Handle, HandleOption};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum DocumentIdOption {
@@ -201,43 +202,28 @@ impl Revision {
     }
 }
 
-/// Marker trait for content of documents. Types that implement this trait
-/// can be used as content in documents.
-///
-/// Documents in *ArangoDB* must be valid Json documents. As simple types such
-/// as primitive types do not serialize into Json objects they must be wrapped
-/// within some struct enum or map.
-///
-/// This trait is useful if one wants to check at compile time whether the
-/// content of a document is supported by *ArangoDB*.
-pub trait Content {}
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DocumentHeader {
+    #[serde(rename = "_id")]
+    id: DocumentId,
+    #[serde(rename = "_key")]
+    key: DocumentKey,
+    #[serde(rename = "_rev")]
+    revision: Revision,
+}
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct RawJson(String);
-
-impl Content for RawJson {}
-
-impl RawJson {
-    pub fn new<J>(value: J) -> Self
-        where J: Into<String>
-    {
-        RawJson(value.into())
+impl DocumentHeader {
+    pub fn id(&self) -> &DocumentId {
+        &self.id
     }
 
-    pub fn from_string(value: String) -> Self {
-        RawJson(value)
+    pub fn key(&self) -> &DocumentKey {
+        &self.key
     }
 
-    pub fn from_str(value: &str) -> Self {
-        RawJson(value.to_owned())
-    }
-
-    pub fn into_string(self) -> String {
-        self.0
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
+    pub fn revision(&self) -> &Revision {
+        &self.revision
     }
 }
 
@@ -278,6 +264,7 @@ enum DocumentField {
     Id,
     Key,
     Revision,
+    New,
     Other(String),
 }
 
@@ -303,6 +290,7 @@ impl<'de> Deserialize<'de> for DocumentField {
                     FIELD_ENTITY_ID => DocumentField::Id,
                     FIELD_ENTITY_KEY => DocumentField::Key,
                     FIELD_ENTITY_REVISION => DocumentField::Revision,
+                    FIELD_ENTITY_NEW => DocumentField::New,
                     _ => DocumentField::Other(value.to_owned()),
                 })
             }
@@ -340,7 +328,9 @@ impl<'de, T> Deserialize<'de> for Document<T>
                 let mut id: Option<String> = None;
                 let mut key: Option<String> = None;
                 let mut revision: Option<String> = None;
-                let mut content = Map::new();
+                let mut content: Option<Value> = None;
+                let mut other = Map::new();
+
                 let mut fields = map;
                 while let Some(name) = fields.next_key()? {
                     match name {
@@ -353,17 +343,21 @@ impl<'de, T> Deserialize<'de> for Document<T>
                         DocumentField::Revision => {
                             revision = Some(fields.next_value()?);
                         },
+                        DocumentField::New => {
+                            content = Some(fields.next_value()?);
+                        }
                         DocumentField::Other(name) => {
-                            content.insert(name, fields.next_value()?);
+                            other.insert(name, fields.next_value()?);
                         }
                     }
                 }
-                let content = from_value(Value::Object(content)).map_err(A::Error::custom)?;
-                match (id, key, revision) {
-                    (Some(id), Some(key), Some(revision)) => {
+
+                match (id, key, revision, content) {
+                    (Some(id), Some(key), Some(revision), Some(content)) => {
                         let id = DocumentId::from_str(&id).map_err(A::Error::custom)?;
                         let key = DocumentKey::from_string(key).map_err(A::Error::custom)?;
                         let revision = Revision::from_string(revision);
+                        let content = from_value(content).map_err(A::Error::custom)?;
                         Ok(Document {
                             id,
                             key,
@@ -371,9 +365,22 @@ impl<'de, T> Deserialize<'de> for Document<T>
                             content,
                         })
                     },
-                    (None, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_ID)),
-                    (_, None, _) => Err(A::Error::missing_field(FIELD_ENTITY_KEY)),
-                    (_, _, None) => Err(A::Error::missing_field(FIELD_ENTITY_REVISION)),
+                    (Some(id), Some(key), Some(revision), None) => {
+                        let id = DocumentId::from_str(&id).map_err(A::Error::custom)?;
+                        let key = DocumentKey::from_string(key).map_err(A::Error::custom)?;
+                        let revision = Revision::from_string(revision);
+                        let content = from_value(Value::Object(other)).map_err(A::Error::custom)?;
+                        Ok(Document {
+                            id,
+                            key,
+                            revision,
+                            content,
+                        })
+                    },
+                    (None, _, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_ID)),
+                    (_, None, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_KEY)),
+                    (_, _, None, _) => Err(A::Error::missing_field(FIELD_ENTITY_REVISION)),
+                    (_, _, _, None) => Err(A::Error::missing_field(FIELD_ENTITY_NEW)),
                 }
             }
         }
@@ -442,13 +449,13 @@ impl<T> Serialize for NewDocument<T>
     }
 }
 
-impl Serialize for NewDocument<RawJson> {
+impl Serialize for NewDocument<JsonString> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
     {
         use serde::ser::Error;
         use serde_json::{self, Value};
-        let mut json_value = serde_json::from_str(&self.content.0).map_err(S::Error::custom)?;
+        let mut json_value = serde_json::from_str(self.content.as_str()).map_err(S::Error::custom)?;
         if let Some(ref key) = self.key {
             match json_value {
                 Value::Object(ref mut fields) => {
@@ -465,6 +472,7 @@ impl Serialize for NewDocument<RawJson> {
 mod tests {
     use std::collections::HashMap;
     use serde_json;
+    use api::types::JsonString;
     use super::*;
 
     #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -533,7 +541,7 @@ mod tests {
 
     #[test]
     fn serialize_raw_json_document_without_key() {
-        let content = RawJson::from_str(r#"{"a":"Hugo","b":42}"#);
+        let content = JsonString::from_str(r#"{"a":"Hugo","b":42}"#);
 
         let new_document = NewDocument::from_content(content);
         let json = serde_json::to_string(&new_document).unwrap();
@@ -543,7 +551,7 @@ mod tests {
 
     #[test]
     fn serialize_raw_json_document_with_key() {
-        let content = RawJson::from_str(r#"{"a":"Hugo","b":42}"#);
+        let content = JsonString::from_str(r#"{"a":"Hugo","b":42}"#);
 
         let new_document = NewDocument::from_content(content)
             .with_key(DocumentKey::new("29384"));
@@ -580,6 +588,24 @@ mod tests {
     #[test]
     fn deserialize_document() {
         let json_string = r#"{"_id":"customers/29384","_key":"29384","_rev":"aOIey283aew","a":"Hugo","b":42}"#;
+
+        let document = serde_json::from_str(json_string).unwrap();
+
+        let expected = Document {
+            id: DocumentId::new("customers", "29384"),
+            key: DocumentKey::new("29384"),
+            revision: Revision::new("aOIey283aew"),
+            content: MyContent {
+                a: "Hugo".to_owned(),
+                b: 42,
+            }
+        };
+        assert_eq!(expected, document);
+    }
+
+    #[test]
+    fn deserialize_document_just_inserted() {
+        let json_string = r#"{"_id":"customers/29384","_key":"29384","_rev":"aOIey283aew","new":{"_id":"customers/29384","_key":"29384","_rev":"aOIey283aew","a":"Hugo","b":42}}"#;
 
         let document = serde_json::from_str(json_string).unwrap();
 
