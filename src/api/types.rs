@@ -1,6 +1,7 @@
 
 use std::fmt::{self, Display};
 
+use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer, SerializeSeq};
 use serde_json;
 
@@ -41,6 +42,27 @@ impl JsonString {
 
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+}
+
+impl Serialize for JsonString {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        use serde::ser::Error;
+        let json_value: JsonValue = serde_json::from_str(&self.0).map_err(S::Error::custom)?;
+        json_value.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for JsonString {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        use serde::de::Error;
+        let json_value = JsonValue::deserialize(deserializer).map_err(D::Error::custom)?;
+        let json_string = serde_json::to_string(&json_value).map_err(D::Error::custom)?;
+        Ok(JsonString(json_string))
     }
 }
 

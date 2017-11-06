@@ -5,7 +5,6 @@ use std::marker::PhantomData;
 use serde::de::{Deserialize, DeserializeOwned, Deserializer, MapAccess, Visitor};
 use serde::ser::{Serialize, Serializer};
 
-use api::types::JsonString;
 use arango::protocol::{FIELD_ENTITY_ID, FIELD_ENTITY_KEY, FIELD_ENTITY_REVISION,
     FIELD_ENTITY_NEW, Handle, HandleOption};
 
@@ -448,25 +447,6 @@ impl<T> Serialize for NewDocument<T>
     }
 }
 
-impl Serialize for NewDocument<JsonString> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        use serde::ser::Error;
-        use serde_json::{self, Value};
-        let mut json_value = serde_json::from_str(self.content.as_str()).map_err(S::Error::custom)?;
-        if let Some(ref key) = self.key {
-            match json_value {
-                Value::Object(ref mut fields) => {
-                    fields.insert(FIELD_ENTITY_KEY.to_owned(), Value::String(key.as_str().to_owned()));
-                },
-                _ => return Err(S::Error::custom(format!("Invalid document content! Only strings that contain a valid Json object are supported. But got: {:?}", &self.content))),
-            };
-        }
-        json_value.serialize(serializer)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
@@ -585,7 +565,7 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_document() {
+    fn deserialize_struct_document() {
         let json_string = r#"{"_id":"customers/29384","_key":"29384","_rev":"aOIey283aew","a":"Hugo","b":42}"#;
 
         let document = serde_json::from_str(json_string).unwrap();
@@ -603,8 +583,19 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_document_just_inserted() {
-        let json_string = r#"{"_id":"customers/29384","_key":"29384","_rev":"aOIey283aew","new":{"_id":"customers/29384","_key":"29384","_rev":"aOIey283aew","a":"Hugo","b":42}}"#;
+    fn deserialize_struct_document_just_inserted() {
+        let json_string = r#"{
+            "_id": "customers/29384",
+            "_key": "29384",
+            "_rev": "aOIey283aew",
+            "new": {
+                "_id": "customers/29384",
+                "_key": "29384",
+                "_rev": "aOIey283aew",
+                "a": "Hugo",
+                "b":42
+            }
+        }"#;
 
         let document = serde_json::from_str(json_string).unwrap();
 
@@ -617,6 +608,38 @@ mod tests {
                 b: 42,
             }
         };
+        assert_eq!(expected, document);
+    }
+
+    #[test]
+    fn deserialize_json_document_just_inserted() {
+        let json_string = r#"{
+            "_id": "customers/29384",
+            "_key": "29384",
+            "_rev": "aOIey283aew",
+            "new": {
+                "_id": "customers/29384",
+                "_key": "29384",
+                "_rev": "aOIey283aew",
+                "a": "Hugo",
+                "b":42
+            }
+        }"#;
+
+        let document = serde_json::from_str(json_string).unwrap();
+
+        let expected = JsonString::from_str("{\
+            \"_id\":\"customers/29384\",\
+            \"_key\":\"29384\",\
+            \"_rev\":\"aOIey283aew\",\
+            \"new\":{\
+                \"_id\":\"customers/29384\",\
+                \"_key\":\"29384\",\
+                \"_rev\":\"aOIey283aew\",\
+                \"a\":\"Hugo\",\
+                \"b\":42\
+            }\
+        }");
         assert_eq!(expected, document);
     }
 }

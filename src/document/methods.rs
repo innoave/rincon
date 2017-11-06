@@ -208,6 +208,43 @@ pub struct GetDocument<T> {
     content: PhantomData<T>,
 }
 
+impl<T> GetDocument<T> {
+    pub fn new(id: DocumentId) -> Self {
+        GetDocument {
+            id,
+            if_match: None,
+            if_non_match: None,
+            content: PhantomData,
+        }
+    }
+
+    pub fn with_if_match<Im>(mut self, if_match: Im) -> Self
+        where Im: Into<Option<String>>
+    {
+        self.if_match = if_match.into();
+        self
+    }
+
+    pub fn with_if_non_match<Inm>(mut self, if_non_match: Inm) -> Self
+        where Inm: Into<Option<String>>
+    {
+        self.if_non_match = if_non_match.into();
+        self
+    }
+
+    pub fn id(&self) -> &DocumentId {
+        &self.id
+    }
+
+    pub fn if_match(&self) -> Option<&String> {
+        self.if_match.as_ref()
+    }
+
+    pub fn if_non_match(&self) -> Option<&String> {
+        self.if_non_match.as_ref()
+    }
+}
+
 impl<T> Method for GetDocument<T>
     where T: DeserializeOwned
 {
@@ -254,6 +291,42 @@ pub struct GetDocumentHeader {
     id: DocumentId,
     if_match: Option<String>,
     if_non_match: Option<String>,
+}
+
+impl GetDocumentHeader {
+    pub fn new(id: DocumentId) -> Self {
+        GetDocumentHeader {
+            id,
+            if_match: None,
+            if_non_match: None,
+        }
+    }
+
+    pub fn with_if_match<Im>(mut self, if_match: Im) -> Self
+        where Im: Into<Option<String>>
+    {
+        self.if_match = if_match.into();
+        self
+    }
+
+    pub fn with_if_non_match<Inm>(mut self, if_non_match: Inm) -> Self
+        where Inm: Into<Option<String>>
+    {
+        self.if_non_match = if_non_match.into();
+        self
+    }
+
+    pub fn id(&self) -> &DocumentId {
+        &self.id
+    }
+
+    pub fn if_match(&self) -> Option<&String> {
+        self.if_match.as_ref()
+    }
+
+    pub fn if_non_match(&self) -> Option<&String> {
+        self.if_non_match.as_ref()
+    }
 }
 
 impl Method for GetDocumentHeader {
