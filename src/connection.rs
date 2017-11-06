@@ -208,6 +208,8 @@ fn parse_return_type<M>(return_type: &RpcReturnType, status_code: StatusCode, pa
         };
         if parse_result.is_err() {
             debug!("| response body: {}", String::from_utf8_lossy(payload));
+        } else {
+            trace!("| response body: {}", String::from_utf8_lossy(payload));
         }
         parse_result.map_err(Error::from)
     } else {

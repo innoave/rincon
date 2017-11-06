@@ -10,7 +10,7 @@ extern crate arangodb_client;
 mod test_fixture;
 
 use test_fixture::*;
-use arangodb_client::api::types::JsonString;
+use arangodb_client::api::types::{EMPTY, JsonString};
 use arangodb_client::collection::CreateCollection;
 use arangodb_client::document::*;
 
@@ -207,5 +207,161 @@ fn insert_json_document_with_key_and_return_new() {
         assert!(!document.revision().as_str().is_empty());
         assert!(document.content().as_str().starts_with(r#"{"_id":"customers/7713996","_key":"7713996","_rev":""#));
         assert!(document.content().as_str().ends_with(r#"","active":true,"age":42,"contact":[{"address":"1-555-234523","kind":"Phone","tag":"work"}],"gender":"Female","groups":[],"name":"Jane Doe"}"#));
+    });
+}
+
+#[test]
+fn get_document_as_struct_inserted_as_struct() {
+    arango_user_db_test("test_document_user10", "test_document_db101", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer.clone())
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let method = GetDocument::new(document_id.clone());
+        let document = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", document.id().collection_name());
+        assert_eq!(&document_id, document.id());
+        assert_eq!(&document_key, document.key());
+        assert_eq!(&revision, document.revision());
+        assert_eq!(&customer, document.content());
+    });
+}
+
+#[test]
+fn get_document_as_struct_inserted_as_json_string() {
+    arango_user_db_test("test_document_user11", "test_document_db111", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let json_doc = r#"{
+            "name": "Jane Doe",
+            "contact": [
+                {
+                    "address": "1-555-234523",
+                    "kind": "Phone",
+                    "tag": "work"
+                }
+            ],
+            "gender": "Female",
+            "age": 42,
+            "active": true,
+            "groups": []
+        }"#;
+
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(JsonString::new(json_doc))
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let method = GetDocument::new(document_id.clone());
+        let document = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", document.id().collection_name());
+        assert_eq!(&document_id, document.id());
+        assert_eq!(&document_key, document.key());
+        assert_eq!(&revision, document.revision());
+        assert_eq!(&customer, document.content());
+    });
+}
+
+#[test]
+fn get_document_as_json_string_inserted_as_struct() {
+    arango_user_db_test("test_document_user12", "test_document_db121", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer.clone())
+                .with_key(DocumentKey::new("7713996"))
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let method = GetDocument::new(document_id.clone());
+        let document: Document<JsonString> = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", document.id().collection_name());
+        assert_eq!(&document_id, document.id());
+        assert_eq!(&document_key, document.key());
+        assert_eq!(&revision, document.revision());
+        let expected = r#"{"active":true,"age":42,"contact":[{"address":"1-555-234523","kind":"Phone","tag":"work"}],"gender":"Female","groups":[],"name":"Jane Doe"}"#;
+        assert_eq!(expected, document.content().as_str());
+    });
+}
+
+#[ignore] //TODO refactor get document header to document exists (with possibly returning the revision)
+#[test]
+fn get_document_header() {
+    arango_user_db_test("test_document_user20", "test_document_db201", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let inserted = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer.clone())
+                .with_key(DocumentKey::new("7721264"))
+        ))).unwrap();
+
+        let method = GetDocumentHeader::new(inserted.id().clone());
+        let result = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!(EMPTY, result);
     });
 }

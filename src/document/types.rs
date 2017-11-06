@@ -224,6 +224,10 @@ impl DocumentHeader {
     pub fn revision(&self) -> &Revision {
         &self.revision
     }
+
+    pub fn deconstruct(self) -> (DocumentId, DocumentKey, Revision) {
+        (self.id, self.key, self.revision)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]

@@ -6,6 +6,7 @@ use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use api::types::Empty;
 use arango::protocol::{FIELD_CODE, HEADER_IF_MATCH, HEADER_IF_NON_MATCH,
     PARAM_RETURN_NEW, PARAM_SILENT, PARAM_WAIT_FOR_SYNC, PATH_API_DOCUMENT};
 use super::types::*;
@@ -330,7 +331,7 @@ impl GetDocumentHeader {
 }
 
 impl Method for GetDocumentHeader {
-    type Result = DocumentHeader;
+    type Result = Empty;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
         code_field: Some(FIELD_CODE),
