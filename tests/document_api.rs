@@ -10,8 +10,10 @@ extern crate arangodb_client;
 mod test_fixture;
 
 use test_fixture::*;
-use arangodb_client::api::types::{EMPTY, JsonString};
+use arangodb_client::api::method::ErrorCode;
+use arangodb_client::api::types::JsonString;
 use arangodb_client::collection::CreateCollection;
+use arangodb_client::connection::Error;
 use arangodb_client::document::*;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -334,6 +336,167 @@ fn get_document_as_json_string_inserted_as_struct() {
     });
 }
 
+#[test]
+fn get_document_if_revision_matches() {
+    arango_user_db_test("test_document_user13", "test_document_db131", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer.clone())
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let method = GetDocument::new(document_id.clone())
+            .with_if_match(revision.as_str().to_owned());
+        let document = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", document.id().collection_name());
+        assert_eq!(&document_id, document.id());
+        assert_eq!(&document_key, document.key());
+        assert_eq!(&revision, document.revision());
+        assert_eq!(&customer, document.content());
+    });
+}
+
+#[test]
+fn get_document_if_revision_is_not_a_match() {
+    arango_user_db_test("test_document_user14", "test_document_db141", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer.clone())
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let method = GetDocument::new(document_id.clone())
+            .with_if_non_match(String::from("not") + revision.as_str());
+        let document = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", document.id().collection_name());
+        assert_eq!(&document_id, document.id());
+        assert_eq!(&document_key, document.key());
+        assert_eq!(&revision, document.revision());
+        assert_eq!(&customer, document.content());
+    });
+}
+
+#[test]
+fn get_document_but_revision_does_not_match() {
+    arango_user_db_test("test_document_user15", "test_document_db151", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer.clone())
+        ))).unwrap();
+        let (document_id, _, revision) = header.deconstruct();
+
+        let method = GetDocument::<Customer>::new(document_id)
+            .with_if_match(String::from("not") + revision.as_str());
+        let result = core.run(conn.execute(method));
+
+        match result {
+            Err(Error::ApiError(error)) => {
+                assert_eq!(412, error.status_code());
+                assert_eq!(ErrorCode::ArangoConflict, error.error_code());
+                assert_eq!("precondition failed", error.message());
+            },
+            _ => panic!("Error expected, but got: {:?}", &result),
+        }
+    });
+}
+
+#[test]
+fn get_document_for_id_that_does_not_exist() {
+    arango_user_db_test("test_document_user16", "test_document_db161", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer.clone())
+        ))).unwrap();
+        let (_, document_key, _) = header.deconstruct();
+
+        let method = GetDocument::<Customer>::new(DocumentId::new("customers", "notexisting999"));
+        let result = core.run(conn.execute(method));
+
+        match result {
+            Err(Error::ApiError(error)) => {
+                assert_eq!(404, error.status_code());
+                assert_eq!(ErrorCode::ArangoDocumentNotFound, error.error_code());
+                assert_eq!("document not found", error.message());
+            },
+            _ => panic!("Error expected, but got: {:?}", &result),
+        }
+
+        let method = GetDocument::<Customer>::new(DocumentId::new("notexisting99", document_key.as_str()));
+        let result = core.run(conn.execute(method));
+
+        match result {
+            Err(Error::ApiError(error)) => {
+                assert_eq!(404, error.status_code());
+                assert_eq!(ErrorCode::ArangoCollectionNotFound, error.error_code());
+                assert_eq!("collection not found: notexisting99", error.message());
+            },
+            _ => panic!("Error expected, but got: {:?}", &result),
+        }
+    });
+}
+
 #[ignore] //TODO refactor get document header to document exists (with possibly returning the revision)
 #[test]
 fn get_document_header() {
@@ -362,6 +525,6 @@ fn get_document_header() {
         let method = GetDocumentHeader::new(inserted.id().clone());
         let result = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!(EMPTY, result);
+        assert_eq!((), result);
     });
 }
