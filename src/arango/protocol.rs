@@ -40,7 +40,6 @@ pub const PARAM_COLLECTION: &str = "collection";
 pub const PARAM_DETAILS: &str = "details";
 pub const PARAM_EXCLUDE_SYSTEM: &str = "excludeSystem";
 pub const PARAM_RETURN_NEW: &str = "returnNew";
-pub const PARAM_SILENT: &str = "silent";
 pub const PARAM_WAIT_FOR_SYNC: &str = "waitForSync";
 #[cfg(feature = "cluster")]
 pub const PARAM_WAIT_FOR_SYNC_REPLICATION: &str = "waitForSyncReplication";

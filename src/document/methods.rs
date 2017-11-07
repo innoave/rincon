@@ -7,7 +7,7 @@ use serde::ser::Serialize;
 
 use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use arango::protocol::{FIELD_CODE, HEADER_IF_MATCH, HEADER_IF_NON_MATCH,
-    PARAM_RETURN_NEW, PARAM_SILENT, PARAM_WAIT_FOR_SYNC, PATH_API_DOCUMENT};
+    PARAM_RETURN_NEW, PARAM_WAIT_FOR_SYNC, PATH_API_DOCUMENT};
 use super::types::*;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -15,7 +15,6 @@ pub struct InsertDocument<T> {
     collection_name: String,
     document: NewDocument<T>,
     wait_for_sync: Option<bool>,
-    silent: Option<bool>,
 }
 
 impl<T> InsertDocument<T> {
@@ -26,7 +25,6 @@ impl<T> InsertDocument<T> {
             collection_name: collection_name.into(),
             document,
             wait_for_sync: None,
-            silent: None,
         }
     }
 
@@ -47,17 +45,6 @@ impl<T> InsertDocument<T> {
 
     pub fn is_force_wait_for_sync(&self) -> Option<bool> {
         self.wait_for_sync
-    }
-
-    pub fn with_silent<S>(mut self, silent: S) -> Self
-        where S: Into<Option<bool>>
-    {
-        self.silent = silent.into();
-        self
-    }
-
-    pub fn is_silent(&self) -> Option<bool> {
-        self.silent
     }
 }
 
@@ -90,9 +77,6 @@ impl<T> Prepare for InsertDocument<T>
         if let Some(wait_for_sync) = self.wait_for_sync {
             params.insert(PARAM_WAIT_FOR_SYNC, wait_for_sync);
         }
-        if let Some(silent) = self.silent {
-            params.insert(PARAM_SILENT, silent);
-        }
         params
     }
 
@@ -110,7 +94,6 @@ pub struct InsertDocumentReturnNew<T> {
     collection_name: String,
     document: NewDocument<T>,
     wait_for_sync: Option<bool>,
-    silent: Option<bool>,
 }
 
 impl<T> InsertDocumentReturnNew<T> {
@@ -121,7 +104,6 @@ impl<T> InsertDocumentReturnNew<T> {
             collection_name: collection_name.into(),
             document,
             wait_for_sync: None,
-            silent: None,
         }
     }
 
@@ -142,17 +124,6 @@ impl<T> InsertDocumentReturnNew<T> {
 
     pub fn is_force_wait_for_sync(&self) -> Option<bool> {
         self.wait_for_sync
-    }
-
-    pub fn with_silent<S>(mut self, silent: S) -> Self
-        where S: Into<Option<bool>>
-    {
-        self.silent = silent.into();
-        self
-    }
-
-    pub fn is_silent(&self) -> Option<bool> {
-        self.silent
     }
 }
 
@@ -184,9 +155,6 @@ impl<T> Prepare for InsertDocumentReturnNew<T>
         params.insert(PARAM_RETURN_NEW, true);
         if let Some(wait_for_sync) = self.wait_for_sync {
             params.insert(PARAM_WAIT_FOR_SYNC, wait_for_sync);
-        }
-        if let Some(silent) = self.silent {
-            params.insert(PARAM_SILENT, silent);
         }
         params
     }
