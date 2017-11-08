@@ -1,5 +1,6 @@
 
 use std::fmt::Debug;
+use std::iter::FromIterator;
 use std::marker::PhantomData;
 
 use serde::de::DeserializeOwned;
@@ -165,6 +166,164 @@ impl<T> Prepare for InsertDocumentReturnNew<T>
 
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.document)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct InsertDocuments<T> {
+    collection_name: String,
+    documents: Vec<NewDocument<T>>,
+    wait_for_sync: Option<bool>,
+}
+
+impl<T> InsertDocuments<T> {
+    pub fn new<N, Docs>(collection_name: N, documents: Docs) -> Self
+        where N: Into<String>, Docs: IntoIterator<Item=NewDocument<T>>
+    {
+        InsertDocuments {
+            collection_name: collection_name.into(),
+            documents: Vec::from_iter(documents.into_iter()),
+            wait_for_sync: None,
+        }
+    }
+
+    pub fn collection_name(&self) -> &str {
+        &self.collection_name
+    }
+
+    pub fn documents(&self) -> &[NewDocument<T>] {
+        &self.documents
+    }
+
+    pub fn with_force_wait_for_sync<Wfs>(mut self, force_wait_for_sync: Wfs) -> Self
+        where Wfs: Into<Option<bool>>
+    {
+        self.wait_for_sync = force_wait_for_sync.into();
+        self
+    }
+
+    pub fn is_force_wait_for_sync(&self) -> Option<bool> {
+        self.wait_for_sync
+    }
+}
+
+impl<T> Method for InsertDocuments<T>
+    where T: DeserializeOwned + Debug
+{
+    type Result = Vec<DocumentHeader>;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some(FIELD_CODE),
+    };
+}
+
+impl<T> Prepare for InsertDocuments<T>
+    where T: Serialize + Debug
+{
+    type Content = Vec<NewDocument<T>>;
+
+    fn operation(&self) -> Operation {
+        Operation::Create
+    }
+
+    fn path(&self) -> String {
+        String::from(PATH_API_DOCUMENT) + "/" + &self.collection_name
+    }
+
+    fn parameters(&self) -> Parameters {
+        let mut params = Parameters::new();
+        params.insert(PARAM_RETURN_NEW, false);
+        if let Some(wait_for_sync) = self.wait_for_sync {
+            params.insert(PARAM_WAIT_FOR_SYNC, wait_for_sync);
+        }
+        params
+    }
+
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        Some(&self.documents)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct InsertDocumentsReturnNew<T> {
+    collection_name: String,
+    documents: Vec<NewDocument<T>>,
+    wait_for_sync: Option<bool>,
+}
+
+impl<T> InsertDocumentsReturnNew<T> {
+    pub fn new<N, Docs>(collection_name: N, documents: Docs) -> Self
+        where N: Into<String>, Docs: IntoIterator<Item=NewDocument<T>>
+    {
+        InsertDocumentsReturnNew {
+            collection_name: collection_name.into(),
+            documents: Vec::from_iter(documents.into_iter()),
+            wait_for_sync: None,
+        }
+    }
+
+    pub fn collection_name(&self) -> &str {
+        &self.collection_name
+    }
+
+    pub fn documents(&self) -> &[NewDocument<T>] {
+        &self.documents
+    }
+
+    pub fn with_force_wait_for_sync<Wfs>(mut self, force_wait_for_sync: Wfs) -> Self
+        where Wfs: Into<Option<bool>>
+    {
+        self.wait_for_sync = force_wait_for_sync.into();
+        self
+    }
+
+    pub fn is_force_wait_for_sync(&self) -> Option<bool> {
+        self.wait_for_sync
+    }
+}
+
+impl<T> Method for InsertDocumentsReturnNew<T>
+    where T: DeserializeOwned + Debug
+{
+    type Result = Vec<Document<T>>;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some(FIELD_CODE),
+    };
+}
+
+impl<T> Prepare for InsertDocumentsReturnNew<T>
+    where T: Serialize + Debug
+{
+    type Content = Vec<NewDocument<T>>;
+
+    fn operation(&self) -> Operation {
+        Operation::Create
+    }
+
+    fn path(&self) -> String {
+        String::from(PATH_API_DOCUMENT) + "/" + &self.collection_name
+    }
+
+    fn parameters(&self) -> Parameters {
+        let mut params = Parameters::new();
+        params.insert(PARAM_RETURN_NEW, true);
+        if let Some(wait_for_sync) = self.wait_for_sync {
+            params.insert(PARAM_WAIT_FOR_SYNC, wait_for_sync);
+        }
+        params
+    }
+
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        Some(&self.documents)
     }
 }
 

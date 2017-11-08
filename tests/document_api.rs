@@ -133,7 +133,8 @@ fn insert_struct_document_with_key() {
 
         let new_document = NewDocument::from_content(customer)
             .with_key(DocumentKey::new("94711"));
-        let method = InsertDocument::new("customers", new_document);
+        let method = InsertDocument::new("customers", new_document)
+            .with_force_wait_for_sync(true);
         let document = core.run(conn.execute(method)).unwrap();
 
         assert_eq!("customers/94711", &document.id().as_string());
@@ -209,6 +210,227 @@ fn insert_json_document_with_key_and_return_new() {
         assert!(!document.revision().as_str().is_empty());
         assert!(document.content().as_str().starts_with(r#"{"_id":"customers/7713996","_key":"7713996","_rev":""#));
         assert!(document.content().as_str().ends_with(r#"","active":true,"age":42,"contact":[{"address":"1-555-234523","kind":"Phone","tag":"work"}],"gender":"Female","groups":[],"name":"Jane Doe"}"#));
+    });
+}
+
+#[test]
+fn insert_multiple_struct_documents_without_key() {
+    arango_user_db_test("test_document_user6", "test_document_db61", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let new_document1 = NewDocument::from_content(customer1);
+        let new_document2 = NewDocument::from_content(customer2);
+        let method = InsertDocuments::new("customers", vec![new_document1, new_document2])
+            .with_force_wait_for_sync(true);
+        let documents = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", documents[0].id().collection_name());
+        assert!(!documents[0].id().document_key().is_empty());
+        assert_eq!(documents[0].id().document_key(), documents[0].key().as_str());
+        assert!(!documents[0].revision().as_str().is_empty());
+
+        assert_eq!("customers", documents[1].id().collection_name());
+        assert!(!documents[1].id().document_key().is_empty());
+        assert_eq!(documents[1].id().document_key(), documents[1].key().as_str());
+        assert!(!documents[1].revision().as_str().is_empty());
+    });
+}
+
+#[test]
+fn insert_multiple_struct_documents_without_key_and_return_new() {
+    arango_user_db_test("test_document_user7", "test_document_db71", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let new_document1 = NewDocument::from_content(customer1.clone());
+        let new_document2 = NewDocument::from_content(customer2.clone());
+        let method = InsertDocumentsReturnNew::new("customers", vec![new_document1, new_document2]);
+        let documents = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", documents[0].id().collection_name());
+        assert!(!documents[0].id().document_key().is_empty());
+        assert_eq!(documents[0].id().document_key(), documents[0].key().as_str());
+        assert!(!documents[0].revision().as_str().is_empty());
+        assert_eq!(&customer1, documents[0].content());
+
+        assert_eq!("customers", documents[1].id().collection_name());
+        assert!(!documents[1].id().document_key().is_empty());
+        assert_eq!(documents[1].id().document_key(), documents[1].key().as_str());
+        assert!(!documents[1].revision().as_str().is_empty());
+        assert_eq!(&customer2, documents[1].content());
+    });
+}
+
+#[test]
+fn insert_multiple_struct_documents_with_key() {
+    arango_user_db_test("test_document_user8", "test_document_db81", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let new_document1 = NewDocument::from_content(customer1)
+            .with_key(DocumentKey::new("94711"));
+        let new_document2 = NewDocument::from_content(customer2)
+            .with_key(DocumentKey::new("90815"));
+        let method = InsertDocuments::new("customers", vec![new_document1, new_document2]);
+        let documents = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers/94711", &documents[0].id().as_string());
+        assert_eq!("customers", documents[0].id().collection_name());
+        assert_eq!("94711", documents[0].id().document_key());
+        assert_eq!("94711", documents[0].key().as_str());
+        assert!(!documents[0].revision().as_str().is_empty());
+
+        assert_eq!("customers/90815", &documents[1].id().as_string());
+        assert_eq!("customers", documents[1].id().collection_name());
+        assert_eq!("90815", documents[1].id().document_key());
+        assert_eq!("90815", documents[1].key().as_str());
+        assert!(!documents[1].revision().as_str().is_empty());
+    });
+}
+
+#[test]
+fn insert_multiple_struct_documents_with_key_and_return_new() {
+    arango_user_db_test("test_document_user9", "test_document_db91", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let new_document1 = NewDocument::from_content(customer1.clone())
+            .with_key(DocumentKey::new("94712"));
+        let new_document2 = NewDocument::from_content(customer2.clone())
+            .with_key(DocumentKey::new("90815"));
+        let method = InsertDocumentsReturnNew::new("customers", vec![new_document1, new_document2]);
+        let documents = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers/94712", &documents[0].id().as_string());
+        assert_eq!("customers", documents[0].id().collection_name());
+        assert_eq!("94712", documents[0].id().document_key());
+        assert_eq!("94712", documents[0].key().as_str());
+        assert!(!documents[0].revision().as_str().is_empty());
+        assert_eq!(&customer1, documents[0].content());
+
+        assert_eq!("customers/90815", &documents[1].id().as_string());
+        assert_eq!("customers", documents[1].id().collection_name());
+        assert_eq!("90815", documents[1].id().document_key());
+        assert_eq!("90815", documents[1].key().as_str());
+        assert!(!documents[1].revision().as_str().is_empty());
+        assert_eq!(&customer2, documents[1].content());
     });
 }
 
