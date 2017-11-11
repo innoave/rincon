@@ -6,7 +6,8 @@ use serde::de::{Deserialize, DeserializeOwned, Deserializer, MapAccess, Visitor}
 use serde::ser::{Serialize, Serializer};
 
 use arango::protocol::{FIELD_ENTITY_ID, FIELD_ENTITY_KEY, FIELD_ENTITY_REVISION,
-    FIELD_ENTITY_NEW, Handle, HandleOption};
+    FIELD_ENTITY_NEW, FIELD_ENTITY_OLD, FIELD_ENTITY_OLD_REVISION, Handle,
+    HandleOption};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum DocumentIdOption {
@@ -201,6 +202,53 @@ impl Revision {
     }
 }
 
+/// All the possible keys, to avoid allocating memory if it is a key we
+/// recognize. Private.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+enum DocumentField {
+    Id,
+    Key,
+    Revision,
+    OldRevision,
+    New,
+    Old,
+    Other(String),
+}
+
+impl<'de> Deserialize<'de> for DocumentField {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        use serde::de::Error;
+
+        struct FieldVisitor;
+
+        impl<'v> Visitor<'v> for FieldVisitor {
+            type Value = DocumentField;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                write!(formatter, "a string representing a field name")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+                where E: Error,
+            {
+                Ok(match value {
+                    FIELD_ENTITY_ID => DocumentField::Id,
+                    FIELD_ENTITY_KEY => DocumentField::Key,
+                    FIELD_ENTITY_REVISION => DocumentField::Revision,
+                    FIELD_ENTITY_OLD_REVISION => DocumentField::OldRevision,
+                    FIELD_ENTITY_NEW => DocumentField::New,
+                    FIELD_ENTITY_OLD => DocumentField::Old,
+                    _ => DocumentField::Other(value.to_owned()),
+                })
+            }
+        }
+
+        deserializer.deserialize_str(FieldVisitor)
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentHeader {
@@ -260,49 +308,6 @@ impl<T> Document<T> {
     }
 }
 
-/// All the possible keys, to avoid allocating memory if it is a key we
-/// recognize. Private.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-enum DocumentField {
-    Id,
-    Key,
-    Revision,
-    New,
-    Other(String),
-}
-
-impl<'de> Deserialize<'de> for DocumentField {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
-    {
-        use serde::de::Error;
-
-        struct FieldVisitor;
-
-        impl<'v> Visitor<'v> for FieldVisitor {
-            type Value = DocumentField;
-
-            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                write!(formatter, "a string representing a field name")
-            }
-
-            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-                where E: Error,
-            {
-                Ok(match value {
-                    FIELD_ENTITY_ID => DocumentField::Id,
-                    FIELD_ENTITY_KEY => DocumentField::Key,
-                    FIELD_ENTITY_REVISION => DocumentField::Revision,
-                    FIELD_ENTITY_NEW => DocumentField::New,
-                    _ => DocumentField::Other(value.to_owned()),
-                })
-            }
-        }
-
-        deserializer.deserialize_str(FieldVisitor)
-    }
-}
-
 impl<'de, T> Deserialize<'de> for Document<T>
     where T: DeserializeOwned
 {
@@ -346,12 +351,18 @@ impl<'de, T> Deserialize<'de> for Document<T>
                         DocumentField::Revision => {
                             revision = Some(fields.next_value()?);
                         },
+                        DocumentField::OldRevision => {
+                            other.insert(FIELD_ENTITY_OLD_REVISION.to_owned(), fields.next_value()?);
+                        },
                         DocumentField::New => {
                             content = Some(fields.next_value()?);
-                        }
+                        },
+                        DocumentField::Old => {
+                            other.insert(FIELD_ENTITY_OLD.to_owned(), fields.next_value()?);
+                        },
                         DocumentField::Other(name) => {
                             other.insert(name, fields.next_value()?);
-                        }
+                        },
                     }
                 }
 
@@ -448,6 +459,199 @@ impl<T> Serialize for NewDocument<T>
         } else {
             self.content.serialize(serializer)
         }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct UpdatedDocument<Old, New> {
+    id: DocumentId,
+    key: DocumentKey,
+    revision: Revision,
+    old_revision: Revision,
+    old_content: Option<Old>,
+    new_content: Option<New>,
+}
+
+impl<Old, New> UpdatedDocument<Old, New> {
+    pub fn id(&self) -> &DocumentId {
+        &self.id
+    }
+
+    pub fn key(&self) -> &DocumentKey {
+        &self.key
+    }
+
+    pub fn revision(&self) -> &Revision {
+        &self.revision
+    }
+
+    pub fn old_revision(&self) -> &Revision {
+        &self.old_revision
+    }
+
+    pub fn old_content(&self) -> Option<&Old> {
+        self.old_content.as_ref()
+    }
+
+    pub fn new_content(&self) -> Option<&New> {
+        self.new_content.as_ref()
+    }
+}
+
+impl<'de, Old, New> Deserialize<'de> for UpdatedDocument<Old, New>
+    where Old: DeserializeOwned, New: DeserializeOwned
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        use serde::de::Error;
+        use serde_json::{Map, Value, from_value};
+
+        struct DocumentVisitor<Old, New> {
+            old: PhantomData<Old>,
+            new: PhantomData<New>,
+        }
+
+        impl<'v, Old, New> Visitor<'v> for DocumentVisitor<Old, New>
+            where Old: DeserializeOwned, New: DeserializeOwned
+        {
+            type Value = UpdatedDocument<Old, New>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                write!(formatter, "a valid Json document with at least the fields 'id', 'key' and 'revision'")
+            }
+
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+                where A: MapAccess<'v>,
+            {
+                let mut id: Option<String> = None;
+                let mut key: Option<String> = None;
+                let mut revision: Option<String> = None;
+                let mut old_revision: Option<String> = None;
+                let mut new_content: Option<Value> = None;
+                let mut old_content: Option<Value> = None;
+                let mut other = Map::new();
+
+                let mut fields = map;
+                while let Some(name) = fields.next_key()? {
+                    match name {
+                        DocumentField::Id => {
+                            id = Some(fields.next_value()?);
+                        },
+                        DocumentField::Key => {
+                            key = Some(fields.next_value()?);
+                        },
+                        DocumentField::Revision => {
+                            revision = Some(fields.next_value()?);
+                        },
+                        DocumentField::OldRevision => {
+                            old_revision = Some(fields.next_value()?);
+                        },
+                        DocumentField::New => {
+                            new_content = Some(fields.next_value()?);
+                        },
+                        DocumentField::Old => {
+                            old_content = Some(fields.next_value()?);
+                        },
+                        DocumentField::Other(name) => {
+                            other.insert(name, fields.next_value()?);
+                        },
+                    }
+                }
+
+                match (id, key, revision, old_revision) {
+                    (Some(id), Some(key), Some(revision), Some(old_revision)) => {
+                        let id = DocumentId::from_str(&id).map_err(A::Error::custom)?;
+                        let key = DocumentKey::from_string(key).map_err(A::Error::custom)?;
+                        let revision = Revision::from_string(revision);
+                        let old_revision = Revision::from_string(old_revision);
+                        let old_content = if let Some(old_content) = old_content {
+                            Some(from_value(old_content).map_err(A::Error::custom)?)
+                        } else {
+                            None
+                        };
+                        let new_content = if let Some(new_content) = new_content {
+                            Some(from_value(new_content).map_err(A::Error::custom)?)
+                        } else {
+                            None
+                        };
+                        Ok(UpdatedDocument {
+                            id,
+                            key,
+                            revision,
+                            old_revision,
+                            old_content,
+                            new_content,
+                        })
+                    },
+                    (None, _, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_ID)),
+                    (_, None, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_KEY)),
+                    (_, _, None, _) => Err(A::Error::missing_field(FIELD_ENTITY_REVISION)),
+                    (_, _, _, None) => Err(A::Error::missing_field(FIELD_ENTITY_OLD_REVISION)),
+                }
+            }
+        }
+
+        deserializer.deserialize_map(DocumentVisitor { old: PhantomData, new: PhantomData })
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct DocumentUpdate<Upd> {
+    key: DocumentKey,
+    revision: Option<Revision>,
+    content: Upd,
+}
+
+impl<Upd> DocumentUpdate<Upd> {
+    pub fn new(key: DocumentKey, content: Upd) -> Self {
+        DocumentUpdate {
+            key,
+            revision: None,
+            content,
+        }
+    }
+
+    pub fn with_revision<Rev>(mut self, revision: Rev) -> Self
+        where Rev: Into<Option<Revision>>
+    {
+        self.revision = revision.into();
+        self
+    }
+
+    pub fn key(&self) -> &DocumentKey {
+        &self.key
+    }
+
+    pub fn revision(&self) -> Option<&Revision> {
+        self.revision.as_ref()
+    }
+
+    pub fn content(&self) -> &Upd {
+        &self.content
+    }
+}
+
+impl<Upd> Serialize for DocumentUpdate<Upd>
+    where Upd: Serialize + Debug
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        use serde::ser::Error;
+        use serde_json::{self, Value};
+        let mut json_value = serde_json::to_value(&self.content).map_err(S::Error::custom)?;
+        match json_value {
+            Value::Object(ref mut fields) => {
+                fields.insert(FIELD_ENTITY_KEY.to_owned(), Value::String(self.key.as_str().to_owned()));
+                if let Some(ref revision) = self.revision {
+                    fields.insert(FIELD_ENTITY_REVISION.to_owned(), Value::String(revision.as_str().to_owned()));
+                }
+            },
+            _ => return Err(S::Error::custom(format!("Invalid document content! Only types that serialize into valid Json objects are supported. But got: {:?}", &self.content))),
+        };
+        let json_value_with_header_fields = json_value;
+        json_value_with_header_fields.serialize(serializer)
     }
 }
 
@@ -645,5 +849,32 @@ mod tests {
             }\
         }");
         assert_eq!(expected, document);
+    }
+
+    #[test]
+    fn serialize_struct_document_update_without_revision() {
+        let update = MyContent {
+            a: "Hugo".to_owned(),
+            b: 42,
+        };
+
+        let new_document = DocumentUpdate::new(DocumentKey::new("770815"), update);
+        let json = serde_json::to_string(&new_document).unwrap();
+
+        assert_eq!(r#"{"_key":"770815","a":"Hugo","b":42}"#, &json);
+    }
+
+    #[test]
+    fn serialize_struct_document_update_with_revision() {
+        let update = MyContent {
+            a: "Hugo".to_owned(),
+            b: 42,
+        };
+
+        let new_document = DocumentUpdate::new(DocumentKey::new("770815"), update)
+            .with_revision(Revision::new("_WkyoIaj--_"));
+        let json = serde_json::to_string(&new_document).unwrap();
+
+        assert_eq!(r#"{"_key":"770815","_rev":"_WkyoIaj--_","a":"Hugo","b":42}"#, &json);
     }
 }

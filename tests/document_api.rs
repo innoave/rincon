@@ -48,6 +48,30 @@ enum Gender {
     Female,
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+struct VipCustomer {
+    name: String,
+    contact: Vec<Contact>,
+    age: u16,
+    status: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+struct CustomerUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    contact: Option<Vec<Contact>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    gender: Option<Gender>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    age: Option<u16>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    active: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    groups: Option<Vec<String>>,
+}
+
 #[test]
 fn insert_struct_document_without_key() {
     arango_user_db_test("test_document_user1", "test_document_db11", |conn, ref mut core| {
@@ -748,5 +772,619 @@ fn get_document_header() {
         let result = core.run(conn.execute(method)).unwrap();
 
         assert_eq!((), result);
+    });
+}
+
+#[test]
+fn replace_with_struct_document_without_revision() {
+    arango_user_db_test("test_document_user30", "test_document_db301", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer)
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let replacement = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-8212494".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("mobile".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let document_update = DocumentUpdate::new(document_key.clone(), replacement);
+        let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update);
+        let updated = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!(&document_id, updated.id());
+        assert_eq!(&document_key, updated.key());
+        assert!(!updated.revision().as_str().is_empty());
+        assert_ne!(&revision, updated.revision());
+        assert_eq!(&revision, updated.old_revision());
+        assert_eq!(None, updated.old_content());
+        assert_eq!(None, updated.new_content());
+    });
+}
+
+#[test]
+fn replace_with_struct_document_with_revision() {
+    arango_user_db_test("test_document_user31", "test_document_db311", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer)
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let replacement = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-8212494".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("mobile".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let document_update = DocumentUpdate::new(document_key.clone(), replacement)
+            .with_revision(revision.clone());
+        let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update);
+        let updated = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!(&document_id, updated.id());
+        assert_eq!(&document_key, updated.key());
+        assert!(!updated.revision().as_str().is_empty());
+        assert_eq!(&revision, updated.old_revision());
+        assert_eq!(None, updated.old_content());
+        assert_eq!(None, updated.new_content());
+    });
+}
+
+#[test]
+fn replace_with_struct_document_of_other_type() {
+    arango_user_db_test("test_document_user32", "test_document_db321", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer)
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let replacement = VipCustomer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-8212494".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("mobile".to_owned())),
+                }
+            ],
+            age: 42,
+            status: "active".to_owned(),
+        };
+
+        let document_update = DocumentUpdate::new(document_key.clone(), replacement)
+            .with_revision(revision.clone());
+        let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update);
+        let updated = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!(&document_id, updated.id());
+        assert_eq!(&document_key, updated.key());
+        assert!(!updated.revision().as_str().is_empty());
+        assert_eq!(&revision, updated.old_revision());
+        assert_eq!(None, updated.old_content());
+        assert_eq!(None, updated.new_content());
+    });
+}
+
+#[test]
+fn replace_with_struct_document_of_other_type_return_old() {
+    arango_user_db_test("test_document_user33", "test_document_db331", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer.clone())
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let replacement = VipCustomer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-8212494".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("mobile".to_owned())),
+                }
+            ],
+            age: 42,
+            status: "active".to_owned(),
+        };
+
+        let document_update = DocumentUpdate::new(document_key.clone(), replacement.clone())
+            .with_revision(revision.clone());
+        let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update)
+            .with_return_old(true);
+        let updated = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!(&document_id, updated.id());
+        assert_eq!(&document_key, updated.key());
+        assert!(!updated.revision().as_str().is_empty());
+        assert_eq!(&revision, updated.old_revision());
+        assert_eq!(Some(&customer), updated.old_content());
+        assert_eq!(None, updated.new_content());
+    });
+}
+
+#[test]
+fn replace_with_struct_document_of_other_type_return_new() {
+    arango_user_db_test("test_document_user34", "test_document_db341", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer)
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let replacement = VipCustomer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-8212494".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("mobile".to_owned())),
+                }
+            ],
+            age: 42,
+            status: "active".to_owned(),
+        };
+
+        let document_update = DocumentUpdate::new(document_key.clone(), replacement.clone())
+            .with_revision(revision.clone());
+        let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update)
+            .with_return_new(true);
+        let updated = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!(&document_id, updated.id());
+        assert_eq!(&document_key, updated.key());
+        assert!(!updated.revision().as_str().is_empty());
+        assert_eq!(&revision, updated.old_revision());
+        assert_eq!(None, updated.old_content());
+        assert_eq!(Some(&replacement), updated.new_content());
+    });
+}
+
+#[test]
+fn replace_with_struct_document_of_other_type_return_old_and_new() {
+    arango_user_db_test("test_document_user35", "test_document_db351", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer.clone())
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let replacement = VipCustomer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-8212494".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("mobile".to_owned())),
+                }
+            ],
+            age: 42,
+            status: "active".to_owned(),
+        };
+
+        let document_update = DocumentUpdate::new(document_key.clone(), replacement.clone())
+            .with_revision(revision.clone());
+        let method = ReplaceDocument::new(document_id.clone(), document_update)
+            .with_return_new(true)
+            .with_return_old(true);
+        let updated = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!(&document_id, updated.id());
+        assert_eq!(&document_key, updated.key());
+        assert!(!updated.revision().as_str().is_empty());
+        assert_eq!(&revision, updated.old_revision());
+        assert_eq!(Some(&customer), updated.old_content());
+        assert_eq!(Some(&replacement), updated.new_content());
+    });
+}
+
+#[test]
+fn replace_with_struct_document_with_ignore_revisions_return_old_and_new() {
+    arango_user_db_test("test_document_user36", "test_document_db361", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer.clone())
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let replacement = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-8212494".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("mobile".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let document_update = DocumentUpdate::new(document_key.clone(), replacement.clone())
+            .with_revision(Revision::new("wrong_revision"));
+        let method = ReplaceDocument::new(document_id.clone(), document_update)
+            .with_ignore_revisions(true)
+            .with_return_old(true)
+            .with_return_new(true)
+            .with_force_wait_for_sync(true);
+        let updated = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!(&document_id, updated.id());
+        assert_eq!(&document_key, updated.key());
+        assert!(!updated.revision().as_str().is_empty());
+        assert_eq!(&revision, updated.old_revision());
+        assert_eq!(Some(&customer), updated.old_content());
+        assert_eq!(Some(&replacement), updated.new_content());
+    });
+}
+
+#[test]
+fn replace_with_struct_document_with_unknown_revision() {
+    arango_user_db_test("test_document_user37", "test_document_db371", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer)
+        ))).unwrap();
+        let (document_id, document_key, _) = header.deconstruct();
+
+        let replacement = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-8212494".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("mobile".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let document_update = DocumentUpdate::new(document_key.clone(), replacement)
+            .with_revision(Revision::new("wrong_revision"));
+        let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update)
+            .with_ignore_revisions(false)
+            .with_return_old(true)
+            .with_return_new(true)
+            .with_force_wait_for_sync(true);
+        let result = core.run(conn.execute(method));
+
+        match result {
+            Err(Error::ApiError(error)) => {
+                assert_eq!(412, error.status_code());
+                assert_eq!(ErrorCode::ArangoConflict, error.error_code());
+                assert_eq!("precondition failed", error.message());
+            },
+            _ => panic!("Error expected, but got: {:?}", &result),
+        }
+    });
+}
+
+#[test]
+fn replace_with_struct_document_with_if_match_return_old_and_new() {
+    arango_user_db_test("test_document_user38", "test_document_db381", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer.clone())
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let replacement = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-8212494".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("mobile".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let document_update = DocumentUpdate::new(document_key.clone(), replacement.clone());
+        let method = ReplaceDocument::new(document_id.clone(), document_update)
+            .with_if_match(revision.as_str().to_owned())
+            .with_return_old(true)
+            .with_return_new(true);
+        let updated = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!(&document_id, updated.id());
+        assert_eq!(&document_key, updated.key());
+        assert!(!updated.revision().as_str().is_empty());
+        assert_eq!(&revision, updated.old_revision());
+        assert_eq!(Some(&customer), updated.old_content());
+        assert_eq!(Some(&replacement), updated.new_content());
+    });
+}
+
+#[test]
+fn replace_with_struct_document_with_if_match_unknown_revision() {
+    arango_user_db_test("test_document_user39", "test_document_db391", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer)
+        ))).unwrap();
+        let (document_id, document_key, _) = header.deconstruct();
+
+        let replacement = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-8212494".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("mobile".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let document_update = DocumentUpdate::new(document_key.clone(), replacement);
+        let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update)
+            .with_if_match("wrong_revision".to_owned())
+            .with_return_old(true)
+            .with_return_new(true);
+        let result = core.run(conn.execute(method));
+
+        match result {
+            Err(Error::ApiError(error)) => {
+                assert_eq!(412, error.status_code());
+                assert_eq!(ErrorCode::ArangoConflict, error.error_code());
+                assert_eq!("precondition failed", error.message());
+            },
+            _ => panic!("Error expected, but got: {:?}", &result),
+        }
+    });
+}
+
+#[test]
+fn update_struct_document() {
+    arango_user_db_test("test_document_user40", "test_document_db401", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: None,
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers", NewDocument::from_content(customer)
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let update = CustomerUpdate {
+            name: None,
+            contact: Some(vec![
+                Contact {
+                    address: "1-555-8212494".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("mobile".to_owned())),
+                }
+            ]),
+            gender: None,
+            age: Some(43),
+            active: None,
+            groups: None,
+        };
+
+        let document_update = DocumentUpdate::new(document_key.clone(), update);
+        let method = UpdateDocument::<_, Customer, Customer>::new(document_id.clone(), document_update)
+            .with_return_new(true);
+        let updated = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!(&document_id, updated.id());
+        assert_eq!(&document_key, updated.key());
+        assert!(!updated.revision().as_str().is_empty());
+        assert_ne!(&revision, updated.revision());
+        assert_eq!(&revision, updated.old_revision());
+        assert_eq!(None, updated.old_content());
+        let updated_content = updated.new_content().unwrap();
+        assert_eq!("Jane Doe", &updated_content.name);
+        assert_eq!(&Gender::Female, &updated_content.gender);
+        assert_eq!(43, updated_content.age);
+        assert_eq!(true, updated_content.active);
+        assert_eq!(&Vec::<String>::new(), &updated_content.groups);
+        let updated_contact = &updated_content.contact[0];
+        assert_eq!("1-555-8212494", updated_contact.address);
+        assert_eq!(&ContactType::Phone, &updated_contact.kind);
+        assert_eq!(Some(&Tag("mobile".to_owned())), updated_contact.tag.as_ref());
     });
 }

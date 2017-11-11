@@ -10,11 +10,25 @@ pub const FIELD_ENTITY_ID: &str = "_id";
 pub const FIELD_ENTITY_KEY: &str = "_key";
 pub const FIELD_ENTITY_REVISION: &str = "_rev";
 pub const FIELD_ENTITY_NEW: &str = "new";
+pub const FIELD_ENTITY_OLD: &str = "old";
+pub const FIELD_ENTITY_OLD_REVISION: &str = "_oldRev";
 pub const FIELD_ID: &str = "id";
 pub const FIELD_RESULT: &str = "result";
 
 pub const HEADER_IF_MATCH: &str = "If-Match";
 pub const HEADER_IF_NON_MATCH: &str = "If-None-Match";
+
+pub const PARAM_COLLECTION: &str = "collection";
+pub const PARAM_DETAILS: &str = "details";
+pub const PARAM_EXCLUDE_SYSTEM: &str = "excludeSystem";
+pub const PARAM_IGNORE_REVISIONS: &str = "ignoreRevs";
+pub const PARAM_KEEP_NULL: &str = "keepNull";
+pub const PARAM_MERGE_OBJECTS: &str = "mergeObjects";
+pub const PARAM_RETURN_NEW: &str = "returnNew";
+pub const PARAM_RETURN_OLD: &str = "returnOld";
+pub const PARAM_WAIT_FOR_SYNC: &str = "waitForSync";
+#[cfg(feature = "cluster")]
+pub const PARAM_WAIT_FOR_SYNC_REPLICATION: &str = "waitForSyncReplication";
 
 pub const PATH_ADMIN: &str = "/_admin";
 pub const PATH_API_COLLECTION: &str = "/_api/collection";
@@ -35,14 +49,6 @@ pub const PATH_PROPERTIES: &str = "properties";
 pub const PATH_RENAME: &str = "rename";
 pub const PATH_TARGET_VERSION: &str = "target-version";
 pub const PATH_USER: &str = "user";
-
-pub const PARAM_COLLECTION: &str = "collection";
-pub const PARAM_DETAILS: &str = "details";
-pub const PARAM_EXCLUDE_SYSTEM: &str = "excludeSystem";
-pub const PARAM_RETURN_NEW: &str = "returnNew";
-pub const PARAM_WAIT_FOR_SYNC: &str = "waitForSync";
-#[cfg(feature = "cluster")]
-pub const PARAM_WAIT_FOR_SYNC_REPLICATION: &str = "waitForSyncReplication";
 
 
 const CAPTURE_CONTEXT_NAME: &str = "ctx";
