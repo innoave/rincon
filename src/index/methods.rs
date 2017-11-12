@@ -101,7 +101,7 @@ impl Prepare for GetIndex {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_INDEX) + "/" + &self.index_id.as_string()
+        String::from(PATH_API_INDEX) + "/" + &self.index_id.to_string()
     }
 
     fn parameters(&self) -> Parameters {
@@ -212,7 +212,7 @@ impl Prepare for DeleteIndex {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_INDEX) + "/" + &self.index_id.as_string()
+        String::from(PATH_API_INDEX) + "/" + &self.index_id.to_string()
     }
 
     fn parameters(&self) -> Parameters {

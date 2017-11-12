@@ -320,7 +320,7 @@ impl Permission {
         }
     }
 
-    pub fn as_str(&self) -> &'static str {
+    pub fn as_str(&self) -> &str {
         use self::Permission::*;
         match *self {
             ReadWrite => PERMISSION_READ_WRITE,

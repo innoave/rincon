@@ -7,6 +7,8 @@
 //! RocksDB related attributes and the crate feature `cluster` enables cluster
 //! related attributes.
 
+#![doc(html_root_url = "https://docs.rs/arangodb_client/0.1.0")]
+
 #![warn(
     missing_copy_implementations,
     missing_debug_implementations,

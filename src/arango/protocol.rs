@@ -140,7 +140,7 @@ impl Handle {
         )
     }
 
-    pub fn as_string(&self) -> String {
+    pub fn to_string(&self) -> String {
         self.context.to_owned() + "/" + &self.key
     }
 }
@@ -155,7 +155,7 @@ impl Serialize for Handle {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
     {
-        serializer.serialize_str(&self.as_string())
+        serializer.serialize_str(&self.to_string())
     }
 }
 
@@ -245,7 +245,7 @@ mod tests {
         let handle = Handle::from_str("index id", "mine/12341").unwrap();
         assert_eq!("mine", &handle.context);
         assert_eq!("12341", &handle.key);
-        assert_eq!("mine/12341", &handle.as_string());
+        assert_eq!("mine/12341", &handle.to_string());
     }
 
     #[test]

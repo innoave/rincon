@@ -31,7 +31,7 @@ fn get_index_list_from_document_collection() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
             };
-            assert_eq!("customers/0", &index_id.as_string());
+            assert_eq!("customers/0", &index_id.to_string());
             assert_eq!(&vec!["_key".to_owned()][..], index1.fields());
             assert_eq!(false, index1.is_newly_created());
             if let &Index::Primary(ref primary_index) = index1 {
@@ -47,7 +47,7 @@ fn get_index_list_from_document_collection() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
             };
-            assert_eq!("customers/0", index_id.as_string());
+            assert_eq!("customers/0", index_id.to_string());
             assert_eq!(&vec!["_key".to_owned()][..], identifier1.fields());
             assert_eq!(false, identifier1.is_newly_created());
             if let &Index::Primary(ref primary_index) = identifier1 {
@@ -80,7 +80,7 @@ fn get_index_list_from_edge_collection() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
             };
-            assert_eq!("customers/0", &index_id.as_string());
+            assert_eq!("customers/0", &index_id.to_string());
             assert_eq!(&vec!["_key".to_owned()][..], index1.fields());
             assert_eq!(false, index1.is_newly_created());
             if let &Index::Primary(ref primary_index) = index1 {
@@ -97,7 +97,7 @@ fn get_index_list_from_edge_collection() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
             };
-            assert_eq!("customers/1", &index_id.as_string());
+            assert_eq!("customers/1", &index_id.to_string());
             assert_eq!(&vec!["_from".to_owned(), "_to".to_owned()][..], index2.fields());
             assert_eq!(false, index2.is_newly_created());
             if let &Index::Edge(ref edge_index) = index2 {
@@ -113,7 +113,7 @@ fn get_index_list_from_edge_collection() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
             };
-            assert_eq!("customers/0", index_id.as_string());
+            assert_eq!("customers/0", index_id.to_string());
             assert_eq!(&vec!["_key".to_owned()][..], identifier1.fields());
             assert_eq!(false, identifier1.is_newly_created());
             if let &Index::Primary(ref primary_index) = identifier1 {
@@ -130,7 +130,7 @@ fn get_index_list_from_edge_collection() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
             };
-            assert_eq!("customers/1", index_id.as_string());
+            assert_eq!("customers/1", index_id.to_string());
             assert_eq!(&vec!["_from".to_owned(), "_to".to_owned()][..], identifier2.fields());
             assert_eq!(false, identifier2.is_newly_created());
             if let &Index::Edge(ref edge_index) = identifier2 {
@@ -159,7 +159,7 @@ fn get_index_from_collection() {
             _ => panic!("Qualified index id expected!"),
         };
 
-        assert_eq!("customers/0", index_id.as_string());
+        assert_eq!("customers/0", index_id.to_string());
         assert_eq!(&vec!["_key".to_owned()][..], index.fields());
         assert_eq!(false, index.is_newly_created());
         if let Index::Primary(ref primary_index) = index {

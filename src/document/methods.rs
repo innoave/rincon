@@ -75,7 +75,7 @@ impl<T> Prepare for GetDocument<T> {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_DOCUMENT) + "/" + &self.id.as_string()
+        String::from(PATH_API_DOCUMENT) + "/" + &self.id.to_string()
     }
 
     fn parameters(&self) -> Parameters {
@@ -157,7 +157,7 @@ impl Prepare for GetDocumentHeader {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_DOCUMENT) + "/" + &self.id.as_string()
+        String::from(PATH_API_DOCUMENT) + "/" + &self.id.to_string()
     }
 
     fn parameters(&self) -> Parameters {
@@ -598,7 +598,7 @@ impl<Old, New> Prepare for ReplaceDocument<Old, New>
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_DOCUMENT) + "/" + &self.document_id.as_string()
+        String::from(PATH_API_DOCUMENT) + "/" + &self.document_id.to_string()
     }
 
     fn parameters(&self) -> Parameters {
@@ -761,7 +761,7 @@ impl<Upd, Old, New> Prepare for UpdateDocument<Upd, Old, New>
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_DOCUMENT) + "/" + &self.document_id.as_string()
+        String::from(PATH_API_DOCUMENT) + "/" + &self.document_id.to_string()
     }
 
     fn parameters(&self) -> Parameters {

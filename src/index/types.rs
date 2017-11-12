@@ -93,7 +93,7 @@ impl IndexId {
         })
     }
 
-    pub fn as_string(&self) -> String {
+    pub fn to_string(&self) -> String {
         self.collection_name.to_owned() + "/" + &self.index_key
     }
 
@@ -116,7 +116,7 @@ impl Serialize for IndexId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
     {
-        serializer.serialize_str(&self.as_string())
+        serializer.serialize_str(&self.to_string())
     }
 }
 
@@ -1168,7 +1168,7 @@ mod tests {
         let index_id = IndexId::from_str("mine/12341").unwrap();
         assert_eq!("mine", index_id.collection_name());
         assert_eq!("12341", index_id.index_key());
-        assert_eq!("mine/12341", &index_id.as_string());
+        assert_eq!("mine/12341", &index_id.to_string());
     }
 
     #[test]

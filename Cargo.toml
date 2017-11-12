@@ -1,6 +1,6 @@
 [package]
 name = "arangodb_client"
-version = "0.1.0"
+version = "0.1.0"  # remember to update html_root_url
 authors = ["Harald Maida <harald.maida@innoave.com>"]
 description = "A typesafe and fast driver for ArangoDB"
 repository = "https://github.com/innoave/arangodb-rust-driver"
@@ -34,9 +34,10 @@ serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 tokio-core = "0.1"
-url = "1.5"
+url = "1.6"
 
 [dev-dependencies]
 dotenv = "0.10"
 log4rs = "0.7"
-quickcheck = "0.4"
+#quickcheck = "0.4"
+version-sync = "0.4"

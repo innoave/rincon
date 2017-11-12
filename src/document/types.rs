@@ -85,7 +85,7 @@ impl DocumentId {
         })
     }
 
-    pub fn as_string(&self) -> String {
+    pub fn to_string(&self) -> String {
         self.collection_name.to_owned() + "/" + &self.document_key
     }
 
@@ -108,7 +108,7 @@ impl Serialize for DocumentId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
     {
-        serializer.serialize_str(&self.as_string())
+        serializer.serialize_str(&self.to_string())
     }
 }
 

@@ -161,7 +161,7 @@ fn insert_struct_document_with_key() {
             .with_force_wait_for_sync(true);
         let document = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers/94711", &document.id().as_string());
+        assert_eq!("customers/94711", &document.id().to_string());
         assert_eq!("customers", document.id().collection_name());
         assert_eq!("94711", document.id().document_key());
         assert_eq!("94711", document.key().as_str());
@@ -194,7 +194,7 @@ fn insert_struct_document_with_key_and_return_new() {
         let method = InsertDocumentReturnNew::new("customers", new_document);
         let document = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers/94712", &document.id().as_string());
+        assert_eq!("customers/94712", &document.id().to_string());
         assert_eq!("customers", document.id().collection_name());
         assert_eq!("94712", document.id().document_key());
         assert_eq!("94712", document.key().as_str());
@@ -386,13 +386,13 @@ fn insert_multiple_struct_documents_with_key() {
         let method = InsertDocuments::new("customers", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers/94711", &documents[0].id().as_string());
+        assert_eq!("customers/94711", &documents[0].id().to_string());
         assert_eq!("customers", documents[0].id().collection_name());
         assert_eq!("94711", documents[0].id().document_key());
         assert_eq!("94711", documents[0].key().as_str());
         assert!(!documents[0].revision().as_str().is_empty());
 
-        assert_eq!("customers/90815", &documents[1].id().as_string());
+        assert_eq!("customers/90815", &documents[1].id().to_string());
         assert_eq!("customers", documents[1].id().collection_name());
         assert_eq!("90815", documents[1].id().document_key());
         assert_eq!("90815", documents[1].key().as_str());
@@ -442,14 +442,14 @@ fn insert_multiple_struct_documents_with_key_and_return_new() {
         let method = InsertDocumentsReturnNew::new("customers", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers/94712", &documents[0].id().as_string());
+        assert_eq!("customers/94712", &documents[0].id().to_string());
         assert_eq!("customers", documents[0].id().collection_name());
         assert_eq!("94712", documents[0].id().document_key());
         assert_eq!("94712", documents[0].key().as_str());
         assert!(!documents[0].revision().as_str().is_empty());
         assert_eq!(&customer1, documents[0].content());
 
-        assert_eq!("customers/90815", &documents[1].id().as_string());
+        assert_eq!("customers/90815", &documents[1].id().to_string());
         assert_eq!("customers", documents[1].id().collection_name());
         assert_eq!("90815", documents[1].id().document_key());
         assert_eq!("90815", documents[1].key().as_str());
