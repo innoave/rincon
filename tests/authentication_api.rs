@@ -15,7 +15,7 @@ use tokio_core::reactor::Core;
 
 use test_fixture::*;
 use arangodb_client::api::auth::Credentials;
-use arangodb_client::api::method::ErrorCode;
+use arangodb_client::api::ErrorCode;
 use arangodb_client::authentication::*;
 use arangodb_client::connection::{Connection, Error};
 use arangodb_client::datasource::DataSource;

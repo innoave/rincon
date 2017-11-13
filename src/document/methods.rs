@@ -6,7 +6,8 @@ use std::marker::PhantomData;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
-use api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use api::method::{Method, Operation, Parameters, Prepare, ResultList,
+    RpcReturnType};
 use arango::protocol::{FIELD_CODE, HEADER_IF_MATCH, HEADER_IF_NON_MATCH,
     PARAM_IGNORE_REVISIONS, PARAM_KEEP_NULL, PARAM_MERGE_OBJECTS,
     PARAM_RETURN_NEW, PARAM_RETURN_OLD, PARAM_WAIT_FOR_SYNC, PATH_API_DOCUMENT};
@@ -75,7 +76,9 @@ impl<T> Prepare for GetDocument<T> {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_DOCUMENT) + "/" + &self.id.to_string()
+        String::from(PATH_API_DOCUMENT)
+            + "/" + self.id.collection_name()
+            + "/" + self.id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -157,7 +160,9 @@ impl Prepare for GetDocumentHeader {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_DOCUMENT) + "/" + &self.id.to_string()
+        String::from(PATH_API_DOCUMENT)
+            + "/" + self.id.collection_name()
+            + "/" + self.id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -379,7 +384,7 @@ impl<T> InsertDocuments<T> {
 impl<T> Method for InsertDocuments<T>
     where T: DeserializeOwned + Debug
 {
-    type Result = Vec<DocumentHeader>;
+    type Result = ResultList<DocumentHeader>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
         code_field: Some(FIELD_CODE),
@@ -458,7 +463,7 @@ impl<T> InsertDocumentsReturnNew<T> {
 impl<T> Method for InsertDocumentsReturnNew<T>
     where T: DeserializeOwned + Debug
 {
-    type Result = Vec<Document<T>>;
+    type Result = ResultList<Document<T>>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
         code_field: Some(FIELD_CODE),
@@ -598,7 +603,9 @@ impl<Old, New> Prepare for ReplaceDocument<Old, New>
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_DOCUMENT) + "/" + &self.document_id.to_string()
+        String::from(PATH_API_DOCUMENT)
+            + "/" + self.document_id.collection_name()
+            + "/" + self.document_id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -761,7 +768,9 @@ impl<Upd, Old, New> Prepare for UpdateDocument<Upd, Old, New>
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_DOCUMENT) + "/" + &self.document_id.to_string()
+        String::from(PATH_API_DOCUMENT)
+            + "/" + self.document_id.collection_name()
+            + "/" + self.document_id.document_key()
     }
 
     fn parameters(&self) -> Parameters {

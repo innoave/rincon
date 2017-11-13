@@ -223,7 +223,7 @@ impl<'de> Deserialize<'de> for DocumentField {
 
         struct FieldVisitor;
 
-        impl<'v> Visitor<'v> for FieldVisitor {
+        impl<'de> Visitor<'de> for FieldVisitor {
             type Value = DocumentField;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -317,21 +317,19 @@ impl<'de, T> Deserialize<'de> for Document<T>
         use serde::de::Error;
         use serde_json::{Map, Value, from_value};
 
-        struct DocumentVisitor<T> {
-            content: PhantomData<T>,
-        }
+        struct DocumentVisitor<T>(PhantomData<T>);
 
-        impl<'v, T> Visitor<'v> for DocumentVisitor<T>
+        impl<'de, T> Visitor<'de> for DocumentVisitor<T>
             where T: DeserializeOwned
         {
             type Value = Document<T>;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                write!(formatter, "a valid Json document with at least the fields 'id', 'key' and 'revision'")
+                formatter.write_str("at least fields '_id', '_key' and '_rev'")
             }
 
             fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
-                where A: MapAccess<'v>,
+                where A: MapAccess<'de>,
             {
                 let mut id: Option<String> = None;
                 let mut key: Option<String> = None;
@@ -398,7 +396,7 @@ impl<'de, T> Deserialize<'de> for Document<T>
             }
         }
 
-        deserializer.deserialize_map(DocumentVisitor { content: PhantomData })
+        deserializer.deserialize_map(DocumentVisitor(PhantomData))
     }
 }
 
@@ -507,22 +505,19 @@ impl<'de, Old, New> Deserialize<'de> for UpdatedDocument<Old, New>
         use serde::de::Error;
         use serde_json::{Map, Value, from_value};
 
-        struct DocumentVisitor<Old, New> {
-            old: PhantomData<Old>,
-            new: PhantomData<New>,
-        }
+        struct DocumentVisitor<Old, New>(PhantomData<Old>, PhantomData<New>);
 
-        impl<'v, Old, New> Visitor<'v> for DocumentVisitor<Old, New>
+        impl<'de, Old, New> Visitor<'de> for DocumentVisitor<Old, New>
             where Old: DeserializeOwned, New: DeserializeOwned
         {
             type Value = UpdatedDocument<Old, New>;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                write!(formatter, "a valid Json document with at least the fields 'id', 'key' and 'revision'")
+                formatter.write_str("at least fields '_id', '_key' and '_rev'")
             }
 
             fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
-                where A: MapAccess<'v>,
+                where A: MapAccess<'de>,
             {
                 let mut id: Option<String> = None;
                 let mut key: Option<String> = None;
@@ -592,7 +587,7 @@ impl<'de, Old, New> Deserialize<'de> for UpdatedDocument<Old, New>
             }
         }
 
-        deserializer.deserialize_map(DocumentVisitor { old: PhantomData, new: PhantomData })
+        deserializer.deserialize_map(DocumentVisitor(PhantomData, PhantomData))
     }
 }
 

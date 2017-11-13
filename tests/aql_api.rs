@@ -10,7 +10,7 @@ extern crate arangodb_client;
 mod test_fixture;
 
 use test_fixture::*;
-use arangodb_client::api::method::ErrorCode;
+use arangodb_client::api::ErrorCode;
 use arangodb_client::api::query::Query;
 use arangodb_client::api::types::{Empty, JsonValue};
 use arangodb_client::aql::*;

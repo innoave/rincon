@@ -1,9 +1,13 @@
 
+use std::fmt;
+use std::marker::PhantomData;
 use std::mem;
 
 use regex::Regex;
-use serde::de::{Deserialize, Deserializer};
+use serde::de::{Deserialize, DeserializeOwned, Deserializer, MapAccess, Visitor};
 use serde::ser::{Serialize, Serializer};
+
+use api::{self, method};
 
 pub const FIELD_CODE: &str = "code";
 pub const FIELD_ENTITY_ID: &str = "_id";
@@ -12,6 +16,9 @@ pub const FIELD_ENTITY_REVISION: &str = "_rev";
 pub const FIELD_ENTITY_NEW: &str = "new";
 pub const FIELD_ENTITY_OLD: &str = "old";
 pub const FIELD_ENTITY_OLD_REVISION: &str = "_oldRev";
+pub const FIELD_ERROR: &str = "error";
+pub const FIELD_ERROR_MESSAGE: &str = "errorMessage";
+pub const FIELD_ERROR_NUMBER: &str = "errorNum";
 pub const FIELD_ID: &str = "id";
 pub const FIELD_RESULT: &str = "result";
 
@@ -209,6 +216,109 @@ impl<'de> Deserialize<'de> for HandleKey {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;
         HandleKey::from_string("handle", value).map_err(D::Error::custom)
+    }
+}
+
+impl<'de, T> Deserialize<'de> for method::Result<T>
+    where T: DeserializeOwned
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        use serde::de::Error;
+        use serde_json::{Map, Value, from_value};
+
+        #[derive(Debug)]
+        enum Field {
+            Code,
+            Error,
+            ErrorNumber,
+            ErrorMessage,
+            Other(String),
+        }
+
+        impl<'de> Deserialize<'de> for Field {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                where D: Deserializer<'de>
+            {
+                struct FieldVisitor;
+
+                impl<'de> Visitor<'de> for FieldVisitor {
+                    type Value = Field;
+
+                    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                        formatter.write_str("a valid object or an error object with fields 'code', 'errorNum' and 'errorMessage'")
+                    }
+
+                    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+                        where E: Error
+                    {
+                        Ok(match value {
+                            FIELD_CODE => Field::Code,
+                            FIELD_ERROR => Field::Error,
+                            FIELD_ERROR_NUMBER => Field::ErrorNumber,
+                            FIELD_ERROR_MESSAGE => Field::ErrorMessage,
+                            _ => Field::Other(value.to_owned()),
+                        })
+                    }
+                }
+
+                deserializer.deserialize_str(FieldVisitor)
+            }
+        }
+
+        struct ResultVisitor<T>(PhantomData<T>);
+
+        impl<'de, T> Visitor<'de> for ResultVisitor<T>
+            where T: DeserializeOwned
+        {
+            type Value = method::Result<T>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("enum method::Result")
+            }
+
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+                where A: MapAccess<'de>,
+            {
+                let mut error_code: Option<api::ErrorCode> = None;
+                let mut message: Option<String> = None;
+                let mut other = Map::new();
+                let mut fields = map;
+                while let Some(name) = fields.next_key()? {
+                    match name {
+                        Field::Code => {
+                            let _: i32 = fields.next_value()?;
+                        },
+                        Field::Error => {
+                            let _: bool = fields.next_value()?;
+                        },
+                        Field::ErrorNumber => {
+                            error_code = Some(fields.next_value()?);
+                        },
+                        Field::ErrorMessage => {
+                            message = Some(fields.next_value()?)
+                        },
+                        Field::Other(name) => {
+                            other.insert(name, fields.next_value()?);
+                        },
+                    }
+                }
+                match (error_code, message) {
+                    (Some(error_code), Some(message)) => {
+                        let error = method::Error::new(error_code, message);
+                        Ok(method::Result::Failed(error))
+                    },
+                    (Some(_), None) => Err(A::Error::missing_field(FIELD_ERROR_MESSAGE)),
+                    (None, _) => {
+                        let result_value = from_value(Value::Object(other)).map_err(A::Error::custom)?;
+                        Ok(method::Result::Success(result_value))
+                    },
+                }
+            }
+        }
+
+        deserializer.deserialize_map(ResultVisitor(PhantomData))
     }
 }
 

@@ -10,7 +10,7 @@ extern crate arangodb_client;
 mod test_fixture;
 
 use test_fixture::*;
-use arangodb_client::api::method::ErrorCode;
+use arangodb_client::api::ErrorCode;
 use arangodb_client::api::types::JsonString;
 use arangodb_client::collection::CreateCollection;
 use arangodb_client::connection::Error;
@@ -278,15 +278,23 @@ fn insert_multiple_struct_documents_without_key() {
             .with_force_wait_for_sync(true);
         let documents = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", documents[0].id().collection_name());
-        assert!(!documents[0].id().document_key().is_empty());
-        assert_eq!(documents[0].id().document_key(), documents[0].key().as_str());
-        assert!(!documents[0].revision().as_str().is_empty());
+        if let Ok(ref header1) = documents.get(0).unwrap() {
+            assert_eq!("customers", header1.id().collection_name());
+            assert!(!header1.id().document_key().is_empty());
+            assert_eq!(header1.id().document_key(), header1.key().as_str());
+            assert!(!header1.revision().as_str().is_empty());
+        } else {
+            panic!("Expected document header 1, but got: {:?}", documents.get(0));
+        }
 
-        assert_eq!("customers", documents[1].id().collection_name());
-        assert!(!documents[1].id().document_key().is_empty());
-        assert_eq!(documents[1].id().document_key(), documents[1].key().as_str());
-        assert!(!documents[1].revision().as_str().is_empty());
+        if let Ok(ref header2) = documents.get(1).unwrap() {
+            assert_eq!("customers", header2.id().collection_name());
+            assert!(!header2.id().document_key().is_empty());
+            assert_eq!(header2.id().document_key(), header2.key().as_str());
+            assert!(!header2.revision().as_str().is_empty());
+        } else {
+            panic!("Expected document header 2, but got: {:?}", documents.get(1));
+        }
     });
 }
 
@@ -330,17 +338,24 @@ fn insert_multiple_struct_documents_without_key_and_return_new() {
         let method = InsertDocumentsReturnNew::new("customers", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", documents[0].id().collection_name());
-        assert!(!documents[0].id().document_key().is_empty());
-        assert_eq!(documents[0].id().document_key(), documents[0].key().as_str());
-        assert!(!documents[0].revision().as_str().is_empty());
-        assert_eq!(&customer1, documents[0].content());
-
-        assert_eq!("customers", documents[1].id().collection_name());
-        assert!(!documents[1].id().document_key().is_empty());
-        assert_eq!(documents[1].id().document_key(), documents[1].key().as_str());
-        assert!(!documents[1].revision().as_str().is_empty());
-        assert_eq!(&customer2, documents[1].content());
+        if let Ok(ref document1) = documents.get(0).unwrap() {
+            assert_eq!("customers", document1.id().collection_name());
+            assert!(!document1.id().document_key().is_empty());
+            assert_eq!(document1.id().document_key(), document1.key().as_str());
+            assert!(!document1.revision().as_str().is_empty());
+            assert_eq!(&customer1, document1.content());
+        } else {
+            panic!("Expected document 1, but got: {:?}", documents.get(0));
+        }
+        if let Ok(ref document2) = documents.get(1).unwrap() {
+            assert_eq!("customers", document2.id().collection_name());
+            assert!(!document2.id().document_key().is_empty());
+            assert_eq!(document2.id().document_key(), document2.key().as_str());
+            assert!(!document2.revision().as_str().is_empty());
+            assert_eq!(&customer2, document2.content());
+        } else {
+            panic!("Expected document 2, but got: {:?}", documents.get(1));
+        }
     });
 }
 
@@ -386,17 +401,25 @@ fn insert_multiple_struct_documents_with_key() {
         let method = InsertDocuments::new("customers", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers/94711", &documents[0].id().to_string());
-        assert_eq!("customers", documents[0].id().collection_name());
-        assert_eq!("94711", documents[0].id().document_key());
-        assert_eq!("94711", documents[0].key().as_str());
-        assert!(!documents[0].revision().as_str().is_empty());
+        if let Ok(ref header1) = documents.get(0).unwrap() {
+            assert_eq!("customers/94711", &header1.id().to_string());
+            assert_eq!("customers", header1.id().collection_name());
+            assert_eq!("94711", header1.id().document_key());
+            assert_eq!("94711", header1.key().as_str());
+            assert!(!header1.revision().as_str().is_empty());
+        } else {
+            panic!("Expected document header 1, but got: {:?}", documents.get(0))
+        }
 
-        assert_eq!("customers/90815", &documents[1].id().to_string());
-        assert_eq!("customers", documents[1].id().collection_name());
-        assert_eq!("90815", documents[1].id().document_key());
-        assert_eq!("90815", documents[1].key().as_str());
-        assert!(!documents[1].revision().as_str().is_empty());
+        if let Ok(ref header2) = documents.get(1).unwrap() {
+            assert_eq!("customers/90815", &header2.id().to_string());
+            assert_eq!("customers", header2.id().collection_name());
+            assert_eq!("90815", header2.id().document_key());
+            assert_eq!("90815", header2.key().as_str());
+            assert!(!header2.revision().as_str().is_empty());
+        } else {
+            panic!("Expected document header 2, but got: {:?}", documents.get(1))
+        }
     });
 }
 
@@ -442,19 +465,27 @@ fn insert_multiple_struct_documents_with_key_and_return_new() {
         let method = InsertDocumentsReturnNew::new("customers", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers/94712", &documents[0].id().to_string());
-        assert_eq!("customers", documents[0].id().collection_name());
-        assert_eq!("94712", documents[0].id().document_key());
-        assert_eq!("94712", documents[0].key().as_str());
-        assert!(!documents[0].revision().as_str().is_empty());
-        assert_eq!(&customer1, documents[0].content());
+        if let Ok(ref document1) = documents.get(0).unwrap() {
+            assert_eq!("customers/94712", &document1.id().to_string());
+            assert_eq!("customers", document1.id().collection_name());
+            assert_eq!("94712", document1.id().document_key());
+            assert_eq!("94712", document1.key().as_str());
+            assert!(!document1.revision().as_str().is_empty());
+            assert_eq!(&customer1, document1.content());
+        } else {
+            panic!("Expected document 1, but got: {:?}", documents.get(0));
+        }
 
-        assert_eq!("customers/90815", &documents[1].id().to_string());
-        assert_eq!("customers", documents[1].id().collection_name());
-        assert_eq!("90815", documents[1].id().document_key());
-        assert_eq!("90815", documents[1].key().as_str());
-        assert!(!documents[1].revision().as_str().is_empty());
-        assert_eq!(&customer2, documents[1].content());
+        if let Ok(ref document2) = documents.get(1).unwrap() {
+            assert_eq!("customers/90815", &document2.id().to_string());
+            assert_eq!("customers", document2.id().collection_name());
+            assert_eq!("90815", document2.id().document_key());
+            assert_eq!("90815", document2.key().as_str());
+            assert!(!document2.revision().as_str().is_empty());
+            assert_eq!(&customer2, document2.content());
+        } else {
+            panic!("Expected document 2, but got: {:?}", documents.get(1));
+        }
     });
 }
 
@@ -1386,5 +1417,128 @@ fn update_struct_document() {
         assert_eq!("1-555-8212494", updated_contact.address);
         assert_eq!(&ContactType::Phone, &updated_contact.kind);
         assert_eq!(Some(&Tag("mobile".to_owned())), updated_contact.tag.as_ref());
+    });
+}
+
+#[test]
+fn insert_two_struct_documents_with_same_key() {
+    arango_user_db_test("test_document_user50", "test_document_db501", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let new_document1 = NewDocument::from_content(customer1)
+            .with_key(DocumentKey::new("94711"));
+        let new_document2 = NewDocument::from_content(customer2)
+            .with_key(DocumentKey::new("94711"));
+        let method = InsertDocuments::new("customers", vec![new_document1, new_document2]);
+        let documents = core.run(conn.execute(method)).unwrap();
+
+        if let Ok(ref header1) = documents.get(0).unwrap() {
+            assert_eq!("customers/94711", &header1.id().to_string());
+            assert_eq!("customers", header1.id().collection_name());
+            assert_eq!("94711", header1.id().document_key());
+            assert_eq!("94711", header1.key().as_str());
+            assert!(!header1.revision().as_str().is_empty());
+        } else {
+            panic!("Expected document header 1, but got: {:?}", documents.get(0))
+        }
+
+        if let Err(ref error) = documents.get(1).unwrap() {
+            assert_eq!(ErrorCode::ArangoUniqueConstraintViolated, error.code());
+            assert_eq!("unique constraint violated - in index 0 of type primary over [\"_key\"]", error.message());
+        } else {
+            panic!("Expected method error, but got: {:?}", documents.get(1))
+        }
+    });
+}
+
+#[test]
+fn insert_two_struct_documents_with_same_key_and_return_new() {
+    arango_user_db_test("test_document_user51", "test_document_db511", |conn, ref mut core| {
+        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let new_document1 = NewDocument::from_content(customer1.clone())
+            .with_key(DocumentKey::new("94712"));
+        let new_document2 = NewDocument::from_content(customer2.clone())
+            .with_key(DocumentKey::new("94712"));
+        let method = InsertDocumentsReturnNew::new("customers", vec![new_document1, new_document2]);
+        let documents = core.run(conn.execute(method)).unwrap();
+
+        if let Ok(ref document1) = documents.get(0).unwrap() {
+            assert_eq!("customers/94712", &document1.id().to_string());
+            assert_eq!("customers", document1.id().collection_name());
+            assert_eq!("94712", document1.id().document_key());
+            assert_eq!("94712", document1.key().as_str());
+            assert!(!document1.revision().as_str().is_empty());
+            assert_eq!(&customer1, document1.content());
+        } else {
+            panic!("Expected document 1, but got: {:?}", documents.get(0));
+        }
+
+        if let Err(ref error) = documents.get(1).unwrap() {
+            assert_eq!(ErrorCode::ArangoUniqueConstraintViolated, error.code());
+            assert_eq!("unique constraint violated - in index 0 of type primary over [\"_key\"]", error.message());
+        } else {
+            panic!("Expected method error, but got: {:?}", documents.get(1))
+        }
     });
 }

@@ -16,8 +16,9 @@ use tokio_core::reactor;
 use url;
 use url::percent_encoding::DEFAULT_ENCODE_SET;
 
+use api;
 use api::auth::{Authentication, Credentials, Jwt};
-use api::method::{self, Method, Operation, Prepare, RpcReturnType};
+use api::method::{Method, Operation, Prepare, RpcReturnType};
 use arango::protocol::PATH_DB;
 use datasource::DataSource;
 
@@ -27,7 +28,7 @@ pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=Error>>;
 
 #[derive(Debug)]
 pub enum Error {
-    ApiError(method::Error),
+    ApiError(api::Error),
     CommunicationFailed(hyper::Error),
     JsonError(serde_json::Error),
     HttpError(StatusCode),
@@ -73,9 +74,9 @@ impl From<StatusCode> for Error {
     }
 }
 
-impl From<StatusCode> for method::ErrorCode {
+impl From<StatusCode> for api::ErrorCode {
     fn from(status_code: StatusCode) -> Self {
-        method::ErrorCode::from_u16(status_code.as_u16())
+        api::ErrorCode::from_u16(status_code.as_u16())
     }
 }
 
@@ -215,13 +216,13 @@ fn parse_return_type<M>(return_type: &RpcReturnType, status_code: StatusCode, pa
     } else {
         debug!("| response body: {}", String::from_utf8_lossy(payload));
         let api_error = serde_json::from_slice(payload).unwrap_or_else(|_| {
-            let error_code = method::ErrorCode::from(status_code);
+            let error_code = api::ErrorCode::from(status_code);
             let message = if payload.is_empty() {
                 error_code.description().to_owned()
             } else {
                 String::from_utf8_lossy(payload).to_string()
             };
-            method::Error::new(status_code.as_u16(), error_code, message)
+            api::Error::new(status_code.as_u16(), error_code, message)
         });
         Err(Error::ApiError(api_error))
     }

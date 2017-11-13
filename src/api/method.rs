@@ -1,14 +1,15 @@
 
-pub use arango::error_code::ErrorCode;
-
+use std;
 use std::fmt::{self, Debug, Display};
 use std::iter::{ExactSizeIterator, FromIterator, Iterator};
 use std::slice::Iter;
+use std::vec::IntoIter;
 
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
 use api::types::Value;
+use arango::error_code::ErrorCode;
 
 pub trait Method {
     type Result: DeserializeOwned;
@@ -186,33 +187,126 @@ pub struct RpcReturnType {
     pub code_field: Option<&'static str>,
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub enum Result<T> {
+    Success(T),
+    Failed(Error),
+}
+
+impl<T> Result<T> {
+    pub fn into_std_result(self) -> std::result::Result<T, Error> {
+        use self::Result::*;
+        match self {
+            Success(value) => Ok(value),
+            Failed(error) => Err(error),
+        }
+    }
+
+    pub fn as_std_result(&self) -> std::result::Result<&T, &Error> {
+        use self::Result::*;
+        match *self {
+            Success(ref value) => Ok(value),
+            Failed(ref error) => Err(error),
+        }
+    }
+}
+
+impl<T> From<std::result::Result<T, Error>> for Result<T> {
+    fn from(value: std::result::Result<T, Error>) -> Self {
+        use self::Result::*;
+        match value {
+            Ok(value) => Success(value),
+            Err(error) => Failed(error),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub struct ResultList<T>(#[serde(bound(deserialize = "T: DeserializeOwned"))] Vec<Result<T>>);
+
+impl<T> ResultList<T> {
+    pub fn get(&self, index: usize) -> Option<std::result::Result<&T, &Error>> {
+        self.0.get(index).map(|x| x.as_std_result())
+    }
+
+    pub fn iter(&self) -> ResultListIter<T> {
+        ResultListIter(self.0.iter())
+    }
+}
+
+impl<T> FromIterator<std::result::Result<T, Error>> for ResultList<T> {
+    fn from_iter<I>(iter: I) -> Self
+        where I: IntoIterator<Item=std::result::Result<T, Error>>
+    {
+        ResultList(Vec::from_iter(iter.into_iter().map(From::from)))
+    }
+}
+
+impl<T> FromIterator<Result<T>> for ResultList<T> {
+    fn from_iter<I>(iter: I) -> Self
+        where I: IntoIterator<Item=Result<T>>
+    {
+        ResultList(Vec::from_iter(iter.into_iter()))
+    }
+}
+
+impl<T> IntoIterator for ResultList<T>
+    where T: DeserializeOwned
+{
+    type Item = std::result::Result<T, Error>;
+    type IntoIter = ResultListIntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        ResultListIntoIter(self.0.into_iter())
+    }
+}
+
+#[derive(Debug)]
+pub struct ResultListIntoIter<T>(IntoIter<Result<T>>);
+
+impl<T> Iterator for ResultListIntoIter<T> {
+    type Item = std::result::Result<T, Error>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next().map(|x| x.into_std_result())
+    }
+}
+
+impl<T> ExactSizeIterator for ResultListIntoIter<T> {}
+
+#[derive(Debug)]
+pub struct ResultListIter<'a, T: 'a>(Iter<'a, Result<T>>);
+
+impl<'a, T> Iterator for ResultListIter<'a, T> {
+    type Item = std::result::Result<&'a T, &'a Error>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next().map(|x| x.as_std_result())
+    }
+}
+
+impl<'a, T> ExactSizeIterator for ResultListIter<'a, T> {}
+
 #[derive(Clone, PartialEq, Deserialize)]
 pub struct Error {
-    #[serde(rename = "code")]
-    status_code: u16,
     #[serde(rename = "errorNum")]
-    error_code: ErrorCode,
+    code: ErrorCode,
     #[serde(rename = "errorMessage")]
     message: String,
 }
 
 impl Error {
-    pub fn new<M>(status_code: u16, error_code: ErrorCode, message: M) -> Self
+    pub fn new<M>(code: ErrorCode, message: M) -> Self
         where M: Into<String>
     {
         Error {
-            status_code,
-            error_code,
+            code,
             message: message.into(),
         }
     }
 
-    pub fn status_code(&self) -> u16 {
-        self.status_code
-    }
-
-    pub fn error_code(&self) -> ErrorCode {
-        self.error_code
+    pub fn code(&self) -> ErrorCode {
+        self.code
     }
 
     pub fn message(&self) -> &str {
@@ -222,14 +316,14 @@ impl Error {
 
 impl Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(&format!("Error {}: {} (Status: {})",
-            &self.error_code.as_u16(), &self.message, &self.status_code))
+        f.write_str(&format!("Error {}: {}",
+            &self.code.as_u16(), &self.message))
     }
 }
 
 impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(&format!("Error {}: {} (Status: {})",
-            &self.error_code.as_u16(), &self.message, &self.status_code))
+        f.write_str(&format!("Error {}: {}",
+            &self.code.as_u16(), &self.message))
     }
 }
