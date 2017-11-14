@@ -12,7 +12,6 @@ mod test_fixture;
 use test_fixture::*;
 use arangodb_client::api::ErrorCode;
 use arangodb_client::api::types::JsonString;
-use arangodb_client::collection::CreateCollection;
 use arangodb_client::connection::Error;
 use arangodb_client::document::*;
 
@@ -74,8 +73,7 @@ struct CustomerUpdate {
 
 #[test]
 fn insert_struct_document_without_key() {
-    arango_user_db_test("test_document_user1", "test_document_db11", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers01", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -93,10 +91,10 @@ fn insert_struct_document_without_key() {
         };
 
         let new_document = NewDocument::from_content(customer);
-        let method = InsertDocument::new("customers", new_document);
+        let method = InsertDocument::new("customers01", new_document);
         let document = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", document.id().collection_name());
+        assert_eq!("customers01", document.id().collection_name());
         assert!(!document.id().document_key().is_empty());
         assert_eq!(document.id().document_key(), document.key().as_str());
         assert!(!document.revision().as_str().is_empty());
@@ -105,8 +103,7 @@ fn insert_struct_document_without_key() {
 
 #[test]
 fn insert_struct_document_without_key_and_return_new() {
-    arango_user_db_test("test_document_user2", "test_document_db21", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers02", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -124,10 +121,10 @@ fn insert_struct_document_without_key_and_return_new() {
         };
 
         let new_document = NewDocument::from_content(customer.clone());
-        let method = InsertDocumentReturnNew::new("customers", new_document);
+        let method = InsertDocumentReturnNew::new("customers02", new_document);
         let document = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", document.id().collection_name());
+        assert_eq!("customers02", document.id().collection_name());
         assert!(!document.id().document_key().is_empty());
         assert_eq!(document.id().document_key(), document.key().as_str());
         assert!(!document.revision().as_str().is_empty());
@@ -137,8 +134,7 @@ fn insert_struct_document_without_key_and_return_new() {
 
 #[test]
 fn insert_struct_document_with_key() {
-    arango_user_db_test("test_document_user3", "test_document_db31", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers03", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -157,12 +153,12 @@ fn insert_struct_document_with_key() {
 
         let new_document = NewDocument::from_content(customer)
             .with_key(DocumentKey::new("94711"));
-        let method = InsertDocument::new("customers", new_document)
+        let method = InsertDocument::new("customers03", new_document)
             .with_force_wait_for_sync(true);
         let document = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers/94711", &document.id().to_string());
-        assert_eq!("customers", document.id().collection_name());
+        assert_eq!("customers03/94711", &document.id().to_string());
+        assert_eq!("customers03", document.id().collection_name());
         assert_eq!("94711", document.id().document_key());
         assert_eq!("94711", document.key().as_str());
         assert!(!document.revision().as_str().is_empty());
@@ -171,8 +167,7 @@ fn insert_struct_document_with_key() {
 
 #[test]
 fn insert_struct_document_with_key_and_return_new() {
-    arango_user_db_test("test_document_user4", "test_document_db41", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers04", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -191,11 +186,11 @@ fn insert_struct_document_with_key_and_return_new() {
 
         let new_document = NewDocument::from_content(customer.clone())
             .with_key(DocumentKey::new("94712"));
-        let method = InsertDocumentReturnNew::new("customers", new_document);
+        let method = InsertDocumentReturnNew::new("customers04", new_document);
         let document = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers/94712", &document.id().to_string());
-        assert_eq!("customers", document.id().collection_name());
+        assert_eq!("customers04/94712", &document.id().to_string());
+        assert_eq!("customers04", document.id().collection_name());
         assert_eq!("94712", document.id().document_key());
         assert_eq!("94712", document.key().as_str());
         assert!(!document.revision().as_str().is_empty());
@@ -205,8 +200,7 @@ fn insert_struct_document_with_key_and_return_new() {
 
 #[test]
 fn insert_json_document_with_key_and_return_new() {
-    arango_user_db_test("test_document_user5", "test_document_db51", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers05", |conn, ref mut core| {
 
         let json_doc = r#"{
             "name": "Jane Doe",
@@ -225,22 +219,21 @@ fn insert_json_document_with_key_and_return_new() {
 
         let new_document = NewDocument::from_content(JsonString::from_str(json_doc))
             .with_key(DocumentKey::new("7713996"));
-        let method = InsertDocumentReturnNew::new("customers", new_document);
+        let method = InsertDocumentReturnNew::new("customers05", new_document);
         let document = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", document.id().collection_name());
+        assert_eq!("customers05", document.id().collection_name());
         assert!(!document.id().document_key().is_empty());
         assert_eq!(document.id().document_key(), document.key().as_str());
         assert!(!document.revision().as_str().is_empty());
-        assert!(document.content().as_str().starts_with(r#"{"_id":"customers/7713996","_key":"7713996","_rev":""#));
+        assert!(document.content().as_str().starts_with(r#"{"_id":"customers05/7713996","_key":"7713996","_rev":""#));
         assert!(document.content().as_str().ends_with(r#"","active":true,"age":42,"contact":[{"address":"1-555-234523","kind":"Phone","tag":"work"}],"gender":"Female","groups":[],"name":"Jane Doe"}"#));
     });
 }
 
 #[test]
 fn insert_multiple_struct_documents_without_key() {
-    arango_user_db_test("test_document_user6", "test_document_db61", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers06", |conn, ref mut core| {
 
         let customer1 = Customer {
             name: "Jane Doe".to_owned(),
@@ -274,12 +267,12 @@ fn insert_multiple_struct_documents_without_key() {
 
         let new_document1 = NewDocument::from_content(customer1);
         let new_document2 = NewDocument::from_content(customer2);
-        let method = InsertDocuments::new("customers", vec![new_document1, new_document2])
+        let method = InsertDocuments::new("customers06", vec![new_document1, new_document2])
             .with_force_wait_for_sync(true);
         let documents = core.run(conn.execute(method)).unwrap();
 
         if let Ok(ref header1) = documents.get(0).unwrap() {
-            assert_eq!("customers", header1.id().collection_name());
+            assert_eq!("customers06", header1.id().collection_name());
             assert!(!header1.id().document_key().is_empty());
             assert_eq!(header1.id().document_key(), header1.key().as_str());
             assert!(!header1.revision().as_str().is_empty());
@@ -288,7 +281,7 @@ fn insert_multiple_struct_documents_without_key() {
         }
 
         if let Ok(ref header2) = documents.get(1).unwrap() {
-            assert_eq!("customers", header2.id().collection_name());
+            assert_eq!("customers06", header2.id().collection_name());
             assert!(!header2.id().document_key().is_empty());
             assert_eq!(header2.id().document_key(), header2.key().as_str());
             assert!(!header2.revision().as_str().is_empty());
@@ -300,8 +293,7 @@ fn insert_multiple_struct_documents_without_key() {
 
 #[test]
 fn insert_multiple_struct_documents_without_key_and_return_new() {
-    arango_user_db_test("test_document_user7", "test_document_db71", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers07", |conn, ref mut core| {
 
         let customer1 = Customer {
             name: "Jane Doe".to_owned(),
@@ -335,11 +327,11 @@ fn insert_multiple_struct_documents_without_key_and_return_new() {
 
         let new_document1 = NewDocument::from_content(customer1.clone());
         let new_document2 = NewDocument::from_content(customer2.clone());
-        let method = InsertDocumentsReturnNew::new("customers", vec![new_document1, new_document2]);
+        let method = InsertDocumentsReturnNew::new("customers07", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
         if let Ok(ref document1) = documents.get(0).unwrap() {
-            assert_eq!("customers", document1.id().collection_name());
+            assert_eq!("customers07", document1.id().collection_name());
             assert!(!document1.id().document_key().is_empty());
             assert_eq!(document1.id().document_key(), document1.key().as_str());
             assert!(!document1.revision().as_str().is_empty());
@@ -348,7 +340,7 @@ fn insert_multiple_struct_documents_without_key_and_return_new() {
             panic!("Expected document 1, but got: {:?}", documents.get(0));
         }
         if let Ok(ref document2) = documents.get(1).unwrap() {
-            assert_eq!("customers", document2.id().collection_name());
+            assert_eq!("customers07", document2.id().collection_name());
             assert!(!document2.id().document_key().is_empty());
             assert_eq!(document2.id().document_key(), document2.key().as_str());
             assert!(!document2.revision().as_str().is_empty());
@@ -361,8 +353,7 @@ fn insert_multiple_struct_documents_without_key_and_return_new() {
 
 #[test]
 fn insert_multiple_struct_documents_with_key() {
-    arango_user_db_test("test_document_user8", "test_document_db81", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers08", |conn, ref mut core| {
 
         let customer1 = Customer {
             name: "Jane Doe".to_owned(),
@@ -398,12 +389,12 @@ fn insert_multiple_struct_documents_with_key() {
             .with_key(DocumentKey::new("94711"));
         let new_document2 = NewDocument::from_content(customer2)
             .with_key(DocumentKey::new("90815"));
-        let method = InsertDocuments::new("customers", vec![new_document1, new_document2]);
+        let method = InsertDocuments::new("customers08", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
         if let Ok(ref header1) = documents.get(0).unwrap() {
-            assert_eq!("customers/94711", &header1.id().to_string());
-            assert_eq!("customers", header1.id().collection_name());
+            assert_eq!("customers08/94711", &header1.id().to_string());
+            assert_eq!("customers08", header1.id().collection_name());
             assert_eq!("94711", header1.id().document_key());
             assert_eq!("94711", header1.key().as_str());
             assert!(!header1.revision().as_str().is_empty());
@@ -412,8 +403,8 @@ fn insert_multiple_struct_documents_with_key() {
         }
 
         if let Ok(ref header2) = documents.get(1).unwrap() {
-            assert_eq!("customers/90815", &header2.id().to_string());
-            assert_eq!("customers", header2.id().collection_name());
+            assert_eq!("customers08/90815", &header2.id().to_string());
+            assert_eq!("customers08", header2.id().collection_name());
             assert_eq!("90815", header2.id().document_key());
             assert_eq!("90815", header2.key().as_str());
             assert!(!header2.revision().as_str().is_empty());
@@ -425,8 +416,7 @@ fn insert_multiple_struct_documents_with_key() {
 
 #[test]
 fn insert_multiple_struct_documents_with_key_and_return_new() {
-    arango_user_db_test("test_document_user9", "test_document_db91", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers09", |conn, ref mut core| {
 
         let customer1 = Customer {
             name: "Jane Doe".to_owned(),
@@ -462,12 +452,12 @@ fn insert_multiple_struct_documents_with_key_and_return_new() {
             .with_key(DocumentKey::new("94712"));
         let new_document2 = NewDocument::from_content(customer2.clone())
             .with_key(DocumentKey::new("90815"));
-        let method = InsertDocumentsReturnNew::new("customers", vec![new_document1, new_document2]);
+        let method = InsertDocumentsReturnNew::new("customers09", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
         if let Ok(ref document1) = documents.get(0).unwrap() {
-            assert_eq!("customers/94712", &document1.id().to_string());
-            assert_eq!("customers", document1.id().collection_name());
+            assert_eq!("customers09/94712", &document1.id().to_string());
+            assert_eq!("customers09", document1.id().collection_name());
             assert_eq!("94712", document1.id().document_key());
             assert_eq!("94712", document1.key().as_str());
             assert!(!document1.revision().as_str().is_empty());
@@ -477,8 +467,8 @@ fn insert_multiple_struct_documents_with_key_and_return_new() {
         }
 
         if let Ok(ref document2) = documents.get(1).unwrap() {
-            assert_eq!("customers/90815", &document2.id().to_string());
-            assert_eq!("customers", document2.id().collection_name());
+            assert_eq!("customers09/90815", &document2.id().to_string());
+            assert_eq!("customers09", document2.id().collection_name());
             assert_eq!("90815", document2.id().document_key());
             assert_eq!("90815", document2.key().as_str());
             assert!(!document2.revision().as_str().is_empty());
@@ -491,8 +481,7 @@ fn insert_multiple_struct_documents_with_key_and_return_new() {
 
 #[test]
 fn get_document_as_struct_inserted_as_struct() {
-    arango_user_db_test("test_document_user10", "test_document_db101", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers10", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -509,14 +498,14 @@ fn get_document_as_struct_inserted_as_struct() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer.clone())
+            "customers10", NewDocument::from_content(customer.clone())
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
         let method = GetDocument::new(document_id.clone());
         let document = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", document.id().collection_name());
+        assert_eq!("customers10", document.id().collection_name());
         assert_eq!(&document_id, document.id());
         assert_eq!(&document_key, document.key());
         assert_eq!(&revision, document.revision());
@@ -526,8 +515,7 @@ fn get_document_as_struct_inserted_as_struct() {
 
 #[test]
 fn get_document_as_struct_inserted_as_json_string() {
-    arango_user_db_test("test_document_user11", "test_document_db111", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers11", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -560,14 +548,14 @@ fn get_document_as_struct_inserted_as_json_string() {
         }"#;
 
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(JsonString::new(json_doc))
+            "customers11", NewDocument::from_content(JsonString::new(json_doc))
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
         let method = GetDocument::new(document_id.clone());
         let document = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", document.id().collection_name());
+        assert_eq!("customers11", document.id().collection_name());
         assert_eq!(&document_id, document.id());
         assert_eq!(&document_key, document.key());
         assert_eq!(&revision, document.revision());
@@ -577,8 +565,7 @@ fn get_document_as_struct_inserted_as_json_string() {
 
 #[test]
 fn get_document_as_json_string_inserted_as_struct() {
-    arango_user_db_test("test_document_user12", "test_document_db121", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers12", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -596,7 +583,7 @@ fn get_document_as_json_string_inserted_as_struct() {
         };
 
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer.clone())
+            "customers12", NewDocument::from_content(customer.clone())
                 .with_key(DocumentKey::new("7713996"))
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
@@ -604,7 +591,7 @@ fn get_document_as_json_string_inserted_as_struct() {
         let method = GetDocument::new(document_id.clone());
         let document: Document<JsonString> = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", document.id().collection_name());
+        assert_eq!("customers12", document.id().collection_name());
         assert_eq!(&document_id, document.id());
         assert_eq!(&document_key, document.key());
         assert_eq!(&revision, document.revision());
@@ -615,8 +602,7 @@ fn get_document_as_json_string_inserted_as_struct() {
 
 #[test]
 fn get_document_if_revision_matches() {
-    arango_user_db_test("test_document_user13", "test_document_db131", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers13", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -633,7 +619,7 @@ fn get_document_if_revision_matches() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer.clone())
+            "customers13", NewDocument::from_content(customer.clone())
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
@@ -641,7 +627,7 @@ fn get_document_if_revision_matches() {
             .with_if_match(revision.as_str().to_owned());
         let document = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", document.id().collection_name());
+        assert_eq!("customers13", document.id().collection_name());
         assert_eq!(&document_id, document.id());
         assert_eq!(&document_key, document.key());
         assert_eq!(&revision, document.revision());
@@ -651,8 +637,7 @@ fn get_document_if_revision_matches() {
 
 #[test]
 fn get_document_if_revision_is_not_a_match() {
-    arango_user_db_test("test_document_user14", "test_document_db141", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers14", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -669,7 +654,7 @@ fn get_document_if_revision_is_not_a_match() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer.clone())
+            "customers14", NewDocument::from_content(customer.clone())
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
@@ -677,7 +662,7 @@ fn get_document_if_revision_is_not_a_match() {
             .with_if_non_match(String::from("not") + revision.as_str());
         let document = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", document.id().collection_name());
+        assert_eq!("customers14", document.id().collection_name());
         assert_eq!(&document_id, document.id());
         assert_eq!(&document_key, document.key());
         assert_eq!(&revision, document.revision());
@@ -687,8 +672,7 @@ fn get_document_if_revision_is_not_a_match() {
 
 #[test]
 fn get_document_but_revision_does_not_match() {
-    arango_user_db_test("test_document_user15", "test_document_db151", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers15", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -705,7 +689,7 @@ fn get_document_but_revision_does_not_match() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer.clone())
+            "customers15", NewDocument::from_content(customer.clone())
         ))).unwrap();
         let (document_id, _, revision) = header.deconstruct();
 
@@ -726,8 +710,7 @@ fn get_document_but_revision_does_not_match() {
 
 #[test]
 fn get_document_for_id_that_does_not_exist() {
-    arango_user_db_test("test_document_user16", "test_document_db161", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers16", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -744,11 +727,11 @@ fn get_document_for_id_that_does_not_exist() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer.clone())
+            "customers16", NewDocument::from_content(customer.clone())
         ))).unwrap();
         let (_, document_key, _) = header.deconstruct();
 
-        let method = GetDocument::<Customer>::new(DocumentId::new("customers", "notexisting999"));
+        let method = GetDocument::<Customer>::new(DocumentId::new("customers16", "not_existing99"));
         let result = core.run(conn.execute(method));
 
         match result {
@@ -760,14 +743,14 @@ fn get_document_for_id_that_does_not_exist() {
             _ => panic!("Error expected, but got: {:?}", &result),
         }
 
-        let method = GetDocument::<Customer>::new(DocumentId::new("notexisting99", document_key.as_str()));
+        let method = GetDocument::<Customer>::new(DocumentId::new("not_existing99", document_key.as_str()));
         let result = core.run(conn.execute(method));
 
         match result {
             Err(Error::ApiError(error)) => {
                 assert_eq!(404, error.status_code());
                 assert_eq!(ErrorCode::ArangoCollectionNotFound, error.error_code());
-                assert_eq!("collection not found: notexisting99", error.message());
+                assert_eq!("collection not found: not_existing99", error.message());
             },
             _ => panic!("Error expected, but got: {:?}", &result),
         }
@@ -777,8 +760,7 @@ fn get_document_for_id_that_does_not_exist() {
 #[ignore] //TODO refactor get document header to document exists (with possibly returning the revision)
 #[test]
 fn get_document_header() {
-    arango_user_db_test("test_document_user20", "test_document_db201", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers20", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -795,7 +777,7 @@ fn get_document_header() {
             groups: vec![],
         };
         let inserted = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer.clone())
+            "customers20", NewDocument::from_content(customer.clone())
                 .with_key(DocumentKey::new("7721264"))
         ))).unwrap();
 
@@ -808,8 +790,7 @@ fn get_document_header() {
 
 #[test]
 fn replace_with_struct_document_without_revision() {
-    arango_user_db_test("test_document_user30", "test_document_db301", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers30", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -826,7 +807,7 @@ fn replace_with_struct_document_without_revision() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer)
+            "customers30", NewDocument::from_content(customer)
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
@@ -849,7 +830,7 @@ fn replace_with_struct_document_without_revision() {
         let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update);
         let updated = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!("customers30", updated.id().collection_name());
         assert_eq!(&document_id, updated.id());
         assert_eq!(&document_key, updated.key());
         assert!(!updated.revision().as_str().is_empty());
@@ -862,8 +843,7 @@ fn replace_with_struct_document_without_revision() {
 
 #[test]
 fn replace_with_struct_document_with_revision() {
-    arango_user_db_test("test_document_user31", "test_document_db311", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers31", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -880,7 +860,7 @@ fn replace_with_struct_document_with_revision() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer)
+            "customers31", NewDocument::from_content(customer)
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
@@ -904,7 +884,7 @@ fn replace_with_struct_document_with_revision() {
         let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update);
         let updated = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!("customers31", updated.id().collection_name());
         assert_eq!(&document_id, updated.id());
         assert_eq!(&document_key, updated.key());
         assert!(!updated.revision().as_str().is_empty());
@@ -916,8 +896,7 @@ fn replace_with_struct_document_with_revision() {
 
 #[test]
 fn replace_with_struct_document_of_other_type() {
-    arango_user_db_test("test_document_user32", "test_document_db321", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers32", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -934,7 +913,7 @@ fn replace_with_struct_document_of_other_type() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer)
+            "customers32", NewDocument::from_content(customer)
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
@@ -956,7 +935,7 @@ fn replace_with_struct_document_of_other_type() {
         let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update);
         let updated = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!("customers32", updated.id().collection_name());
         assert_eq!(&document_id, updated.id());
         assert_eq!(&document_key, updated.key());
         assert!(!updated.revision().as_str().is_empty());
@@ -968,8 +947,7 @@ fn replace_with_struct_document_of_other_type() {
 
 #[test]
 fn replace_with_struct_document_of_other_type_return_old() {
-    arango_user_db_test("test_document_user33", "test_document_db331", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers33", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -986,7 +964,7 @@ fn replace_with_struct_document_of_other_type_return_old() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer.clone())
+            "customers33", NewDocument::from_content(customer.clone())
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
@@ -1009,7 +987,7 @@ fn replace_with_struct_document_of_other_type_return_old() {
             .with_return_old(true);
         let updated = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!("customers33", updated.id().collection_name());
         assert_eq!(&document_id, updated.id());
         assert_eq!(&document_key, updated.key());
         assert!(!updated.revision().as_str().is_empty());
@@ -1021,8 +999,7 @@ fn replace_with_struct_document_of_other_type_return_old() {
 
 #[test]
 fn replace_with_struct_document_of_other_type_return_new() {
-    arango_user_db_test("test_document_user34", "test_document_db341", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers34", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -1039,7 +1016,7 @@ fn replace_with_struct_document_of_other_type_return_new() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer)
+            "customers34", NewDocument::from_content(customer)
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
@@ -1062,7 +1039,7 @@ fn replace_with_struct_document_of_other_type_return_new() {
             .with_return_new(true);
         let updated = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!("customers34", updated.id().collection_name());
         assert_eq!(&document_id, updated.id());
         assert_eq!(&document_key, updated.key());
         assert!(!updated.revision().as_str().is_empty());
@@ -1074,8 +1051,7 @@ fn replace_with_struct_document_of_other_type_return_new() {
 
 #[test]
 fn replace_with_struct_document_of_other_type_return_old_and_new() {
-    arango_user_db_test("test_document_user35", "test_document_db351", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers35", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -1092,7 +1068,7 @@ fn replace_with_struct_document_of_other_type_return_old_and_new() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer.clone())
+            "customers35", NewDocument::from_content(customer.clone())
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
@@ -1116,7 +1092,7 @@ fn replace_with_struct_document_of_other_type_return_old_and_new() {
             .with_return_old(true);
         let updated = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!("customers35", updated.id().collection_name());
         assert_eq!(&document_id, updated.id());
         assert_eq!(&document_key, updated.key());
         assert!(!updated.revision().as_str().is_empty());
@@ -1128,8 +1104,7 @@ fn replace_with_struct_document_of_other_type_return_old_and_new() {
 
 #[test]
 fn replace_with_struct_document_with_ignore_revisions_return_old_and_new() {
-    arango_user_db_test("test_document_user36", "test_document_db361", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers36", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -1146,7 +1121,7 @@ fn replace_with_struct_document_with_ignore_revisions_return_old_and_new() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer.clone())
+            "customers36", NewDocument::from_content(customer.clone())
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
@@ -1174,7 +1149,7 @@ fn replace_with_struct_document_with_ignore_revisions_return_old_and_new() {
             .with_force_wait_for_sync(true);
         let updated = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!("customers36", updated.id().collection_name());
         assert_eq!(&document_id, updated.id());
         assert_eq!(&document_key, updated.key());
         assert!(!updated.revision().as_str().is_empty());
@@ -1186,8 +1161,7 @@ fn replace_with_struct_document_with_ignore_revisions_return_old_and_new() {
 
 #[test]
 fn replace_with_struct_document_with_unknown_revision() {
-    arango_user_db_test("test_document_user37", "test_document_db371", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers37", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -1204,7 +1178,7 @@ fn replace_with_struct_document_with_unknown_revision() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer)
+            "customers37", NewDocument::from_content(customer)
         ))).unwrap();
         let (document_id, document_key, _) = header.deconstruct();
 
@@ -1245,8 +1219,7 @@ fn replace_with_struct_document_with_unknown_revision() {
 
 #[test]
 fn replace_with_struct_document_with_if_match_return_old_and_new() {
-    arango_user_db_test("test_document_user38", "test_document_db381", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers38", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -1263,7 +1236,7 @@ fn replace_with_struct_document_with_if_match_return_old_and_new() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer.clone())
+            "customers38", NewDocument::from_content(customer.clone())
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
@@ -1289,7 +1262,7 @@ fn replace_with_struct_document_with_if_match_return_old_and_new() {
             .with_return_new(true);
         let updated = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!("customers38", updated.id().collection_name());
         assert_eq!(&document_id, updated.id());
         assert_eq!(&document_key, updated.key());
         assert!(!updated.revision().as_str().is_empty());
@@ -1301,8 +1274,7 @@ fn replace_with_struct_document_with_if_match_return_old_and_new() {
 
 #[test]
 fn replace_with_struct_document_with_if_match_unknown_revision() {
-    arango_user_db_test("test_document_user39", "test_document_db391", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers39", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -1319,7 +1291,7 @@ fn replace_with_struct_document_with_if_match_unknown_revision() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer)
+            "customers39", NewDocument::from_content(customer)
         ))).unwrap();
         let (document_id, document_key, _) = header.deconstruct();
 
@@ -1358,8 +1330,7 @@ fn replace_with_struct_document_with_if_match_unknown_revision() {
 
 #[test]
 fn update_struct_document() {
-    arango_user_db_test("test_document_user40", "test_document_db401", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers40", |conn, ref mut core| {
 
         let customer = Customer {
             name: "Jane Doe".to_owned(),
@@ -1376,7 +1347,7 @@ fn update_struct_document() {
             groups: vec![],
         };
         let header = core.run(conn.execute(InsertDocument::new(
-            "customers", NewDocument::from_content(customer)
+            "customers40", NewDocument::from_content(customer)
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
@@ -1400,7 +1371,7 @@ fn update_struct_document() {
             .with_return_new(true);
         let updated = core.run(conn.execute(method)).unwrap();
 
-        assert_eq!("customers", updated.id().collection_name());
+        assert_eq!("customers40", updated.id().collection_name());
         assert_eq!(&document_id, updated.id());
         assert_eq!(&document_key, updated.key());
         assert!(!updated.revision().as_str().is_empty());
@@ -1422,8 +1393,7 @@ fn update_struct_document() {
 
 #[test]
 fn insert_two_struct_documents_with_same_key() {
-    arango_user_db_test("test_document_user50", "test_document_db501", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers50", |conn, ref mut core| {
 
         let customer1 = Customer {
             name: "Jane Doe".to_owned(),
@@ -1459,12 +1429,12 @@ fn insert_two_struct_documents_with_same_key() {
             .with_key(DocumentKey::new("94711"));
         let new_document2 = NewDocument::from_content(customer2)
             .with_key(DocumentKey::new("94711"));
-        let method = InsertDocuments::new("customers", vec![new_document1, new_document2]);
+        let method = InsertDocuments::new("customers50", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
         if let Ok(ref header1) = documents.get(0).unwrap() {
-            assert_eq!("customers/94711", &header1.id().to_string());
-            assert_eq!("customers", header1.id().collection_name());
+            assert_eq!("customers50/94711", &header1.id().to_string());
+            assert_eq!("customers50", header1.id().collection_name());
             assert_eq!("94711", header1.id().document_key());
             assert_eq!("94711", header1.key().as_str());
             assert!(!header1.revision().as_str().is_empty());
@@ -1483,8 +1453,7 @@ fn insert_two_struct_documents_with_same_key() {
 
 #[test]
 fn insert_two_struct_documents_with_same_key_and_return_new() {
-    arango_user_db_test("test_document_user51", "test_document_db511", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("customers51", |conn, ref mut core| {
 
         let customer1 = Customer {
             name: "Jane Doe".to_owned(),
@@ -1520,12 +1489,12 @@ fn insert_two_struct_documents_with_same_key_and_return_new() {
             .with_key(DocumentKey::new("94712"));
         let new_document2 = NewDocument::from_content(customer2.clone())
             .with_key(DocumentKey::new("94712"));
-        let method = InsertDocumentsReturnNew::new("customers", vec![new_document1, new_document2]);
+        let method = InsertDocumentsReturnNew::new("customers51", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
         if let Ok(ref document1) = documents.get(0).unwrap() {
-            assert_eq!("customers/94712", &document1.id().to_string());
-            assert_eq!("customers", document1.id().collection_name());
+            assert_eq!("customers51/94712", &document1.id().to_string());
+            assert_eq!("customers51", document1.id().collection_name());
             assert_eq!("94712", document1.id().document_key());
             assert_eq!("94712", document1.key().as_str());
             assert!(!document1.revision().as_str().is_empty());
