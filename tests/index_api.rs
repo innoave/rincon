@@ -10,17 +10,14 @@ mod test_fixture;
 
 use test_fixture::*;
 use arangodb_client::api::ErrorCode;
-use arangodb_client::collection::CreateCollection;
 use arangodb_client::connection::Error;
 use arangodb_client::index::*;
 
 #[test]
 fn get_index_list_from_document_collection() {
-    arango_user_db_test("test_index_user1", "test_index_db11", |conn, ref mut core| {
+    arango_test_with_document_collection("index_customers01", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
-        let method = GetIndexList::of_collection("customers");
+        let method = GetIndexList::of_collection("index_customers01");
         let result = core.run(conn.execute(method)).unwrap();
 
         let indexes = result.indexes();
@@ -31,7 +28,7 @@ fn get_index_list_from_document_collection() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
             };
-            assert_eq!("customers/0", &index_id.to_string());
+            assert_eq!("index_customers01/0", &index_id.to_string());
             assert_eq!(&vec!["_key".to_owned()][..], index1.fields());
             assert_eq!(false, index1.is_newly_created());
             if let &Index::Primary(ref primary_index) = index1 {
@@ -42,12 +39,12 @@ fn get_index_list_from_document_collection() {
             }
         }
         {
-            let identifier1 = identifiers.get("customers/0").unwrap();
+            let identifier1 = identifiers.get("index_customers01/0").unwrap();
             let index_id = match *identifier1.id() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
             };
-            assert_eq!("customers/0", index_id.to_string());
+            assert_eq!("index_customers01/0", index_id.to_string());
             assert_eq!(&vec!["_key".to_owned()][..], identifier1.fields());
             assert_eq!(false, identifier1.is_newly_created());
             if let &Index::Primary(ref primary_index) = identifier1 {
@@ -65,11 +62,9 @@ fn get_index_list_from_document_collection() {
 
 #[test]
 fn get_index_list_from_edge_collection() {
-    arango_user_db_test("test_index_user10", "test_index_db101", |conn, ref mut core| {
+    arango_test_with_edge_collection("index_customers02", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::edges_with_name("customers"))).unwrap();
-
-        let method = GetIndexList::of_collection("customers");
+        let method = GetIndexList::of_collection("index_customers02");
         let result = core.run(conn.execute(method)).unwrap();
 
         let indexes = result.indexes();
@@ -80,7 +75,7 @@ fn get_index_list_from_edge_collection() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
             };
-            assert_eq!("customers/0", &index_id.to_string());
+            assert_eq!("index_customers02/0", &index_id.to_string());
             assert_eq!(&vec!["_key".to_owned()][..], index1.fields());
             assert_eq!(false, index1.is_newly_created());
             if let &Index::Primary(ref primary_index) = index1 {
@@ -97,7 +92,7 @@ fn get_index_list_from_edge_collection() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
             };
-            assert_eq!("customers/1", &index_id.to_string());
+            assert_eq!("index_customers02/1", &index_id.to_string());
             assert_eq!(&vec!["_from".to_owned(), "_to".to_owned()][..], index2.fields());
             assert_eq!(false, index2.is_newly_created());
             if let &Index::Edge(ref edge_index) = index2 {
@@ -108,12 +103,12 @@ fn get_index_list_from_edge_collection() {
             }
         }
         {
-            let identifier1 = identifiers.get("customers/0").unwrap();
+            let identifier1 = identifiers.get("index_customers02/0").unwrap();
             let index_id = match *identifier1.id() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
             };
-            assert_eq!("customers/0", index_id.to_string());
+            assert_eq!("index_customers02/0", index_id.to_string());
             assert_eq!(&vec!["_key".to_owned()][..], identifier1.fields());
             assert_eq!(false, identifier1.is_newly_created());
             if let &Index::Primary(ref primary_index) = identifier1 {
@@ -125,12 +120,12 @@ fn get_index_list_from_edge_collection() {
             }
         }
         {
-            let identifier2 = identifiers.get("customers/1").unwrap();
+            let identifier2 = identifiers.get("index_customers02/1").unwrap();
             let index_id = match *identifier2.id() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
             };
-            assert_eq!("customers/1", index_id.to_string());
+            assert_eq!("index_customers02/1", index_id.to_string());
             assert_eq!(&vec!["_from".to_owned(), "_to".to_owned()][..], identifier2.fields());
             assert_eq!(false, identifier2.is_newly_created());
             if let &Index::Edge(ref edge_index) = identifier2 {
@@ -148,18 +143,16 @@ fn get_index_list_from_edge_collection() {
 
 #[test]
 fn get_index_from_collection() {
-    arango_user_db_test("test_index_user2", "test_index_db21", |conn, ref mut core| {
+    arango_test_with_document_collection("index_customers03", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
-        let method = GetIndex::new(IndexId::new("customers", "0"));
+        let method = GetIndex::new(IndexId::new("index_customers03", "0"));
         let index = core.run(conn.execute(method)).unwrap();
         let index_id = match *index.id() {
             IndexIdOption::Qualified(ref index_id) => index_id,
             _ => panic!("Qualified index id expected!"),
         };
 
-        assert_eq!("customers/0", index_id.to_string());
+        assert_eq!("index_customers03/0", index_id.to_string());
         assert_eq!(&vec!["_key".to_owned()][..], index.fields());
         assert_eq!(false, index.is_newly_created());
         if let Index::Primary(ref primary_index) = index {
@@ -173,11 +166,9 @@ fn get_index_from_collection() {
 
 #[test]
 fn create_index_of_type_hash_for_collection() {
-    arango_user_db_test("test_index_user3", "test_index_db31", |conn, ref mut core| {
+    arango_test_with_document_collection("index_customers04", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
-        let method = CreateIndex::new("customers", NewHashIndex::new(
+        let method = CreateIndex::new("index_customers04", NewHashIndex::new(
             vec!["name".to_owned()], true, false, true));
         let index = core.run(conn.execute(method)).unwrap();
         let index_id = match *index.id() {
@@ -185,7 +176,7 @@ fn create_index_of_type_hash_for_collection() {
             _ => panic!("Qualified index id expected!"),
         };
 
-        assert_eq!("customers", index_id.collection_name());
+        assert_eq!("index_customers04", index_id.collection_name());
         assert!(!index_id.index_key().is_empty());
         assert_eq!(&vec!["name".to_owned()][..], index.fields());
         assert_eq!(true, index.is_newly_created());
@@ -202,11 +193,9 @@ fn create_index_of_type_hash_for_collection() {
 
 #[test]
 fn create_index_of_type_skip_list_for_collection() {
-    arango_user_db_test("test_index_user4", "test_index_db41", |conn, ref mut core| {
+    arango_test_with_document_collection("index_customers05", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
-        let method = CreateIndex::new("customers", NewSkipListIndex::new(
+        let method = CreateIndex::new("index_customers05", NewSkipListIndex::new(
             vec!["age".to_owned(), "gender".to_owned()], false, true, false));
         let index = core.run(conn.execute(method)).unwrap();
         let index_id = match *index.id() {
@@ -214,7 +203,7 @@ fn create_index_of_type_skip_list_for_collection() {
             _ => panic!("Qualified index id expected!"),
         };
 
-        assert_eq!("customers", index_id.collection_name());
+        assert_eq!("index_customers05", index_id.collection_name());
         assert!(!index_id.index_key().is_empty());
         assert_eq!(&vec!["age".to_owned(), "gender".to_owned()][..], index.fields());
         assert_eq!(true, index.is_newly_created());
@@ -230,11 +219,9 @@ fn create_index_of_type_skip_list_for_collection() {
 
 #[test]
 fn create_index_of_type_persistent_for_collection() {
-    arango_user_db_test("test_index_user5", "test_index_db51", |conn, ref mut core| {
+    arango_test_with_document_collection("index_customers06", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
-        let method = CreateIndex::new("customers", NewPersistentIndex::new(
+        let method = CreateIndex::new("index_customers06", NewPersistentIndex::new(
             vec!["age".to_owned(), "gender".to_owned()], false, true));
         let index = core.run(conn.execute(method)).unwrap();
         let index_id = match *index.id() {
@@ -242,7 +229,7 @@ fn create_index_of_type_persistent_for_collection() {
             _ => panic!("Qualified index id expected!"),
         };
 
-        assert_eq!("customers", index_id.collection_name());
+        assert_eq!("index_customers06", index_id.collection_name());
         assert!(!index_id.index_key().is_empty());
         assert_eq!(&vec!["age".to_owned(), "gender".to_owned()][..], index.fields());
         assert_eq!(true, index.is_newly_created());
@@ -258,11 +245,9 @@ fn create_index_of_type_persistent_for_collection() {
 
 #[test]
 fn create_index_of_type_geo1_for_collection() {
-    arango_user_db_test("test_index_user6", "test_index_db61", |conn, ref mut core| {
+    arango_test_with_document_collection("index_customers07", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
-        let method = CreateIndex::new("customers",
+        let method = CreateIndex::new("index_customers07",
             NewGeoIndex::with_location_field("location", true));
         let index = core.run(conn.execute(method)).unwrap();
         let index_id = match *index.id() {
@@ -270,7 +255,7 @@ fn create_index_of_type_geo1_for_collection() {
             _ => panic!("Qualified index id expected!"),
         };
 
-        assert_eq!("customers", index_id.collection_name());
+        assert_eq!("index_customers07", index_id.collection_name());
         assert!(!index_id.index_key().is_empty());
         assert_eq!(&vec!["location".to_owned()][..], index.fields());
         assert_eq!(true, index.is_newly_created());
@@ -286,11 +271,9 @@ fn create_index_of_type_geo1_for_collection() {
 
 #[test]
 fn create_index_of_type_geo2_for_collection() {
-    arango_user_db_test("test_index_user7", "test_index_db71", |conn, ref mut core| {
+    arango_test_with_document_collection("index_customers08", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
-        let method = CreateIndex::new("customers",
+        let method = CreateIndex::new("index_customers08",
             NewGeoIndex::with_lat_lng_fields("latitude", "longitude"));
         let index = core.run(conn.execute(method)).unwrap();
         let index_id = match *index.id() {
@@ -298,7 +281,7 @@ fn create_index_of_type_geo2_for_collection() {
             _ => panic!("Qualified index id expected!"),
         };
 
-        assert_eq!("customers", index_id.collection_name());
+        assert_eq!("index_customers08", index_id.collection_name());
         assert!(!index_id.index_key().is_empty());
         assert_eq!(&vec!["latitude".to_owned(), "longitude".to_owned()][..], index.fields());
         assert_eq!(true, index.is_newly_created());
@@ -313,11 +296,9 @@ fn create_index_of_type_geo2_for_collection() {
 
 #[test]
 fn create_index_of_type_fulltext_for_collection() {
-    arango_user_db_test("test_index_user8", "test_index_db81", |conn, ref mut core| {
+    arango_test_with_document_collection("index_customers09", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
-        let method = CreateIndex::new("customers", NewFulltextIndex::new(
+        let method = CreateIndex::new("index_customers09", NewFulltextIndex::new(
             "description", 4));
         let index = core.run(conn.execute(method)).unwrap();
         let index_id = match *index.id() {
@@ -325,7 +306,7 @@ fn create_index_of_type_fulltext_for_collection() {
             _ => panic!("Qualified index id expected!"),
         };
 
-        assert_eq!("customers", index_id.collection_name());
+        assert_eq!("index_customers09", index_id.collection_name());
         assert!(!index_id.index_key().is_empty());
         assert_eq!(&vec!["description".to_owned()][..], index.fields());
         assert_eq!(true, index.is_newly_created());
@@ -341,11 +322,9 @@ fn create_index_of_type_fulltext_for_collection() {
 
 #[test]
 fn create_index_that_is_already_existing() {
-    arango_user_db_test("test_index_user9", "test_index_db91", |conn, ref mut core| {
+    arango_test_with_document_collection("index_customers10", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
-        let method = CreateIndex::new("customers", NewFulltextIndex::new(
+        let method = CreateIndex::new("index_customers10", NewFulltextIndex::new(
             "description", 4));
         let index = core.run(conn.execute(method)).unwrap();
         let index_id = match *index.id() {
@@ -353,7 +332,7 @@ fn create_index_that_is_already_existing() {
             _ => panic!("Qualified index id expected!"),
         };
 
-        assert_eq!("customers", index_id.collection_name());
+        assert_eq!("index_customers10", index_id.collection_name());
         assert!(!index_id.index_key().is_empty());
         assert_eq!(&vec!["description".to_owned()][..], index.fields());
         assert_eq!(true, index.is_newly_created());
@@ -365,7 +344,7 @@ fn create_index_that_is_already_existing() {
             panic!("FulltextIndex expected, but got {:?}", index);
         }
 
-        let method = CreateIndex::new("customers", NewFulltextIndex::new(
+        let method = CreateIndex::new("index_customers10", NewFulltextIndex::new(
             "description", 4));
         let index2 = core.run(conn.execute(method)).unwrap();
 
@@ -375,11 +354,9 @@ fn create_index_that_is_already_existing() {
 
 #[test]
 fn delete_index_of_type_hash_for_collection() {
-    arango_user_db_test("test_index_user11", "test_index_db111", |conn, ref mut core| {
+    arango_test_with_document_collection("index_customers11", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
-        let create = CreateIndex::new("customers", NewHashIndex::new(
+        let create = CreateIndex::new("index_customers11", NewHashIndex::new(
             vec!["name".to_owned()], true, false, true));
         let index = core.run(conn.execute(create)).unwrap();
         let index_id = match *index.id() {
@@ -396,15 +373,13 @@ fn delete_index_of_type_hash_for_collection() {
 
 #[test]
 fn delete_not_existing_index_in_existing_collection() {
-    arango_user_db_test("test_index_user12", "test_index_db121", |conn, ref mut core| {
+    arango_test_with_document_collection("index_customers12", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
-        let create = CreateIndex::new("customers", NewHashIndex::new(
+        let create = CreateIndex::new("index_customers12", NewHashIndex::new(
             vec!["name".to_owned()], true, false, true));
         core.run(conn.execute(create)).unwrap();
 
-        let delete = DeleteIndex::new(IndexId::new("customers", "9999999"));
+        let delete = DeleteIndex::new(IndexId::new("index_customers12", "9999999"));
         let result = core.run(conn.execute(delete));
 
         match result {

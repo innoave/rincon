@@ -106,7 +106,42 @@ pub fn arango_test_with_document_collection<T>(collection: &str, test: T) -> ()
     let user_conn = Connection::establish(user_ds.clone(), &core.handle()).unwrap();
 
     core.run(user_conn.execute(CreateCollection::documents_with_name(collection)))
-        .expect(&format!("Error on creating collection: {}", collection));
+        .expect(&format!("Error on creating document collection: {}", collection));
+
+    let result = panic::catch_unwind(|| {
+        let mut core = Core::new().unwrap();
+        let conn = Connection::establish(user_ds, &core.handle()).unwrap();
+        test(conn, &mut core);
+    });
+
+    let dropped = core.run(user_conn.execute(DropCollection::with_name(collection)));
+    if let Err(ref error) = dropped {
+        panic!("Error on dropping collection {}: {:?}", collection, error);
+    }
+    assert!(result.is_ok())
+}
+
+#[allow(dead_code)]
+pub fn arango_test_with_edge_collection<T>(collection: &str, test: T) -> ()
+    where T: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe
+{
+    dotenv().ok();
+    let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
+    let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
+    let username = env::var(ENV_ARANGO_TEST_USERNAME).unwrap();
+    let password = env::var(ENV_ARANGO_TEST_PASSWORD).unwrap();
+
+    let mut core = Core::new().unwrap();
+
+    setup_database_if_not_existing(&username, &password, &database, &db_url, &mut core);
+
+    let user_ds = DataSource::from_url(&db_url).unwrap()
+        .with_basic_authentication(&username, &password)
+        .use_database(database.to_owned());
+    let user_conn = Connection::establish(user_ds.clone(), &core.handle()).unwrap();
+
+    core.run(user_conn.execute(CreateCollection::edges_with_name(collection)))
+        .expect(&format!("Error on creating edge collection: {}", collection));
 
     let result = panic::catch_unwind(|| {
         let mut core = Core::new().unwrap();
