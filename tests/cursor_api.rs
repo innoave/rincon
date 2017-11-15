@@ -13,17 +13,14 @@ use arangodb_client::api::ErrorCode;
 use arangodb_client::api::query::Query;
 use arangodb_client::api::types::{EMPTY, Empty, JsonValue};
 use arangodb_client::aql::OptimizerRule;
-use arangodb_client::collection::CreateCollection;
 use arangodb_client::connection::Error;
 use arangodb_client::cursor::*;
 
 #[test]
 fn query_returns_cursor_with_no_results() {
-    arango_user_db_test("test_cursor_user1", "test_cursor_db11", |conn, ref mut core| {
+    arango_test_with_document_collection("cursor_customers01", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
-        let query = Query::new("FOR c IN customers RETURN c");
+        let query = Query::new("FOR c IN cursor_customers01 RETURN c");
 
         let method = CreateCursor::<JsonValue>::from_query(query);
         let work = conn.execute(method);
@@ -37,16 +34,14 @@ fn query_returns_cursor_with_no_results() {
 
 #[test]
 fn insert_documents_and_return_their_names() {
-    arango_user_db_test("test_cursor_user2", "test_cursor_db21", |conn, ref mut core| {
-
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("cursor_customers02", |conn, ref mut core| {
 
         let query = Query::new(
             "FOR i IN 1..10 \
               INSERT { \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers \
+              } IN cursor_customers02 \
               RETURN NEW.name"
         );
 
@@ -73,20 +68,19 @@ fn insert_documents_and_return_their_names() {
 
 #[test]
 fn query_reads_from_cursor_in_batches_of_5_results() {
-    arango_user_db_test("test_cursor_user3", "test_cursor_db31", |conn, ref mut core| {
+    arango_test_with_document_collection("cursor_customers03", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN cursor_customers03"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let query = Query::new(
-            "FOR c IN customers \
+            "FOR c IN cursor_customers03 \
               FILTER c.age <= 37 \
               SORT c.name \
               RETURN c.name"
@@ -151,20 +145,19 @@ fn query_reads_from_cursor_in_batches_of_5_results() {
 
 #[test]
 fn delete_cursor_before_fetching_all_results() {
-    arango_user_db_test("test_cursor_user4", "test_cursor_db41", |conn, ref mut core| {
+    arango_test_with_document_collection("cursor_customers04", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN cursor_customers04"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let query = Query::new(
-            "FOR c IN customers \
+            "FOR c IN cursor_customers04 \
               FILTER c.age <= 37 \
               SORT c.name \
               RETURN c.name"
@@ -222,11 +215,9 @@ fn delete_cursor_before_fetching_all_results() {
 
 #[test]
 fn query_with_optimizer_rules() {
-    arango_user_db_test("test_cursor_user5", "test_cursor_db51", |conn, ref mut core| {
+    arango_test_with_document_collection("cursor_customers05", |conn, ref mut core| {
 
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
-        let query = Query::new("FOR c IN customers RETURN c");
+        let query = Query::new("FOR c IN cursor_customers05 RETURN c");
 
         let mut new_cursor = NewCursor::from(query);
 

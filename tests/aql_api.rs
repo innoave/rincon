@@ -7,33 +7,33 @@ extern crate tokio_core;
 
 extern crate arangodb_client;
 
-mod test_fixture;
+use std::env;
 
-use test_fixture::*;
 use arangodb_client::api::ErrorCode;
 use arangodb_client::api::query::Query;
 use arangodb_client::api::types::{Empty, JsonValue};
 use arangodb_client::aql::*;
-use arangodb_client::collection::CreateCollection;
 use arangodb_client::connection::Error;
 use arangodb_client::cursor::CreateCursor;
 use arangodb_client::index::{CreateIndex, HashIndex, IndexDetails, IndexIdOption, IndexKey, NewHashIndex};
 
+mod test_fixture;
+use test_fixture::*;
+
 #[test]
 fn parse_valid_query() {
-    arango_user_db_test("test_aql_user1", "test_aql_db11", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers01", |conn, ref mut core| {
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN aql_customers01"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let query = String::from(
-            "FOR c IN customers \
+            "FOR c IN aql_customers01 \
               FILTER c.age <= @age \
               LIMIT 10 \
               SORT c.name \
@@ -44,7 +44,7 @@ fn parse_valid_query() {
         let parsed_query = core.run(conn.execute(method)).unwrap();
 
         let query_ast = ParsedQuery::new(
-            vec!["customers"],
+            vec!["aql_customers01"],
             vec!["age"],
             vec![
                 ParsedAstNode::new(
@@ -68,7 +68,7 @@ fn parse_valid_query() {
                                 ),
                                 ParsedAstNode::new(
                                     "collection",
-                                    "customers".to_owned(),
+                                    "aql_customers01".to_owned(),
                                     None,
                                     None,
                                     vec![]
@@ -216,19 +216,18 @@ fn parse_valid_query() {
 
 #[test]
 fn parse_invalid_query() {
-    arango_user_db_test("test_aql_user2", "test_aql_db21", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers02", |conn, ref mut core| {
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN aql_customers02"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let query = String::from(
-            "FOR c IN customers \
+            "FOR c IN aql_customers02 \
               FILTER c.age = @age \
               LIMIT 2 \
               SORT c.name \
@@ -242,7 +241,7 @@ fn parse_invalid_query() {
             Err(Error::ApiError(error)) => {
                 assert_eq!(400, error.status_code());
                 assert_eq!(ErrorCode::QueryParse, error.error_code());
-                assert_eq!("syntax error, unexpected assignment near '= @age LIMIT 2 SORT c.name RETUR...' at position 1:33", error.message());
+                assert_eq!("syntax error, unexpected assignment near '= @age LIMIT 2 SORT c.name RETUR...' at position 1:39", error.message());
             },
             _ => panic!("Error::ApiError expected but got {:?}", result),
         };
@@ -251,19 +250,19 @@ fn parse_invalid_query() {
 
 #[test]
 fn explain_valid_query() {
-    arango_user_db_test("test_aql_user3", "test_aql_db31", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers03", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN aql_customers03"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let query = Query::new(
-            "FOR c IN customers \
+            "FOR c IN aql_customers03 \
               RETURN c"
         );
 
@@ -284,8 +283,8 @@ fn explain_valid_query() {
                         vec![ ExecutionNodeId(1) ],
                         23.,
                         21,
-                        "test_aql_db31",
-                        "customers",
+                        database.clone(),
+                        "aql_customers03",
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         false,
                     )),
@@ -299,7 +298,7 @@ fn explain_valid_query() {
                 ],
                 Vec::<String>::new(),
                 vec![
-                    ExecutionCollection::new("read", "customers"),
+                    ExecutionCollection::new("read", "aql_customers03"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(0), "c"),
@@ -319,26 +318,26 @@ fn explain_valid_query() {
 
 #[test]
 fn explain_a_plan_with_some_optimizer_rules_applied() {
-    arango_user_db_test("test_aql_user4", "test_aql_db41", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers04", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 id: i, \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN aql_customers04"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
         let id_index = NewHashIndex::new(vec!["id".to_owned()], true, false, false);
-        let index = core.run(conn.execute(CreateIndex::new("customers", id_index))).unwrap();
+        let index = core.run(conn.execute(CreateIndex::new("aql_customers04", id_index))).unwrap();
         let index_id = match *index.id() {
             IndexIdOption::Qualified(ref index_id) => index_id,
             _ => panic!("Qualified index id expected!"),
         };
 
         let query = Query::new(
-            "FOR c IN customers \
+            "FOR c IN aql_customers04 \
               LET id = c.id \
               FILTER id == 21 \
               LET name = c.name \
@@ -364,8 +363,8 @@ fn explain_a_plan_with_some_optimizer_rules_applied() {
                         vec![ ExecutionNodeId(1) ],
                         1.95,
                         1,
-                        "test_aql_db41",
-                        "customers",
+                        database.clone(),
+                        "aql_customers04",
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         vec![
                             HashIndex::new(
@@ -559,7 +558,7 @@ fn explain_a_plan_with_some_optimizer_rules_applied() {
                     "move-calculations-down",
                 ],
                 vec![
-                    ExecutionCollection::new("read", "customers"),
+                    ExecutionCollection::new("read", "aql_customers04"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(6), "5"),
@@ -583,22 +582,22 @@ fn explain_a_plan_with_some_optimizer_rules_applied() {
 
 #[test]
 fn explain_2_plans_with_some_optimizer_rules_specified() {
-    arango_user_db_test("test_aql_user5", "test_aql_db51", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers05", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 id: i, \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN aql_customers05"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
         let id_index = NewHashIndex::new(vec!["id".to_owned()], true, false, false);
-        core.run(conn.execute(CreateIndex::new("customers", id_index))).unwrap();
+        core.run(conn.execute(CreateIndex::new("aql_customers05", id_index))).unwrap();
 
         let query = Query::new(
-            "FOR c IN customers \
+            "FOR c IN aql_customers05 \
               LET id = c.id \
               FILTER id == 21 \
               LET name = c.name \
@@ -633,8 +632,8 @@ fn explain_2_plans_with_some_optimizer_rules_specified() {
                             vec![ ExecutionNodeId(1) ],
                             23.,
                             21,
-                            "test_aql_db51",
-                            "customers",
+                            database.clone(),
+                            "aql_customers05",
                             ExecutionVariable::new(ExecutionVariableId(0), "c"),
                             false,
                         )),
@@ -803,7 +802,7 @@ fn explain_2_plans_with_some_optimizer_rules_specified() {
 //                        "use-index-for-sort",
 //                    ],
                     vec![
-                        ExecutionCollection::new("read", "customers"),
+                        ExecutionCollection::new("read", "aql_customers05"),
                     ],
                     vec![
                         ExecutionVariable::new(ExecutionVariableId(6), "5"),
@@ -827,19 +826,19 @@ fn explain_2_plans_with_some_optimizer_rules_specified() {
 
 #[test]
 fn explain_query_with_limit_and_offset() {
-    arango_user_db_test("test_aql_user6", "test_aql_db61", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers06", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN aql_customers06"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let query = Query::new(
-            "FOR c IN customers \
+            "FOR c IN aql_customers06 \
               LIMIT 2, 5 \
               RETURN c"
         );
@@ -861,8 +860,8 @@ fn explain_query_with_limit_and_offset() {
                         vec![ ExecutionNodeId(1) ],
                         23.,
                         21,
-                        "test_aql_db61",
-                        "customers",
+                        database.clone(),
+                        "aql_customers06",
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         false,
                     )),
@@ -885,7 +884,7 @@ fn explain_query_with_limit_and_offset() {
                 ],
                 Vec::<String>::new(),
                 vec![
-                    ExecutionCollection::new("read", "customers"),
+                    ExecutionCollection::new("read", "aql_customers06"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(0), "c"),
@@ -905,19 +904,19 @@ fn explain_query_with_limit_and_offset() {
 
 #[test]
 fn explain_query_with_basic_collect() {
-    arango_user_db_test("test_aql_user7", "test_aql_db71", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers07", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN aql_customers07"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let query = Query::new(
-            "FOR c IN customers \
+            "FOR c IN aql_customers07 \
               COLLECT age = c.age \
               RETURN { \
                 \"age\": age \
@@ -941,8 +940,8 @@ fn explain_query_with_basic_collect() {
                         vec![ ExecutionNodeId(1) ],
                         23.,
                         21,
-                        "test_aql_db71",
-                        "customers",
+                        database.clone(),
+                        "aql_customers07",
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         false,
                     )),
@@ -1053,7 +1052,7 @@ fn explain_query_with_basic_collect() {
                     "move-calculations-down",
                 ],
                 vec![
-                    ExecutionCollection::new("read", "customers"),
+                    ExecutionCollection::new("read", "aql_customers07"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(5), "4"),
@@ -1076,19 +1075,19 @@ fn explain_query_with_basic_collect() {
 
 #[test]
 fn explain_query_with_collect_into_group_variable() {
-    arango_user_db_test("test_aql_user8", "test_aql_db81", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers08", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN aql_customers08"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let query = Query::new(
-            "FOR c IN customers \
+            "FOR c IN aql_customers08 \
               COLLECT age = c.age INTO groups \
               RETURN { \
                 \"age\": age, \
@@ -1113,8 +1112,8 @@ fn explain_query_with_collect_into_group_variable() {
                         vec![ ExecutionNodeId(1) ],
                         23.,
                         21,
-                        "test_aql_db81",
-                        "customers",
+                        database.clone(),
+                        "aql_customers08",
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         false,
                     )),
@@ -1243,7 +1242,7 @@ fn explain_query_with_collect_into_group_variable() {
                 ],
                 Vec::<String>::new(),
                 vec![
-                    ExecutionCollection::new("read", "customers"),
+                    ExecutionCollection::new("read", "aql_customers08"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(6), "5"),
@@ -1267,19 +1266,19 @@ fn explain_query_with_collect_into_group_variable() {
 
 #[test]
 fn explain_query_with_collect_multiple_criteria() {
-    arango_user_db_test("test_aql_user9", "test_aql_db91", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers09", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN aql_customers09"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let query = Query::new(
-            "FOR c IN customers \
+            "FOR c IN aql_customers09 \
               COLLECT age = c.age, city = c.city INTO groups \
               RETURN { \
                 \"age\": age, \
@@ -1305,8 +1304,8 @@ fn explain_query_with_collect_multiple_criteria() {
                         vec![ ExecutionNodeId(1) ],
                         23.,
                         21,
-                        "test_aql_db91",
-                        "customers",
+                        database.clone(),
+                        "aql_customers09",
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         false,
                     )),
@@ -1493,7 +1492,7 @@ fn explain_query_with_collect_multiple_criteria() {
                     "move-calculations-up-2",
                 ],
                 vec![
-                    ExecutionCollection::new("read", "customers"),
+                    ExecutionCollection::new("read", "aql_customers09"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(9), "8"),
@@ -1519,19 +1518,19 @@ fn explain_query_with_collect_multiple_criteria() {
 
 #[test]
 fn explain_query_with_collect_count_aggregation() {
-    arango_user_db_test("test_aql_user10", "test_aql_db101", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers10", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN aql_customers10"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let query = Query::new(
-            "FOR c IN customers \
+            "FOR c IN aql_customers10 \
               COLLECT age = c.age WITH COUNT INTO num \
               RETURN { \
                 \"age\": age, \
@@ -1556,8 +1555,8 @@ fn explain_query_with_collect_count_aggregation() {
                         vec![ ExecutionNodeId(1) ],
                         23.,
                         21,
-                        "test_aql_db101",
-                        "customers",
+                        database.clone(),
+                        "aql_customers10",
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         false,
                     )),
@@ -1689,7 +1688,7 @@ fn explain_query_with_collect_count_aggregation() {
                     "move-calculations-down",
                 ],
                 vec![
-                    ExecutionCollection::new("read", "customers"),
+                    ExecutionCollection::new("read", "aql_customers10"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(6), "5"),
@@ -1713,19 +1712,19 @@ fn explain_query_with_collect_count_aggregation() {
 
 #[test]
 fn explain_query_with_collect_and_aggregation() {
-    arango_user_db_test("test_aql_user11", "test_aql_db111", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers11", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN aql_customers11"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let query = Query::new(
-            "FOR c IN customers \
+            "FOR c IN aql_customers11 \
               COLLECT AGGREGATE minAge = MIN(c.age), maxAge = MAX(c.age) \
               RETURN { \
                 minAge, \
@@ -1750,8 +1749,8 @@ fn explain_query_with_collect_and_aggregation() {
                         vec![ ExecutionNodeId(1) ],
                         23.,
                         21,
-                        "test_aql_db111",
-                        "customers",
+                        database.clone(),
+                        "aql_customers11",
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         false,
                     )),
@@ -1884,7 +1883,7 @@ fn explain_query_with_collect_and_aggregation() {
                     "remove-unnecessary-calculations"
                 ],
                 vec![
-                    ExecutionCollection::new("read", "customers"),
+                    ExecutionCollection::new("read", "aql_customers11"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(8), "7"),
@@ -1909,15 +1908,14 @@ fn explain_query_with_collect_and_aggregation() {
 
 #[test]
 fn explain_insert_into_collection() {
-    arango_user_db_test("test_aql_user12", "test_aql_db121", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
+    arango_test_with_document_collection("aql_customers12", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "INSERT { \
               name: \"Jane Doe\", \
               city: \"Vienna\",
               age: 42 \
-            } IN customers"
+            } IN aql_customers12"
         );
 
         let method = ExplainQuery::from_query(inserts);
@@ -2020,8 +2018,8 @@ fn explain_insert_into_collection() {
                         vec![ ExecutionNodeId(2) ],
                         3.,
                         0,
-                        "test_aql_db121",
-                        "customers",
+                        database.clone(),
+                        "aql_customers12",
                         ExecutionVariable::new(ExecutionVariableId(2), "1"),
                         None,
                         ModificationOptions::new(
@@ -2040,7 +2038,7 @@ fn explain_insert_into_collection() {
                     "remove-data-modification-out-variables",
                 ],
                 vec![
-                    ExecutionCollection::new("write", "customers"),
+                    ExecutionCollection::new("write", "aql_customers12"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(2), "1"),
@@ -2061,20 +2059,20 @@ fn explain_insert_into_collection() {
 
 #[test]
 fn explain_remove_document_from_collection() {
-    arango_user_db_test("test_aql_user13", "test_aql_db131", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers13", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "INSERT { \
               name: \"Jane Doe\", \
               city: \"Vienna\",
               age: 42 \
-            } IN customers"
+            } IN aql_customers13"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let remove = Query::new(
-            "FOR c IN customers \
-              REMOVE c IN customers \
+            "FOR c IN aql_customers13 \
+              REMOVE c IN aql_customers13 \
               RETURN OLD._key"
         );
 
@@ -2095,8 +2093,8 @@ fn explain_remove_document_from_collection() {
                         vec![ ExecutionNodeId(1) ],
                         3.,
                         1,
-                        "test_aql_db131",
-                        "customers",
+                        database.clone(),
+                        "aql_customers13",
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         false,
                     )),
@@ -2105,8 +2103,8 @@ fn explain_remove_document_from_collection() {
                         vec![ ExecutionNodeId(2) ],
                         4.,
                         1,
-                        "test_aql_db131",
-                        "customers",
+                        database.clone(),
+                        "aql_customers13",
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         ExecutionVariable::new(ExecutionVariableId(1), "$OLD"),
                         ModificationOptions::new(
@@ -2162,7 +2160,7 @@ fn explain_remove_document_from_collection() {
                     "remove-data-modification-out-variables",
                 ],
                 vec![
-                    ExecutionCollection::new("write", "customers"),
+                    ExecutionCollection::new("write", "aql_customers13"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(3), "2"),
@@ -2184,23 +2182,23 @@ fn explain_remove_document_from_collection() {
 
 #[test]
 fn explain_update_document() {
-    arango_user_db_test("test_aql_user14", "test_aql_db141", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers14", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "INSERT { \
               name: \"Jane Doe\", \
               city: \"Vienna\", \
               age: 42 \
-            } IN customers"
+            } IN aql_customers14"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let mut update = Query::new(
-            "FOR c IN customers \
+            "FOR c IN aql_customers14 \
                FILTER c.name == @name \
                UPDATE c WITH { \
                  city: \"Berlin\" \
-               } IN customers"
+               } IN aql_customers14"
         );
         update.set_parameter("name", "Jane Doe");
         let update = update;
@@ -2263,8 +2261,8 @@ fn explain_update_document() {
                         vec![ ExecutionNodeId(5) ],
                         4.,
                         1,
-                        "test_aql_db141",
-                        "customers",
+                        database.clone(),
+                        "aql_customers14",
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         false,
                     )),
@@ -2331,8 +2329,8 @@ fn explain_update_document() {
                         vec![ ExecutionNodeId(4) ],
                         7.,
                         0,
-                        "test_aql_db141",
-                        "customers",
+                        database.clone(),
+                        "aql_customers14",
                         ExecutionVariable::new(ExecutionVariableId(6), "5"),
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         None,
@@ -2355,7 +2353,7 @@ fn explain_update_document() {
                     "patch-update-statements",
                 ],
                 vec![
-                    ExecutionCollection::new("write", "customers"),
+                    ExecutionCollection::new("write", "aql_customers14"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(6), "5"),
@@ -2379,25 +2377,25 @@ fn explain_update_document() {
 
 #[test]
 fn explain_replace_document() {
-    arango_user_db_test("test_aql_user15", "test_aql_db151", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers15", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "INSERT { \
               name: \"Jane Doe\", \
               city: \"Vienna\", \
               age: 42 \
-            } IN customers"
+            } IN aql_customers15"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let mut replace = Query::new(
-            "FOR c IN customers \
+            "FOR c IN aql_customers15 \
                FILTER c.name == @name \
                REPLACE c WITH { \
                  name: \"John Doe\", \
                  city: \"Berlin\", \
                  age: 43 \
-               } IN customers"
+               } IN aql_customers15"
         );
         replace.set_parameter("name", "Jane Doe");
         let replace = replace;
@@ -2502,8 +2500,8 @@ fn explain_replace_document() {
                         vec![ ExecutionNodeId(5) ],
                         4.,
                         1,
-                        "test_aql_db151",
-                        "customers",
+                        database.clone(),
+                        "aql_customers15",
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         false,
                     )),
@@ -2570,8 +2568,8 @@ fn explain_replace_document() {
                         vec![ ExecutionNodeId(4) ],
                         7.,
                         0,
-                        "test_aql_db151",
-                        "customers",
+                        database.clone(),
+                        "aql_customers15",
                         ExecutionVariable::new(ExecutionVariableId(6), "5"),
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         None,
@@ -2593,7 +2591,7 @@ fn explain_replace_document() {
                     "remove-data-modification-out-variables",
                 ],
                 vec![
-                    ExecutionCollection::new("write", "customers"),
+                    ExecutionCollection::new("write", "aql_customers15"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(6), "5"),
@@ -2617,9 +2615,8 @@ fn explain_replace_document() {
 
 #[test]
 fn explain_upsert_when_document_not_existing() {
-    arango_user_db_test("test_aql_user16", "test_aql_db161", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
-
+    arango_test_with_document_collection("aql_customers16", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let upsert = Query::new(
             "UPSERT { name: 'Jane Doe' } \
                INSERT { \
@@ -2630,7 +2627,7 @@ fn explain_upsert_when_document_not_existing() {
                UPDATE { \
                  age: 41 \
                } \
-               IN customers"
+               IN aql_customers16"
         );
 
         let method = ExplainQuery::from_query(upsert);
@@ -2663,8 +2660,8 @@ fn explain_upsert_when_document_not_existing() {
                                     vec![ ExecutionNodeId(2) ],
                                     2.,
                                     0,
-                                    "test_aql_db161",
-                                    "customers",
+                                    database.clone(),
+                                    "aql_customers16",
                                     ExecutionVariable::new(ExecutionVariableId(2), "1"),
                                     false,
                                 )),
@@ -2916,8 +2913,8 @@ fn explain_upsert_when_document_not_existing() {
                         vec![ ExecutionNodeId(10) ],
                         7.,
                         0,
-                        "test_aql_db161",
-                        "customers",
+                        database.clone(),
+                        "aql_customers16",
                         ExecutionVariable::new(ExecutionVariableId(0), "$OLD"),
                         None,
                         ExecutionVariable::new(ExecutionVariableId(9), "8"),
@@ -2942,7 +2939,7 @@ fn explain_upsert_when_document_not_existing() {
                     "move-calculations-down",
                 ],
                 vec![
-                    ExecutionCollection::new("write", "customers"),
+                    ExecutionCollection::new("write", "aql_customers16"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(9), "8"),
@@ -2968,14 +2965,14 @@ fn explain_upsert_when_document_not_existing() {
 
 #[test]
 fn explain_upsert_when_document_is_existing() {
-    arango_user_db_test("test_aql_user17", "test_aql_db171", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers17", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "INSERT { \
               name: \"Jane Doe\", \
               city: \"Vienna\",
               age: 42 \
-            } IN customers"
+            } IN aql_customers17"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
@@ -2989,7 +2986,7 @@ fn explain_upsert_when_document_is_existing() {
                UPDATE { \
                  age: 41 \
                } \
-               IN customers"
+               IN aql_customers17"
         );
 
         let method = ExplainQuery::from_query(upsert);
@@ -3022,8 +3019,8 @@ fn explain_upsert_when_document_is_existing() {
                                     vec![ ExecutionNodeId(2) ],
                                     3.,
                                     1,
-                                    "test_aql_db171",
-                                    "customers",
+                                    database.clone(),
+                                    "aql_customers17",
                                     ExecutionVariable::new(ExecutionVariableId(2), "1"),
                                     false,
                                 )),
@@ -3275,8 +3272,8 @@ fn explain_upsert_when_document_is_existing() {
                         vec![ ExecutionNodeId(10) ],
                         12.,
                         0,
-                        "test_aql_db171",
-                        "customers",
+                        database.clone(),
+                        "aql_customers17",
                         ExecutionVariable::new(ExecutionVariableId(0), "$OLD"),
                         None,
                         ExecutionVariable::new(ExecutionVariableId(9), "8"),
@@ -3301,7 +3298,7 @@ fn explain_upsert_when_document_is_existing() {
                     "move-calculations-down",
                 ],
                 vec![
-                    ExecutionCollection::new("write", "customers"),
+                    ExecutionCollection::new("write", "aql_customers17"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(9), "8"),
@@ -3327,19 +3324,19 @@ fn explain_upsert_when_document_is_existing() {
 
 #[test]
 fn explain_query_with_no_result() {
-    arango_user_db_test("test_aql_user18", "test_aql_db181", |conn, ref mut core| {
-        core.run(conn.execute(CreateCollection::with_name("customers"))).unwrap();
+    arango_test_with_document_collection("aql_customers18", |conn, ref mut core| {
+        let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
         let inserts = Query::new(
             "FOR i IN 1..21 \
               INSERT { \
                 name: CONCAT('No.', i), \
                 age: i + 21 \
-              } IN customers"
+              } IN aql_customers18"
         );
         core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
 
         let query = Query::new(
-            "FOR c IN customers \
+            "FOR c IN aql_customers18 \
               FILTER true != true \
               RETURN c"
         );
@@ -3367,8 +3364,8 @@ fn explain_query_with_no_result() {
                         vec![ ExecutionNodeId(6) ],
                         1.5,
                         0,
-                        "test_aql_db181",
-                        "customers",
+                        database.clone(),
+                        "aql_customers18",
                         ExecutionVariable::new(ExecutionVariableId(0), "c"),
                         false,
                     )),
@@ -3387,7 +3384,7 @@ fn explain_query_with_no_result() {
                     "remove-unnecessary-calculations",
                 ],
                 vec![
-                    ExecutionCollection::new("read", "customers"),
+                    ExecutionCollection::new("read", "aql_customers18"),
                 ],
                 vec![
                     ExecutionVariable::new(ExecutionVariableId(2), "1"),
@@ -3408,7 +3405,7 @@ fn explain_query_with_no_result() {
 
 #[test]
 fn explain_query_with_simple_enumeration() {
-    arango_user_db_test("test_aql_user19", "test_aql_db191", |conn, ref mut core| {
+    arango_test_with_document_collection("aql_customers19", |conn, ref mut core| {
 
         let query = Query::new(
             "FOR n IN 1..42 \

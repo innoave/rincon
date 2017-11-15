@@ -173,6 +173,8 @@ fn setup_database_if_not_existing(
             release_file_lock();
             panic!("Could not create shared database {}", database);
         }
+        let wait = Instant::now();
+        while Instant::now().duration_since(wait) < Duration::from_millis(100) {}
     }
 }
 
