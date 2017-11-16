@@ -16,7 +16,7 @@ maintenance = { status = "experimental" }
 name = "arangodb_client"
 
 [features]
-default = ["enterprise", "mmfiles"]
+default = ["mmfiles"]
 cluster = []
 enterprise = []
 mmfiles = []

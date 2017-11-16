@@ -85,7 +85,7 @@ The main purpose of the session shall be:
 e.g. something like
 
 ```
-    let query = Aql::From(customers)
+    let query = Aql::from(customers)
         .filter(|c| c.age == 42)
         .limit(10)
         .return(|c| (c.name, c.age, c.city))
@@ -93,24 +93,99 @@ e.g. something like
     let results = query.results(session);
 ```
 
+## Crate Features
+
+This crate can be compiled with optional features to adapt to the configuration
+of the *ArangoDB* server to be used.
+
+The provided crate features are:
+
+* cluster : support for cluster specific features (optional)
+* enterprise : support for *ArangoDB* enterprise specific features (optional)
+* mmfiles : support for MMFiles storage engine specific features (default)
+* rocksdb : support for RocksDB storage engine specific features (optional)
+
+Note1: If `arangodb_client` is compiled with the `cluster` feature some API
+       methods which return cluster specific fields do not work with an
+       *ArangoDB* server that is not configured in a cluster. This is due to
+       the *ArangoDB* server does not return cluster specific fields in a 
+       single server configuration.
+       
+Note2: A deployed *ArangoDB* server uses either MMFiles or RocksDB storage
+       engine. Therefore this crate must be compiled either with the
+       'mmfiles' feature enabled or the 'rocksdb' feature, but not both.  
 
 <!--TODO uncomment this section once the first release has been published
 ## Usage
 
-Add this to your `Cargo.toml`:
+#### Examples:
+
+**Single server with MMFiles storage engine**
+
+By default `arangodb_client` is compiled with support for single server
+configurations using the MMFiles storage engine.
+
+Add this to your `Cargo.toml` to use this crate with default features:
 
 ```toml
 [dependencies]
 arangodb_client = "0.1"
 ```
 
-And add this to your crate:
+This is equivalent to:
 
-```rust
-extern crate arangodb_client;
+```toml
+[dependencies]
+arangodb_client = { version = "0.1", default-features = false, features = ["mmfiles"] }
 ```
 
-See the [client example](./examples/client.rs) for a working example.
+**Using RocksDB storage engine**
+
+If the *ArangoDB* server is configured to use the RocksDB storage engine,
+`arangodb_client` should be compiled with the `rocksdb` feature to support
+RocksDB specific attributes and fields within the API methods.
+
+```toml
+[dependencies]
+arangodb_client = { version = "0.1", default-features = false, features = ["rocksdb"] }
+```
+
+**Using an *ArangoDB* Cluster**
+
+To use the *ArangoDB* cluster specific features of the API, `arangodb_client`
+must be compiled with the `cluster` feature enabled.
+
+To use a clustered server with MMFiles storage engine and enterprise features
+add this to your dependencies:
+
+```toml
+[dependencies]
+arangodb_client = { version = "0.1", features = ["cluster"] }
+```
+
+To use a clustered server with RocksDB storage engine add this to your dependencies:
+
+```toml
+[dependencies]
+arangodb_client = { version = "0.1", default-features = false, features = ["rocksdb", "cluster"] }
+```
+
+**Using *ArangoDB* Enterprise features**
+
+To add support for *ArangoDB* enterprise features in the client API add this to
+your dependencies:
+
+```toml
+[dependencies]
+arangodb_client = { version = "0.1", features = ["enterprise"] }
+```
+
+And with RocksDB storage engine instead of MMFiles:
+
+```toml
+[dependencies]
+arangodb_client = { version = "0.1", default-features = false, features = ["rocksdb", "enterprise"] }
+```
 -->
 
 ## License
