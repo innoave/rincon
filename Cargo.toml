@@ -41,3 +41,6 @@ dotenv = "0.10"
 log4rs = "0.7"
 #quickcheck = "0.4"
 version-sync = "0.4"
+
+[package.metadata.docs.rs]
+all-features = true
