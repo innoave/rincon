@@ -100,10 +100,10 @@ of the *ArangoDB* server to be used.
 
 The provided crate features are:
 
-* cluster : support for cluster specific features (optional)
-* enterprise : support for *ArangoDB* enterprise specific features (optional)
-* mmfiles : support for MMFiles storage engine specific features (default)
-* rocksdb : support for RocksDB storage engine specific features (optional)
+* `cluster` : support for cluster specific features (optional)
+* `enterprise` : support for *ArangoDB* enterprise specific features (optional)
+* `mmfiles` : support for MMFiles storage engine specific features (default)
+* `rocksdb` : support for RocksDB storage engine specific features (optional)
 
 Note1: If `arangodb_client` is compiled with the `cluster` feature some API
        methods which return cluster specific fields do not work with an
@@ -113,7 +113,7 @@ Note1: If `arangodb_client` is compiled with the `cluster` feature some API
        
 Note2: A deployed *ArangoDB* server uses either MMFiles or RocksDB storage
        engine. Therefore this crate must be compiled either with the
-       'mmfiles' feature enabled or the 'rocksdb' feature, but not both.  
+       `mmfiles` feature enabled or the `rocksdb` feature, but not both.  
 
 <!--TODO uncomment this section once the first release has been published
 ## Usage
