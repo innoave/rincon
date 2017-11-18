@@ -41,9 +41,15 @@ This project is under heavy development. There is no released version yet.
 
 The plans are to provide:
 
-* A typesafe and low level driver API for the REST API of ArangoDB. (WIP)
+* A typesafe low level driver API for the REST API of ArangoDB. (WIP)
 * Convenience 'Session'-API on top of the driver API. (PLANNED)
 * API to compose AQL queries in a typesafe manner. (PLANNED)
+
+Currently I am working on the driver API for the REST API. There are a lot 
+methods in the REST API which require a lot of coding. Therefore I have
+split the implementation into 2 milestones. The details about the planned
+milestones and progress is documented in
+[docs/arangodb_rest_api_methods.md](docs/arangodb_rest_api_methods.md)
 
 ## Ideas
 
