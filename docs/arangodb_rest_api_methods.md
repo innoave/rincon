@@ -1,4 +1,6 @@
-# ArangoDB REST API Methods
+# *ArangoDB* REST API Methods
+
+## List of *ArangoDB* REST API Methods
 
 Here is the list of methods provided by the *ArangoDB* REST API. The checked off
 methods are already implemented.
@@ -217,3 +219,41 @@ The list is taken from *ArangoDB* version 3.2.7
     - [ ] GET /_admin/wal/properties : Retrieves the configuration of the write-ahead log
     - [ ] PUT /_admin/wal/properties : Configures the write-ahead log
     - [ ] GET /_admin/wal/transactions : Returns information about the currently running transactions
+
+
+### REST API methods planned for Milestone 1 (M.1)
+
+List of REST APIs that are planned to be implemented for the very first release
+of the `arangodb_client` lib.
+
+- [ ] Administration (partially)
+- [ ] AQL (partially)
+- [ ] Collections
+- [x] Cursors
+- [x] Database
+- [ ] Documents
+- [ ] Graph
+- [ ] Graph Edges
+- [ ] Graph Traversal
+- [x] Indexes
+- [x] User Management
+
+
+### REST API methods planned for Milestone 2 (M.2)
+
+List of REST APIs that are planned to be implemented for the milestone 2 release
+of the `arangodb_client` lib.
+
+- [ ] Administration (more methods)
+- [ ] AQL (all methods)
+- [ ] Bulk
+- [ ] Transactions
+
+
+### REST API methods not planned to be implemented
+
+- [ ] Cluster
+- [ ] Foxx
+- [ ] Replication
+- [ ] Simple Queries
+- [ ] wal
