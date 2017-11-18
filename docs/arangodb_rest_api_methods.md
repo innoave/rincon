@@ -247,6 +247,7 @@ of the `arangodb_client` lib.
 - [ ] Administration (more methods)
 - [ ] AQL (all methods)
 - [ ] Bulk
+- [ ] job 
 - [ ] Transactions
 
 
