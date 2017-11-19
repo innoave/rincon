@@ -502,7 +502,7 @@ fn get_document_as_struct_inserted_as_struct() {
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
-        let method = GetDocument::new(document_id.clone());
+        let method = GetDocument::with_id(document_id.clone());
         let document = core.run(conn.execute(method)).unwrap();
 
         assert_eq!("customers10", document.id().collection_name());
@@ -552,7 +552,7 @@ fn get_document_as_struct_inserted_as_json_string() {
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
-        let method = GetDocument::new(document_id.clone());
+        let method = GetDocument::with_id(document_id.clone());
         let document = core.run(conn.execute(method)).unwrap();
 
         assert_eq!("customers11", document.id().collection_name());
@@ -588,7 +588,7 @@ fn get_document_as_json_string_inserted_as_struct() {
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
-        let method = GetDocument::new(document_id.clone());
+        let method = GetDocument::with_id(document_id.clone());
         let document: Document<JsonString> = core.run(conn.execute(method)).unwrap();
 
         assert_eq!("customers12", document.id().collection_name());
@@ -623,7 +623,7 @@ fn get_document_if_revision_matches() {
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
-        let method = GetDocument::new(document_id.clone())
+        let method = GetDocument::with_id(document_id.clone())
             .with_if_match(revision.as_str().to_owned());
         let document = core.run(conn.execute(method)).unwrap();
 
@@ -658,7 +658,7 @@ fn get_document_if_revision_is_not_a_match() {
         ))).unwrap();
         let (document_id, document_key, revision) = header.deconstruct();
 
-        let method = GetDocument::new(document_id.clone())
+        let method = GetDocument::with_id(document_id.clone())
             .with_if_non_match(String::from("not") + revision.as_str());
         let document = core.run(conn.execute(method)).unwrap();
 
@@ -693,7 +693,7 @@ fn get_document_but_revision_does_not_match() {
         ))).unwrap();
         let (document_id, _, revision) = header.deconstruct();
 
-        let method = GetDocument::<Customer>::new(document_id)
+        let method = GetDocument::<Customer>::with_id(document_id)
             .with_if_match(String::from("not") + revision.as_str());
         let result = core.run(conn.execute(method));
 
@@ -731,7 +731,7 @@ fn get_document_for_id_that_does_not_exist() {
         ))).unwrap();
         let (_, document_key, _) = header.deconstruct();
 
-        let method = GetDocument::<Customer>::new(DocumentId::new("customers16", "not_existing99"));
+        let method = GetDocument::<Customer>::with_id(DocumentId::new("customers16", "not_existing99"));
         let result = core.run(conn.execute(method));
 
         match result {
@@ -743,7 +743,7 @@ fn get_document_for_id_that_does_not_exist() {
             _ => panic!("Error expected, but got: {:?}", &result),
         }
 
-        let method = GetDocument::<Customer>::new(DocumentId::new("not_existing99", document_key.as_str()));
+        let method = GetDocument::<Customer>::with_id(DocumentId::new("not_existing99", document_key.as_str()));
         let result = core.run(conn.execute(method));
 
         match result {
@@ -781,7 +781,7 @@ fn get_document_header() {
                 .with_key(DocumentKey::new("7721264"))
         ))).unwrap();
 
-        let method = GetDocumentHeader::new(inserted.id().clone());
+        let method = GetDocumentHeader::with_id(inserted.id().clone());
         let result = core.run(conn.execute(method)).unwrap();
 
         assert_eq!((), result);
@@ -1709,6 +1709,687 @@ fn replace_multiple_struct_documents_with_revision() {
             assert_eq!("conflict", error.message());
         } else {
             panic!("Expected error, but got: {:?}", updates.get(1));
+        }
+    });
+}
+
+#[test]
+fn delete_document() {
+    arango_test_with_document_collection("customers80", |conn, ref mut core| {
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers80", NewDocument::from_content(customer)
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let method = DeleteDocument::new("customers80", document_key.clone());
+        let deleted = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!(&document_id, deleted.id());
+        assert_eq!(&document_key, deleted.key());
+        assert_eq!(&revision, deleted.revision());
+    });
+}
+
+#[test]
+fn delete_document_return_old() {
+    arango_test_with_document_collection("customers81", |conn, ref mut core| {
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers81", NewDocument::from_content(customer.clone())
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let method = DeleteDocumentReturnOld::with_id(document_id.clone());
+        let deleted = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!(&document_id, deleted.id());
+        assert_eq!(&document_key, deleted.key());
+        assert_eq!(&revision, deleted.revision());
+        assert_eq!(&customer, deleted.content());
+    });
+}
+
+#[test]
+fn delete_document_match_revision() {
+    arango_test_with_document_collection("customers82", |conn, ref mut core| {
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers82", NewDocument::from_content(customer)
+        ))).unwrap();
+        let (document_id, document_key, revision) = header.deconstruct();
+
+        let method = DeleteDocument::new("customers82", document_key.clone())
+            .with_if_match(revision.as_str().to_owned());
+        let deleted = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!(&document_id, deleted.id());
+        assert_eq!(&document_key, deleted.key());
+        assert_eq!(&revision, deleted.revision());
+    });
+}
+
+#[test]
+fn delete_document_with_not_existing_revision() {
+    arango_test_with_document_collection("customers83", |conn, ref mut core| {
+
+        let customer = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let header = core.run(conn.execute(InsertDocument::new(
+            "customers83", NewDocument::from_content(customer)
+        ))).unwrap();
+        let (_, document_key, _) = header.deconstruct();
+
+        let method = DeleteDocument::new("customers83", document_key)
+            .with_if_match("not-existing".to_owned());
+        let result = core.run(conn.execute(method));
+
+        match result {
+            Err(Error::ApiError(error)) => {
+                assert_eq!(412, error.status_code());
+                assert_eq!(ErrorCode::ArangoConflict, error.error_code());
+                assert_eq!("precondition failed", error.message());
+            },
+            _ => panic!("Expected error, but got: {:?}", result)
+        }
+    });
+}
+
+#[test]
+fn delete_multiple_documents_by_ids() {
+    arango_test_with_document_collection("customers180", |conn, ref mut core| {
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let result_list = core.run(conn.execute(InsertDocuments::new(
+            "customers180", vec![
+                NewDocument::from_content(customer1),
+                NewDocument::from_content(customer2),
+            ],
+        ))).unwrap();
+        let original1 = result_list.get(0).unwrap().unwrap();
+        let original2 = result_list.get(1).unwrap().unwrap();
+
+        let method = DeleteDocuments::with_ids("customers180", vec![
+            original1.id().clone(),
+            original2.id().clone(),
+        ]);
+        let result_list = core.run(conn.execute(method)).unwrap();
+
+        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+            assert_eq!(original1.id(), deleted.id());
+            assert_eq!(original1.key(), deleted.key());
+            assert_eq!(original1.revision(), deleted.revision());
+        } else {
+            panic!("Expected document header 1, but got: {:?}", result_list.get(0));
+        }
+        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+            assert_eq!(original2.id(), deleted.id());
+            assert_eq!(original2.key(), deleted.key());
+            assert_eq!(original2.revision(), deleted.revision());
+        } else {
+            panic!("Expected document header 2, but got: {:?}", result_list.get(1));
+        }
+    });
+}
+
+#[test]
+fn delete_multiple_documents_by_keys() {
+    arango_test_with_document_collection("customers181", |conn, ref mut core| {
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let result_list = core.run(conn.execute(InsertDocuments::new(
+            "customers181", vec![
+                NewDocument::from_content(customer1),
+                NewDocument::from_content(customer2),
+            ],
+        ))).unwrap();
+        let original1 = result_list.get(0).unwrap().unwrap();
+        let original2 = result_list.get(1).unwrap().unwrap();
+
+        let method = DeleteDocuments::with_keys("customers181", vec![
+            original1.key().clone(),
+            original2.key().clone(),
+        ]);
+        let result_list = core.run(conn.execute(method)).unwrap();
+
+        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+            assert_eq!(original1.id(), deleted.id());
+            assert_eq!(original1.key(), deleted.key());
+            assert_eq!(original1.revision(), deleted.revision());
+        } else {
+            panic!("Expected document header 1, but got: {:?}", result_list.get(0));
+        }
+        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+            assert_eq!(original2.id(), deleted.id());
+            assert_eq!(original2.key(), deleted.key());
+            assert_eq!(original2.revision(), deleted.revision());
+        } else {
+            panic!("Expected document header 2, but got: {:?}", result_list.get(1));
+        }
+    });
+}
+
+#[test]
+fn delete_multiple_documents_by_headers() {
+    arango_test_with_document_collection("customers182", |conn, ref mut core| {
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let result_list = core.run(conn.execute(InsertDocuments::new(
+            "customers182", vec![
+                NewDocument::from_content(customer1),
+                NewDocument::from_content(customer2),
+            ],
+        ))).unwrap();
+        let original1 = result_list.get(0).unwrap().unwrap();
+        let original2 = result_list.get(1).unwrap().unwrap();
+
+        let method = DeleteDocuments::with_headers("customers182", vec![
+            original1.clone(),
+            original2.clone(),
+        ]).with_ignore_revisions(false);
+        let result_list = core.run(conn.execute(method)).unwrap();
+
+        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+            assert_eq!(original1.id(), deleted.id());
+            assert_eq!(original1.key(), deleted.key());
+            assert_eq!(original1.revision(), deleted.revision());
+        } else {
+            panic!("Expected document header 1, but got: {:?}", result_list.get(0));
+        }
+        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+            assert_eq!(original2.id(), deleted.id());
+            assert_eq!(original2.key(), deleted.key());
+            assert_eq!(original2.revision(), deleted.revision());
+        } else {
+            panic!("Expected document header 2, but got: {:?}", result_list.get(1));
+        }
+    });
+}
+
+#[test]
+fn delete_multiple_documents_by_headers_ignore_revisions() {
+    arango_test_with_document_collection("customers183", |conn, ref mut core| {
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let result_list = core.run(conn.execute(InsertDocuments::new(
+            "customers183", vec![
+                NewDocument::from_content(customer1),
+                NewDocument::from_content(customer2),
+            ],
+        ))).unwrap();
+        let original1 = result_list.get(0).unwrap().unwrap();
+        let original2 = result_list.get(1).unwrap().unwrap();
+
+        let method = DeleteDocuments::with_headers("customers183", vec![
+            DocumentHeader::new(
+                original1.id().clone(),
+                original1.key().clone(),
+                Revision::new("not-existing")
+            ),
+            original2.clone(),
+        ]).with_ignore_revisions(true);
+        let result_list = core.run(conn.execute(method)).unwrap();
+
+        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+            assert_eq!(original1.id(), deleted.id());
+            assert_eq!(original1.key(), deleted.key());
+            assert_eq!(original1.revision(), deleted.revision());
+        } else {
+            panic!("Expected document header 1, but got: {:?}", result_list.get(0));
+        }
+        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+            assert_eq!(original2.id(), deleted.id());
+            assert_eq!(original2.key(), deleted.key());
+            assert_eq!(original2.revision(), deleted.revision());
+        } else {
+            panic!("Expected document header 2, but got: {:?}", result_list.get(1));
+        }
+    });
+}
+
+#[test]
+fn delete_multiple_documents_by_headers_one_not_existing_revision() {
+    arango_test_with_document_collection("customers184", |conn, ref mut core| {
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let result_list = core.run(conn.execute(InsertDocuments::new(
+            "customers184", vec![
+                NewDocument::from_content(customer1),
+                NewDocument::from_content(customer2),
+            ],
+        ))).unwrap();
+        let original1 = result_list.get(0).unwrap().unwrap();
+        let original2 = result_list.get(1).unwrap().unwrap();
+
+        let method = DeleteDocuments::with_headers("customers184", vec![
+            DocumentHeader::new(
+                original1.id().clone(),
+                original1.key().clone(),
+                Revision::new("not-existing")
+            ),
+            original2.clone(),
+        ]).with_ignore_revisions(false);
+        let result_list = core.run(conn.execute(method)).unwrap();
+
+        if let Err(error) = result_list.get(0).unwrap() {
+            assert_eq!(ErrorCode::ArangoConflict, error.code());
+            assert_eq!("conflict", error.message());
+        } else {
+            panic!("Expected error, but got: {:?}", result_list.get(0))
+        }
+        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+            assert_eq!(original2.id(), deleted.id());
+            assert_eq!(original2.key(), deleted.key());
+            assert_eq!(original2.revision(), deleted.revision());
+        } else {
+            panic!("Expected document header 2, but got: {:?}", result_list.get(1));
+        }
+    });
+}
+
+#[test]
+fn delete_multiple_documents_by_ids_return_old() {
+    arango_test_with_document_collection("customers185", |conn, ref mut core| {
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let result_list = core.run(conn.execute(InsertDocuments::new(
+            "customers185", vec![
+                NewDocument::from_content(customer1.clone()),
+                NewDocument::from_content(customer2.clone()),
+            ],
+        ))).unwrap();
+        let original1 = result_list.get(0).unwrap().unwrap();
+        let original2 = result_list.get(1).unwrap().unwrap();
+
+        let method = DeleteDocumentsReturnOld::with_ids("customers185", vec![
+            original1.id().clone(),
+            original2.id().clone(),
+        ]);
+        let result_list = core.run(conn.execute(method)).unwrap();
+
+        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+            assert_eq!(original1.id(), deleted.id());
+            assert_eq!(original1.key(), deleted.key());
+            assert_eq!(original1.revision(), deleted.revision());
+            assert_eq!(&customer1, deleted.content());
+        } else {
+            panic!("Expected document header 1, but got: {:?}", result_list.get(0));
+        }
+        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+            assert_eq!(original2.id(), deleted.id());
+            assert_eq!(original2.key(), deleted.key());
+            assert_eq!(original2.revision(), deleted.revision());
+            assert_eq!(&customer2, deleted.content());
+        } else {
+            panic!("Expected document header 2, but got: {:?}", result_list.get(1));
+        }
+    });
+}
+
+#[test]
+fn delete_multiple_documents_by_keys_return_old() {
+    arango_test_with_document_collection("customers186", |conn, ref mut core| {
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let result_list = core.run(conn.execute(InsertDocuments::new(
+            "customers186", vec![
+                NewDocument::from_content(customer1.clone()),
+                NewDocument::from_content(customer2.clone()),
+            ],
+        ))).unwrap();
+        let original1 = result_list.get(0).unwrap().unwrap();
+        let original2 = result_list.get(1).unwrap().unwrap();
+
+        let method = DeleteDocumentsReturnOld::with_keys("customers186", vec![
+            original1.key().clone(),
+            original2.key().clone(),
+        ]);
+        let result_list = core.run(conn.execute(method)).unwrap();
+
+        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+            assert_eq!(original1.id(), deleted.id());
+            assert_eq!(original1.key(), deleted.key());
+            assert_eq!(original1.revision(), deleted.revision());
+            assert_eq!(&customer1, deleted.content());
+        } else {
+            panic!("Expected document header 1, but got: {:?}", result_list.get(0));
+        }
+        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+            assert_eq!(original2.id(), deleted.id());
+            assert_eq!(original2.key(), deleted.key());
+            assert_eq!(original2.revision(), deleted.revision());
+            assert_eq!(&customer2, deleted.content());
+        } else {
+            panic!("Expected document header 2, but got: {:?}", result_list.get(1));
+        }
+    });
+}
+
+#[test]
+fn delete_multiple_documents_by_headers_return_old() {
+    arango_test_with_document_collection("customers187", |conn, ref mut core| {
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let result_list = core.run(conn.execute(InsertDocuments::new(
+            "customers187", vec![
+                NewDocument::from_content(customer1.clone()),
+                NewDocument::from_content(customer2.clone()),
+            ],
+        ))).unwrap();
+        let original1 = result_list.get(0).unwrap().unwrap();
+        let original2 = result_list.get(1).unwrap().unwrap();
+
+        let method = DeleteDocumentsReturnOld::with_headers("customers187", vec![
+            original1.clone(),
+            original2.clone(),
+        ]).with_ignore_revisions(false);
+        let result_list = core.run(conn.execute(method)).unwrap();
+
+        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+            assert_eq!(original1.id(), deleted.id());
+            assert_eq!(original1.key(), deleted.key());
+            assert_eq!(original1.revision(), deleted.revision());
+            assert_eq!(&customer1, deleted.content());
+        } else {
+            panic!("Expected document header 1, but got: {:?}", result_list.get(0));
+        }
+        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+            assert_eq!(original2.id(), deleted.id());
+            assert_eq!(original2.key(), deleted.key());
+            assert_eq!(original2.revision(), deleted.revision());
+            assert_eq!(&customer2, deleted.content());
+        } else {
+            panic!("Expected document header 2, but got: {:?}", result_list.get(1));
         }
     });
 }

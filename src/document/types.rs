@@ -34,6 +34,18 @@ impl DocumentIdOption {
     }
 }
 
+impl From<DocumentId> for DocumentIdOption {
+    fn from(document_id: DocumentId) -> Self {
+        DocumentIdOption::Qualified(document_id)
+    }
+}
+
+impl From<DocumentKey> for DocumentIdOption {
+    fn from(document_key: DocumentKey) -> Self {
+        DocumentIdOption::Local(document_key)
+    }
+}
+
 impl Serialize for DocumentIdOption {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
@@ -85,6 +97,14 @@ impl DocumentId {
         })
     }
 
+    pub fn deconstruct(self) -> (String, String) {
+        (self.collection_name, self.document_key)
+    }
+
+    pub fn into_string(self) -> String {
+        self.collection_name + "/" + &self.document_key
+    }
+
     pub fn to_string(&self) -> String {
         self.collection_name.to_owned() + "/" + &self.document_key
     }
@@ -95,12 +115,6 @@ impl DocumentId {
 
     pub fn document_key(&self) -> &str {
         &self.document_key
-    }
-}
-
-impl From<DocumentId> for DocumentIdOption {
-    fn from(document_id: DocumentId) -> Self {
-        DocumentIdOption::Qualified(document_id)
     }
 }
 
@@ -146,14 +160,12 @@ impl DocumentKey {
         DocumentKey::from_string(value.to_owned())
     }
 
+    pub fn deconstruct(self) -> String {
+        self.0
+    }
+
     pub fn as_str(&self) -> &str {
         &self.0
-    }
-}
-
-impl From<DocumentKey> for DocumentIdOption {
-    fn from(document_key: DocumentKey) -> Self {
-        DocumentIdOption::Local(document_key)
     }
 }
 
@@ -175,7 +187,7 @@ impl<'de> Deserialize<'de> for DocumentKey {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Revision(String);
 
 impl Revision {
@@ -193,12 +205,54 @@ impl Revision {
         self.0
     }
 
+    pub fn deconstruct(self) -> String {
+        self.0
+    }
+
     pub fn from_str(value: &str) -> Self {
         Revision(value.to_owned())
     }
 
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum DocumentSelector {
+    Id(DocumentId),
+    Key(DocumentKey),
+    Header(DocumentHeader),
+}
+
+impl From<DocumentId> for DocumentSelector {
+    fn from(document_id: DocumentId) -> Self {
+        DocumentSelector::Id(document_id)
+    }
+}
+
+impl From<DocumentKey> for DocumentSelector {
+    fn from(document_key: DocumentKey) -> Self {
+        DocumentSelector::Key(document_key)
+    }
+}
+
+impl From<DocumentHeader> for DocumentSelector {
+    fn from(document_header: DocumentHeader) -> Self {
+        DocumentSelector::Header(document_header)
+    }
+}
+
+impl Serialize for DocumentSelector {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        use self::DocumentSelector::*;
+        match *self {
+            Id(ref document_id) => document_id.serialize(serializer),
+            Key(ref document_key) => document_key.serialize(serializer),
+            Header(ref header) => header.serialize(serializer),
+        }
     }
 }
 
@@ -249,7 +303,7 @@ impl<'de> Deserialize<'de> for DocumentField {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentHeader {
     #[serde(rename = "_id")]
@@ -261,6 +315,14 @@ pub struct DocumentHeader {
 }
 
 impl DocumentHeader {
+    pub fn new(id: DocumentId, key: DocumentKey, revision: Revision) -> Self {
+        DocumentHeader {
+            id,
+            key,
+            revision,
+        }
+    }
+
     pub fn id(&self) -> &DocumentId {
         &self.id
     }
@@ -317,6 +379,14 @@ impl<T> Document<T> {
         &self.content
     }
 
+    pub fn unwrap_header(self) -> DocumentHeader {
+        DocumentHeader {
+            id: self.id,
+            key: self.key,
+            revision: self.revision,
+        }
+    }
+
     pub fn unwrap_content(self) -> T {
         self.content
     }
@@ -370,7 +440,7 @@ impl<'de, T> Deserialize<'de> for Document<T>
                             content = Some(fields.next_value()?);
                         },
                         DocumentField::Old => {
-                            other.insert(FIELD_ENTITY_OLD.to_owned(), fields.next_value()?);
+                            content = Some(fields.next_value()?);
                         },
                         DocumentField::Other(name) => {
                             other.insert(name, fields.next_value()?);

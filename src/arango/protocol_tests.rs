@@ -55,11 +55,23 @@ fn get_handle_from_str_with_empty_key() {
 #[test]
 fn get_handle_option_from_str_with_context_and_key() {
     let handle_option = HandleOption::from_str("index id", "mine/12341").unwrap();
-    assert_eq!(HandleOption::Qualified(Handle { context: "mine".to_owned(), key: "12341".to_owned() }), handle_option);
+    match handle_option {
+        HandleOption::Qualified(handle) => {
+            let (context, key) = handle.deconstruct();
+            assert_eq!("mine", &context);
+            assert_eq!("12341", &key);
+        }
+        _ => panic!("Expected HandleOption::Qualified(_), but got: {:?}", handle_option),
+    }
 }
 
 #[test]
 fn get_handle_option_from_str_with_key_only() {
     let handle_option = HandleOption::from_str("index id", "12341").unwrap();
-    assert_eq!(HandleOption::Local(HandleKey("12341".to_owned())), handle_option);
+    match handle_option {
+        HandleOption::Local(handle_key) => {
+            assert_eq!("12341", &handle_key.deconstruct());
+        }
+        _ => panic!("Expected HandleOption::Local(_), but got: {:?}", handle_option),
+    }
 }

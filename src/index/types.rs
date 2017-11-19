@@ -93,6 +93,14 @@ impl IndexId {
         })
     }
 
+    pub fn deconstruct(self) -> (String, String) {
+        (self.collection_name, self.index_key)
+    }
+
+    pub fn into_string(self) -> String {
+        self.collection_name + "/" + &self.index_key
+    }
+
     pub fn to_string(&self) -> String {
         self.collection_name.to_owned() + "/" + &self.index_key
     }
@@ -152,6 +160,14 @@ impl IndexKey {
         } else {
             Ok(IndexKey(value))
         }
+    }
+
+    pub fn deconstruct(self) -> String {
+        self.0
+    }
+
+    pub fn into_string(self) -> String {
+        self.0
     }
 
     pub fn as_str(&self) -> &str {

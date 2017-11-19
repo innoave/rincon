@@ -1,7 +1,6 @@
 
 use std::fmt;
 use std::marker::PhantomData;
-use std::mem;
 
 use regex::Regex;
 use serde::de::{Deserialize, DeserializeOwned, Deserializer, MapAccess, Visitor};
@@ -115,8 +114,8 @@ impl<'de> Deserialize<'de> for HandleOption {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Handle {
-    pub(crate) context: String,
-    pub(crate) key: String,
+    context: String,
+    key: String,
 }
 
 impl Handle {
@@ -140,11 +139,7 @@ impl Handle {
     }
 
     pub fn deconstruct(self) -> (String, String) {
-        let mut handle = self;
-        (
-            mem::replace(&mut handle.context, String::new()),
-            mem::replace(&mut handle.key, String::new()),
-        )
+        (self.context, self.key)
     }
 
     pub fn to_string(&self) -> String {
@@ -177,12 +172,11 @@ impl<'de> Deserialize<'de> for Handle {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct HandleKey(pub(crate) String);
+pub struct HandleKey(String);
 
 impl HandleKey {
     pub fn deconstruct(self) -> String {
-        let mut handle_key = self;
-        mem::replace(&mut handle_key.0, String::new())
+        self.0
     }
 
     pub fn from_string(handle_name: &str, value: String) -> Result<Self, String> {
