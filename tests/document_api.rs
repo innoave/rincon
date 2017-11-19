@@ -1160,7 +1160,7 @@ fn replace_with_struct_document_with_ignore_revisions_return_old_and_new() {
 }
 
 #[test]
-fn replace_with_struct_document_with_unknown_revision() {
+fn replace_with_struct_document_with_not_existing_revision() {
     arango_test_with_document_collection("customers37", |conn, ref mut core| {
 
         let customer = Customer {
@@ -1508,6 +1508,207 @@ fn insert_two_struct_documents_with_same_key_and_return_new() {
             assert_eq!("unique constraint violated - in index 0 of type primary over [\"_key\"]", error.message());
         } else {
             panic!("Expected method error, but got: {:?}", documents.get(1))
+        }
+    });
+}
+
+#[test]
+fn replace_multiple_struct_documents_without_revision() {
+    arango_test_with_document_collection("customers60", |conn, ref mut core| {
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let result_list = core.run(conn.execute(InsertDocuments::new(
+            "customers60", vec![
+                NewDocument::from_content(customer1),
+                NewDocument::from_content(customer2),
+            ],
+        ))).unwrap();
+        let original1 = result_list.get(0).unwrap().unwrap();
+        let original2 = result_list.get(1).unwrap().unwrap();
+
+        let replacement1 = Customer {
+            name: "Nicolas Smith".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-3948294".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("mobile".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 32,
+            active: true,
+            groups: vec![],
+        };
+
+        let replacement2 = Customer {
+            name: "Cece Kutrapali".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-1334908".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let method = ReplaceDocuments::<Customer, _>::new("customers60", vec![
+            DocumentUpdate::new(original1.key().clone(), replacement1),
+            DocumentUpdate::new(original2.key().clone(), replacement2),
+        ]);
+        let updates = core.run(conn.execute(method)).unwrap();
+
+        if let Ok(ref updated1) = updates.get(0).unwrap() {
+            assert_eq!(original1.id(), updated1.id());
+            assert_eq!(original1.key(), updated1.key());
+            assert_ne!(original1.revision(), updated1.revision());
+            assert_eq!(None, updated1.old_content());
+            assert_eq!(None, updated1.new_content());
+        } else {
+            panic!("Expected document header 1, but got: {:?}", updates.get(0));
+        }
+
+        if let Ok(ref updated2) = updates.get(1).unwrap() {
+            assert_eq!(original2.id(), updated2.id());
+            assert_eq!(original2.key(), updated2.key());
+            assert_ne!(original2.revision(), updated2.revision());
+            assert_eq!(None, updated2.old_content());
+            assert_eq!(None, updated2.new_content());
+        } else {
+            panic!("Expected document header 2, but got: {:?}", updates.get(1));
+        }
+    });
+}
+
+#[test]
+fn replace_multiple_struct_documents_with_revision() {
+    arango_test_with_document_collection("customers61", |conn, ref mut core| {
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let result_list = core.run(conn.execute(InsertDocuments::new(
+            "customers61", vec![
+                NewDocument::from_content(customer1),
+                NewDocument::from_content(customer2),
+            ],
+        ))).unwrap();
+        let original1 = result_list.get(0).unwrap().unwrap();
+        let original2 = result_list.get(1).unwrap().unwrap();
+
+        let replacement1 = Customer {
+            name: "Nicolas Smith".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-3948294".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("mobile".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 32,
+            active: true,
+            groups: vec![],
+        };
+
+        let replacement2 = Customer {
+            name: "Cece Kutrapali".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-1334908".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let method = ReplaceDocuments::<Customer, _>::new("customers61", vec![
+            DocumentUpdate::new(original1.key().clone(), replacement1)
+                .with_revision(original1.revision().clone()),
+            DocumentUpdate::new(original2.key().clone(), replacement2)
+                .with_revision(Revision::new("not_existing").to_owned()),
+        ]).with_ignore_revisions(false);
+        let updates = core.run(conn.execute(method)).unwrap();
+
+        if let Ok(ref updated1) = updates.get(0).unwrap() {
+            assert_eq!(original1.id(), updated1.id());
+            assert_eq!(original1.key(), updated1.key());
+            assert_ne!(original1.revision(), updated1.revision());
+            assert_eq!(None, updated1.old_content());
+            assert_eq!(None, updated1.new_content());
+        } else {
+            panic!("Expected document header 1, but got: {:?}", updates.get(0));
+        }
+
+        if let Err(error) = updates.get(1).unwrap() {
+            assert_eq!(ErrorCode::ArangoConflict, error.code());
+            assert_eq!("conflict", error.message());
+        } else {
+            panic!("Expected error, but got: {:?}", updates.get(1));
         }
     });
 }

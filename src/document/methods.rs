@@ -430,8 +430,8 @@ pub struct InsertDocumentsReturnNew<T> {
 }
 
 impl<T> InsertDocumentsReturnNew<T> {
-    pub fn new<N, Docs>(collection_name: N, documents: Docs) -> Self
-        where N: Into<String>, Docs: IntoIterator<Item=NewDocument<T>>
+    pub fn new<Coll, Docs>(collection_name: Coll, documents: Docs) -> Self
+        where Coll: Into<String>, Docs: IntoIterator<Item=NewDocument<T>>
     {
         InsertDocumentsReturnNew {
             collection_name: collection_name.into(),
@@ -505,7 +505,7 @@ impl<T> Prepare for InsertDocumentsReturnNew<T>
 pub struct ReplaceDocument<Old, New> {
     document_id: DocumentId,
     new_document: DocumentUpdate<New>,
-    old_document: PhantomData<Old>,
+    old_content: PhantomData<Old>,
     force_wait_for_sync: Option<bool>,
     ignore_revisions: Option<bool>,
     if_match: Option<String>,
@@ -518,7 +518,7 @@ impl<Old, New> ReplaceDocument<Old, New> {
         ReplaceDocument {
             document_id,
             new_document,
-            old_document: PhantomData,
+            old_content: PhantomData,
             force_wait_for_sync: None,
             ignore_revisions: None,
             if_match: None,
@@ -635,6 +635,126 @@ impl<Old, New> Prepare for ReplaceDocument<Old, New>
 
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.new_document)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ReplaceDocuments<Old, New> {
+    collection_name: String,
+    new_documents: Vec<DocumentUpdate<New>>,
+    old_content: PhantomData<Old>,
+    force_wait_for_sync: Option<bool>,
+    ignore_revisions: Option<bool>,
+    return_old: Option<bool>,
+    return_new: Option<bool>,
+}
+
+impl<Old, New> ReplaceDocuments<Old, New> {
+    pub fn new<Coll, Docs>(collection_name: Coll, new_documents: Docs) -> Self
+        where Coll: Into<String>, Docs: IntoIterator<Item=DocumentUpdate<New>>
+    {
+        ReplaceDocuments {
+            collection_name: collection_name.into(),
+            new_documents: Vec::from_iter(new_documents.into_iter()),
+            old_content: PhantomData,
+            force_wait_for_sync: None,
+            ignore_revisions: None,
+            return_old: None,
+            return_new: None,
+        }
+    }
+
+    pub fn with_force_wait_for_sync<W>(mut self, force_wait_for_sync: W) -> Self
+        where W: Into<Option<bool>>
+    {
+        self.force_wait_for_sync = force_wait_for_sync.into();
+        self
+    }
+
+    pub fn with_ignore_revisions<R>(mut self, ignore_revisions: R) -> Self
+        where R: Into<Option<bool>>
+    {
+        self.ignore_revisions = ignore_revisions.into();
+        self
+    }
+
+    pub fn with_return_old<O>(mut self, return_old: O) -> Self
+        where O: Into<Option<bool>>
+    {
+        self.return_old = return_old.into();
+        self
+    }
+
+    pub fn with_return_new<N>(mut self, return_new: N) -> Self
+        where N: Into<Option<bool>>
+    {
+        self.return_new = return_new.into();
+        self
+    }
+
+    pub fn force_wait_for_sync(&self) -> Option<bool> {
+        self.force_wait_for_sync
+    }
+
+    pub fn ignore_revisions(&self) -> Option<bool> {
+        self.ignore_revisions
+    }
+
+    pub fn return_old(&self) -> Option<bool> {
+        self.return_old
+    }
+
+    pub fn return_new(&self) -> Option<bool> {
+        self.return_new
+    }
+}
+
+impl<Old, New> Method for ReplaceDocuments<Old, New>
+    where Old: DeserializeOwned, New: DeserializeOwned
+{
+    type Result = ResultList<UpdatedDocument<Old, New>>;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some(FIELD_CODE),
+    };
+}
+
+impl<Old, New> Prepare for ReplaceDocuments<Old, New>
+    where New: Serialize + Debug
+{
+    type Content = Vec<DocumentUpdate<New>>;
+
+    fn operation(&self) -> Operation {
+        Operation::Replace
+    }
+
+    fn path(&self) -> String {
+        String::from(PATH_API_DOCUMENT) + "/" + &self.collection_name
+    }
+
+    fn parameters(&self) -> Parameters {
+        let mut params = Parameters::new();
+        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+            params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
+        }
+        if let Some(ignore_revisions) = self.ignore_revisions {
+            params.insert(PARAM_IGNORE_REVISIONS, ignore_revisions);
+        }
+        if let Some(return_old) = self.return_old {
+            params.insert(PARAM_RETURN_OLD, return_old);
+        }
+        if let Some(return_new) = self.return_new {
+            params.insert(PARAM_RETURN_NEW, return_new);
+        }
+        params
+    }
+
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        Some(&self.new_documents)
     }
 }
 
@@ -806,5 +926,159 @@ impl<Upd, Old, New> Prepare for UpdateDocument<Upd, Old, New>
 
     fn content(&self) -> Option<&Self::Content> {
         Some(&self.update)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct UpdateDocuments<Upd, Old, New> {
+    collection_name: String,
+    updates: Vec<DocumentUpdate<Upd>>,
+    old_content: PhantomData<Old>,
+    new_content: PhantomData<New>,
+    force_wait_for_sync: Option<bool>,
+    ignore_revisions: Option<bool>,
+    keep_none: Option<bool>,
+    merge_objects: Option<bool>,
+    return_old: Option<bool>,
+    return_new: Option<bool>,
+}
+
+impl<Upd, Old, New> UpdateDocuments<Upd, Old, New> {
+    pub fn new<Coll, Upds>(collection_name: Coll, updates: Upds) -> Self
+        where Coll: Into<String>, Upds: IntoIterator<Item=DocumentUpdate<Upd>>
+    {
+        UpdateDocuments {
+            collection_name: collection_name.into(),
+            updates: Vec::from_iter(updates.into_iter()),
+            old_content: PhantomData,
+            new_content: PhantomData,
+            force_wait_for_sync: None,
+            ignore_revisions: None,
+            keep_none: None,
+            merge_objects: None,
+            return_old: None,
+            return_new: None,
+        }
+    }
+
+    pub fn with_force_wait_for_sync<W>(mut self, force_wait_for_sync: W) -> Self
+        where W: Into<Option<bool>>
+    {
+        self.force_wait_for_sync = force_wait_for_sync.into();
+        self
+    }
+
+    pub fn with_ignore_revisions<R>(mut self, ignore_revisions: R) -> Self
+        where R: Into<Option<bool>>
+    {
+        self.ignore_revisions = ignore_revisions.into();
+        self
+    }
+
+    pub fn with_keep_none<K>(mut self, keep_none: K) -> Self
+        where K: Into<Option<bool>>
+    {
+        self.keep_none = keep_none.into();
+        self
+    }
+
+    pub fn with_merge_objects<M>(mut self, merge_objects: M) -> Self
+        where M: Into<Option<bool>>
+    {
+        self.merge_objects = merge_objects.into();
+        self
+    }
+
+    pub fn with_return_old<O>(mut self, return_old: O) -> Self
+        where O: Into<Option<bool>>
+    {
+        self.return_old = return_old.into();
+        self
+    }
+
+    pub fn with_return_new<N>(mut self, return_new: N) -> Self
+        where N: Into<Option<bool>>
+    {
+        self.return_new = return_new.into();
+        self
+    }
+
+    pub fn force_wait_for_sync(&self) -> Option<bool> {
+        self.force_wait_for_sync
+    }
+
+    pub fn ignore_revisions(&self) -> Option<bool> {
+        self.ignore_revisions
+    }
+
+    pub fn keep_none(&self) -> Option<bool> {
+        self.keep_none
+    }
+
+    pub fn merge_objects(&self) -> Option<bool> {
+        self.merge_objects
+    }
+
+    pub fn return_old(&self) -> Option<bool> {
+        self.return_old
+    }
+
+    pub fn return_new(&self) -> Option<bool> {
+        self.return_new
+    }
+}
+
+impl<Upd, Old, New> Method for UpdateDocuments<Upd, Old, New>
+    where Old: DeserializeOwned, New: DeserializeOwned
+{
+    type Result = ResultList<UpdatedDocument<Old, New>>;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some(FIELD_CODE),
+    };
+}
+
+impl<Upd, Old, New> Prepare for UpdateDocuments<Upd, Old, New>
+    where Upd: Serialize + Debug
+{
+    type Content = Vec<DocumentUpdate<Upd>>;
+
+    fn operation(&self) -> Operation {
+        Operation::Modify
+    }
+
+    fn path(&self) -> String {
+        String::from(PATH_API_DOCUMENT) + "/" + &self.collection_name
+    }
+
+    fn parameters(&self) -> Parameters {
+        let mut params = Parameters::new();
+        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+            params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
+        }
+        if let Some(ignore_revisions) = self.ignore_revisions {
+            params.insert(PARAM_IGNORE_REVISIONS, ignore_revisions);
+        }
+        if let Some(keep_none) = self.keep_none {
+            params.insert(PARAM_KEEP_NULL, keep_none);
+        }
+        if let Some(merge_objects) = self.merge_objects {
+            params.insert(PARAM_MERGE_OBJECTS, merge_objects);
+        }
+        if let Some(return_old) = self.return_old {
+            params.insert(PARAM_RETURN_OLD, return_old);
+        }
+        if let Some(return_new) = self.return_new {
+            params.insert(PARAM_RETURN_NEW, return_new);
+        }
+        params
+    }
+
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        Some(&self.updates)
     }
 }
