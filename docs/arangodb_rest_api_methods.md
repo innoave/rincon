@@ -123,17 +123,17 @@ in the `arangodb_client` lib. The different entries and their meanings are:
 | Ready  | ListAccessibleDatabases | GET /_api/database/user | List of accessible databases
 | Ready  | DropDatabase            | DELETE /_api/database/{database-name} | Drop database
 
-### Documents [M.1]
+### Documents [M.1, M.2]
 
 | Status | Rust method struct | REST API method                     | Description |
 |--------|--------------------|-------------------------------------|-------------|
-| Ready  | DeleteDocument     | DELETE /_api/document/{collection} | Removes multiple documents
+| Ready  | DeleteDocuments, DeleteDocumentsReturnOld | DELETE /_api/document/{collection} | Removes multiple documents
 | Ready  | UpdateDocuments    | PATCH /_api/document/{collection} | Update documents
-| Ready  | CreateDocument(s)  | POST /_api/document/{collection} | Create document
+| Ready  | InsertDocument, InsertDocumentReturnNew, InsertDocuments, InsertDocumentsReturnNew | POST /_api/document/{collection} | Create document
 | Ready  | ReplaceDocuments   | PUT /_api/document/{collection} | Replace documents
-| Ready  | DeleteDocument     | DELETE /_api/document/{document-handle} | Removes a document
+| Ready  | DeleteDocument, DeleteDocumentReturnOld | DELETE /_api/document/{document-handle} | Removes a document
 | Ready  | GetDocument        | GET /_api/document/{document-handle} | Read document
-| M.1    | GetDocumentHeader  | HEAD /_api/document/{document-handle} | Read document header
+| M.2    | GetDocumentHeader  | HEAD /_api/document/{document-handle} | Read document header
 | Ready  | UpdateDocument     | PATCH /_api/document/{document-handle} | Update document
 | Ready  | ReplaceDocument    | PUT /_api/document/{document-handle} | Replace document
 |        |                    | PUT /_api/simple/all-keys | Read all documents
