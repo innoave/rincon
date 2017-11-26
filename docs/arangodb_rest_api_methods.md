@@ -85,7 +85,7 @@ in the `arangodb_client` lib. The different entries and their meanings are:
 |        |                    | GET /_admin/clusterCheckPort | Check port |
 |        |                    | GET /_admin/clusterStatistics | Queries statistics of DBserver |
 
-### Collections [M.1]
+### Collections [M.1, M.2]
 
 | Status | Rust method struct         | REST API method                     | Description |
 |--------|----------------------------|-------------------------------------|-------------|
@@ -93,18 +93,18 @@ in the `arangodb_client` lib. The different entries and their meanings are:
 | Ready  | CreateCollection           | POST /_api/collection | Create collection |
 | Ready  | DropCollection             | DELETE /_api/collection/{collection-name} | Drops a collection |
 | Ready  | GetCollection              | GET /_api/collection/{collection-name} | Return information about a collection |
-|        |                            | GET /_api/collection/{collection-name}/checksum | Return checksum for the collection |
-|        |                            | GET /_api/collection/{collection-name}/count | Return number of documents in a collection |
-|        |                            | GET /_api/collection/{collection-name}/figures | Return statistics for a collection |
-|        |                            | PUT /_api/collection/{collection-name}/load | Load collection |
-|        |                            | PUT /_api/collection/{collection-name}/loadIndexesIntoMemory | Load Indexes into Memory |
+| M.2    |                            | GET /_api/collection/{collection-name}/checksum | Return checksum for the collection |
+| M.2    |                            | GET /_api/collection/{collection-name}/count | Return number of documents in a collection |
+| M.2    |                            | GET /_api/collection/{collection-name}/figures | Return statistics for a collection |
+| M.1    |                            | PUT /_api/collection/{collection-name}/load | Load collection |
+| M.1    |                            | PUT /_api/collection/{collection-name}/loadIndexesIntoMemory | Load Indexes into Memory |
 | Ready  | GetCollectionProperties    | GET /_api/collection/{collection-name}/properties | Read properties of a collection |
 | Ready  | ChangeCollectionProperties | PUT /_api/collection/{collection-name}/properties | Change properties of a collection |
 | Ready  | RenameCollection           | PUT /_api/collection/{collection-name}/rename | Rename collection |
-|        |                            | GET /_api/collection/{collection-name}/revision | Return collection revision id |
-|        |                            | PUT /_api/collection/{collection-name}/rotate | Rotate journal of a collection |
+| M.1    |                            | GET /_api/collection/{collection-name}/revision | Return collection revision id |
+| M.2    |                            | PUT /_api/collection/{collection-name}/rotate | Rotate journal of a collection |
 | M.1    |                            | PUT /_api/collection/{collection-name}/truncate | Truncate collection |
-|        |                            | PUT /_api/collection/{collection-name}/unload | Unload collection |
+| M.1    |                            | PUT /_api/collection/{collection-name}/unload | Unload collection |
 
 ### Cursors [M.1]
 
@@ -118,7 +118,7 @@ in the `arangodb_client` lib. The different entries and their meanings are:
 
 | Status | Rust method struct      | REST API method                     | Description |
 |--------|-------------------------|-------------------------------------|-------------|
-| Ready  | ListDatabases           | ~~GET /_api/database~~ | ~~List of databases~~ |
+| Ready  | ListDatabases           | GET /_api/database | List of databases |
 | Ready  | CreateDatabase          | POST /_api/database | Create database |
 | Ready  | GetCurrentDatabase      | GET /_api/database/current | Information of the database |
 | Ready  | ListAccessibleDatabases | GET /_api/database/user | List of accessible databases |
@@ -169,10 +169,10 @@ in the `arangodb_client` lib. The different entries and their meanings are:
 
 | Status | Rust method struct | REST API method                     | Description |
 |--------|--------------------|-------------------------------------|-------------|
-| M.1    |                    | GET /_api/gharial | List all graphs |
-| M.1    |                    | POST /_api/gharial | Create a graph |
-| M.1    |                    | DELETE /_api/gharial/{graph-name} | Drop a graph |
-| M.1    |                    | GET /_api/gharial/{graph-name} | Get a graph |
+| Ready  | ListGraphs         | GET /_api/gharial | List all graphs |
+| Ready  | CreateGraph        | POST /_api/gharial | Create a graph |
+| Ready  | DeleteGraph        | DELETE /_api/gharial/{graph-name} | Drop a graph |
+| Ready  | GetGraph           | GET /_api/gharial/{graph-name} | Get a graph |
 | M.1    |                    | GET /_api/gharial/{graph-name}/edge | List edge definitions |
 | M.1    |                    | POST /_api/gharial/{graph-name}/edge | Add edge definition |
 | M.1    |                    | POST /_api/gharial/{graph-name}/edge/{collection-name} | Create an edge |
@@ -250,7 +250,7 @@ in the `arangodb_client` lib. The different entries and their meanings are:
 |        |                    | GET /_api/replication/server-id | Return server id |
 |        |                    | PUT /_api/replication/sync | Synchronize data from a remote endpoint |
 
-### Simple Queries [not planned]
+### ~~Simple Queries~~ [deprecated]
 
 | Status | Rust method struct | REST API method                     | Description |
 |--------|--------------------|-------------------------------------|-------------|

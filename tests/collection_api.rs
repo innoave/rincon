@@ -15,7 +15,7 @@ use arangodb_client::connection::Error;
 
 #[test]
 fn create_collection_with_default_properties() {
-    arango_user_db_test("test_coll_user1", "test_coll_db11", |conn, ref mut core| {
+    arango_test_with_user_db("test_coll_user1", "test_coll_db11", |conn, ref mut core| {
 
         let method = CreateCollection::with_name("test_collection1");
         let work = conn.execute(method);
@@ -34,7 +34,7 @@ fn create_collection_with_default_properties() {
 
 #[test]
 fn create_edge_collection_with_wait_for_sync() {
-    arango_user_db_test("test_coll_user2", "test_coll_db21", |conn, ref mut core| {
+    arango_test_with_user_db("test_coll_user2", "test_coll_db21", |conn, ref mut core| {
 
         let mut new_collection = NewCollection::edges_with_name("test_collection1");
         new_collection.set_wait_for_sync(Some(true));
@@ -56,7 +56,7 @@ fn create_edge_collection_with_wait_for_sync() {
 
 #[test]
 fn drop_collection_should_return_the_id_of_the_dropped_collection() {
-    arango_user_db_test("test_coll_user3", "test_coll_db31", |conn, ref mut core| {
+    arango_test_with_user_db("test_coll_user3", "test_coll_db31", |conn, ref mut core| {
 
         let collection1 = core.run(conn.execute(CreateCollection::with_name("test_collection1"))).unwrap();
         let _ = core.run(conn.execute(CreateCollection::with_name("test_collection2"))).unwrap();
@@ -71,7 +71,7 @@ fn drop_collection_should_return_the_id_of_the_dropped_collection() {
 
 #[test]
 fn list_collections_should_return_two_collections() {
-    arango_user_db_test("test_coll_user4", "test_coll_db41", |conn, ref mut core| {
+    arango_test_with_user_db("test_coll_user4", "test_coll_db41", |conn, ref mut core| {
 
         let _ = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
         let _ = core.run(conn.execute(CreateCollection::edges_with_name("test_collection2"))).unwrap();
@@ -100,7 +100,7 @@ fn list_collections_should_return_two_collections() {
 
 #[test]
 fn list_collections_should_return_empty_list() {
-    arango_user_db_test("test_coll_user5", "test_coll_db51", |conn, ref mut core| {
+    arango_test_with_user_db("test_coll_user5", "test_coll_db51", |conn, ref mut core| {
 
         let method = ListCollections::new();
         let work = conn.execute(method);
@@ -112,7 +112,7 @@ fn list_collections_should_return_empty_list() {
 
 #[test]
 fn get_collection_should_return_collection_info() {
-    arango_user_db_test("test_coll_user6", "test_coll_db61", |conn, ref mut core| {
+    arango_test_with_user_db("test_coll_user6", "test_coll_db61", |conn, ref mut core| {
 
         let _ = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
         let _ = core.run(conn.execute(CreateCollection::edges_with_name("test_collection2"))).unwrap();
@@ -130,7 +130,7 @@ fn get_collection_should_return_collection_info() {
 
 #[test]
 fn get_collection_should_return_an_error_if_collection_not_found() {
-    arango_user_db_test("test_coll_user7", "test_coll_db71", |conn, ref mut core| {
+    arango_test_with_user_db("test_coll_user7", "test_coll_db71", |conn, ref mut core| {
 
         let _ = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
         let _ = core.run(conn.execute(CreateCollection::edges_with_name("test_collection2"))).unwrap();
@@ -152,7 +152,7 @@ fn get_collection_should_return_an_error_if_collection_not_found() {
 
 #[test]
 fn get_collection_properties_should_return_collection_properties() {
-    arango_user_db_test("test_coll_user8", "test_coll_db81", |conn, ref mut core| {
+    arango_test_with_user_db("test_coll_user8", "test_coll_db81", |conn, ref mut core| {
 
         let _ = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
         let _ = core.run(conn.execute(CreateCollection::edges_with_name("test_collection2"))).unwrap();
@@ -181,7 +181,7 @@ fn get_collection_properties_should_return_collection_properties() {
 
 #[test]
 fn get_collection_properties_should_return_an_error_if_collection_not_found() {
-    arango_user_db_test("test_coll_user9", "test_coll_db91", |conn, ref mut core| {
+    arango_test_with_user_db("test_coll_user9", "test_coll_db91", |conn, ref mut core| {
 
         let _ = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
         let _ = core.run(conn.execute(CreateCollection::edges_with_name("test_collection2"))).unwrap();
@@ -203,7 +203,7 @@ fn get_collection_properties_should_return_an_error_if_collection_not_found() {
 
 #[test]
 fn change_collection_properties_wait_for_sync() {
-    arango_user_db_test("test_coll_user10", "test_coll_db101", |conn, ref mut core| {
+    arango_test_with_user_db("test_coll_user10", "test_coll_db101", |conn, ref mut core| {
 
         let _ = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
         let original = core.run(conn.execute(GetCollectionProperties::with_name("test_collection1"))).unwrap();
@@ -229,7 +229,7 @@ fn change_collection_properties_wait_for_sync() {
 #[cfg(feature = "mmfiles")]
 #[test]
 fn change_collection_properties_journal_size() {
-    arango_user_db_test("test_coll_user11", "test_coll_db111", |conn, ref mut core| {
+    arango_test_with_user_db("test_coll_user11", "test_coll_db111", |conn, ref mut core| {
 
         let _ = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
         let original = core.run(conn.execute(GetCollectionProperties::with_name("test_collection1"))).unwrap();
@@ -252,7 +252,7 @@ fn change_collection_properties_journal_size() {
 
 #[test]
 fn rename_collection_to_new_name() {
-    arango_user_db_test("test_coll_user12", "test_coll_db121", |conn, ref mut core| {
+    arango_test_with_user_db("test_coll_user12", "test_coll_db121", |conn, ref mut core| {
 
         let original = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
 
@@ -269,7 +269,7 @@ fn rename_collection_to_new_name() {
 
 #[test]
 fn rename_collection_to_empty_name() {
-    arango_user_db_test("test_coll_user13", "test_coll_db131", |conn, ref mut core| {
+    arango_test_with_user_db("test_coll_user13", "test_coll_db131", |conn, ref mut core| {
 
         let original = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
 

@@ -35,12 +35,12 @@ pub enum Error {
     IoError(io::Error),
     NativeTlsError(native_tls::Error),
     NotAuthenticated(String),
-    NotUtf8Content(FromUtf8Error),
+    NonUtf8Content(FromUtf8Error),
 }
 
 impl From<FromUtf8Error> for Error {
     fn from(err: FromUtf8Error) -> Self {
-        Error::NotUtf8Content(err)
+        Error::NonUtf8Content(err)
     }
 }
 

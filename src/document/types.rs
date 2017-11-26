@@ -271,7 +271,7 @@ enum DocumentField {
 
 impl<'de> Deserialize<'de> for DocumentField {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+        where D: Deserializer<'de>,
     {
         use serde::de::Error;
 
@@ -281,7 +281,7 @@ impl<'de> Deserialize<'de> for DocumentField {
             type Value = DocumentField;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                write!(formatter, "a string representing a field name")
+                formatter.write_str("a string representing a document field name")
             }
 
             fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
@@ -404,7 +404,7 @@ impl<'de, T> Deserialize<'de> for Document<T>
         struct DocumentVisitor<T>(PhantomData<T>);
 
         impl<'de, T> Visitor<'de> for DocumentVisitor<T>
-            where T: DeserializeOwned
+            where T: DeserializeOwned,
         {
             type Value = Document<T>;
 
@@ -425,22 +425,22 @@ impl<'de, T> Deserialize<'de> for Document<T>
                 while let Some(name) = fields.next_key()? {
                     match name {
                         DocumentField::Id => {
-                            id = Some(fields.next_value()?);
+                            id = fields.next_value()?;
                         },
                         DocumentField::Key => {
-                            key = Some(fields.next_value()?);
+                            key = fields.next_value()?;
                         },
                         DocumentField::Revision => {
-                            revision = Some(fields.next_value()?);
+                            revision = fields.next_value()?;
                         },
                         DocumentField::OldRevision => {
                             other.insert(FIELD_ENTITY_OLD_REVISION.to_owned(), fields.next_value()?);
                         },
                         DocumentField::New => {
-                            content = Some(fields.next_value()?);
+                            content = fields.next_value()?;
                         },
                         DocumentField::Old => {
-                            content = Some(fields.next_value()?);
+                            content = fields.next_value()?;
                         },
                         DocumentField::Other(name) => {
                             other.insert(name, fields.next_value()?);
@@ -615,22 +615,22 @@ impl<'de, Old, New> Deserialize<'de> for UpdatedDocument<Old, New>
                 while let Some(name) = fields.next_key()? {
                     match name {
                         DocumentField::Id => {
-                            id = Some(fields.next_value()?);
+                            id = fields.next_value()?;
                         },
                         DocumentField::Key => {
-                            key = Some(fields.next_value()?);
+                            key = fields.next_value()?;
                         },
                         DocumentField::Revision => {
-                            revision = Some(fields.next_value()?);
+                            revision = fields.next_value()?;
                         },
                         DocumentField::OldRevision => {
-                            old_revision = Some(fields.next_value()?);
+                            old_revision = fields.next_value()?;
                         },
                         DocumentField::New => {
-                            new_content = Some(fields.next_value()?);
+                            new_content = fields.next_value()?;
                         },
                         DocumentField::Old => {
-                            old_content = Some(fields.next_value()?);
+                            old_content = fields.next_value()?;
                         },
                         DocumentField::Other(name) => {
                             other.insert(name, fields.next_value()?);

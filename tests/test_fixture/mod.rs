@@ -36,9 +36,10 @@ pub fn init_logging() {
 }
 
 #[allow(dead_code)]
-pub fn arango_system_db_test<T, C>(test: T, clean_up: C) -> ()
-    where T: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe,
-          C: FnOnce(Connection, &mut Core) -> ()
+pub fn arango_system_db_test<Test, CleanUp>(test: Test, clean_up: CleanUp) -> ()
+    where
+        Test: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe,
+        CleanUp: FnOnce(Connection, &mut Core) -> (),
 {
     dotenv().ok();
     let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
@@ -59,8 +60,41 @@ pub fn arango_system_db_test<T, C>(test: T, clean_up: C) -> ()
 }
 
 #[allow(dead_code)]
-pub fn arango_user_db_test<T>(user: &str, database: &str, test: T) -> ()
-    where T: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe
+pub fn arango_user_db_test<Test, CleanUp>(test: Test, clean_up: CleanUp) -> ()
+    where
+        Test: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe,
+        CleanUp: FnOnce(Connection, &mut Core) -> (),
+{
+    dotenv().ok();
+    let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
+    let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
+    let username = env::var(ENV_ARANGO_TEST_USERNAME).unwrap();
+    let password = env::var(ENV_ARANGO_TEST_PASSWORD).unwrap();
+
+    let mut core = Core::new().unwrap();
+
+    setup_database_if_not_existing(&username, &password, &database, &db_url, &mut core);
+
+    let user_ds = DataSource::from_url(&db_url).unwrap()
+        .with_basic_authentication(&username, &password)
+        .use_database(database);
+
+    let result = panic::catch_unwind(|| {
+        let mut core = Core::new().unwrap();
+        let user_conn = Connection::establish(user_ds.clone(), &core.handle()).unwrap();
+        test(user_conn, &mut core);
+    });
+
+    let user_conn = Connection::establish(user_ds, &core.handle()).unwrap();
+    clean_up(user_conn, &mut core);
+
+    assert!(result.is_ok())
+}
+
+#[allow(dead_code)]
+pub fn arango_test_with_user_db<Test>(user: &str, database: &str, test: Test) -> ()
+    where
+        Test: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe,
 {
     dotenv().ok();
     let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
@@ -87,8 +121,9 @@ pub fn arango_user_db_test<T>(user: &str, database: &str, test: T) -> ()
 }
 
 #[allow(dead_code)]
-pub fn arango_test_with_document_collection<T>(collection: &str, test: T) -> ()
-    where T: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe
+pub fn arango_test_with_document_collection<Test>(collection: &str, test: Test) -> ()
+    where
+        Test: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe,
 {
     dotenv().ok();
     let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
@@ -102,7 +137,7 @@ pub fn arango_test_with_document_collection<T>(collection: &str, test: T) -> ()
 
     let user_ds = DataSource::from_url(&db_url).unwrap()
         .with_basic_authentication(&username, &password)
-        .use_database(database.to_owned());
+        .use_database(database);
     let user_conn = Connection::establish(user_ds.clone(), &core.handle()).unwrap();
 
     core.run(user_conn.execute(CreateCollection::documents_with_name(collection)))
@@ -122,8 +157,9 @@ pub fn arango_test_with_document_collection<T>(collection: &str, test: T) -> ()
 }
 
 #[allow(dead_code)]
-pub fn arango_test_with_edge_collection<T>(collection: &str, test: T) -> ()
-    where T: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe
+pub fn arango_test_with_edge_collection<Test>(collection: &str, test: Test) -> ()
+    where
+        Test: FnOnce(Connection, &mut Core) -> () + panic::UnwindSafe,
 {
     dotenv().ok();
     let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
@@ -137,7 +173,7 @@ pub fn arango_test_with_edge_collection<T>(collection: &str, test: T) -> ()
 
     let user_ds = DataSource::from_url(&db_url).unwrap()
         .with_basic_authentication(&username, &password)
-        .use_database(database.to_owned());
+        .use_database(database);
     let user_conn = Connection::establish(user_ds.clone(), &core.handle()).unwrap();
 
     core.run(user_conn.execute(CreateCollection::edges_with_name(collection)))
@@ -235,8 +271,10 @@ fn setup_database<User, Pass, Db>(
 }
 
 #[allow(dead_code)]
-fn teardown_database<U, D>(user: U, database: D, sys_conn: &Connection, core: &mut Core)
-    where U: Into<String>, D: Into<String>
+fn teardown_database<User, Db>(user: User, database: Db, sys_conn: &Connection, core: &mut Core)
+    where
+        User: Into<String>,
+        Db: Into<String>,
 {
     let _ = core.run(sys_conn.execute(DropDatabase::with_name(database))).unwrap();
     let _ = core.run(sys_conn.execute(RemoveUser::with_name(user))).unwrap();

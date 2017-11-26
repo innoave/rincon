@@ -9,6 +9,7 @@ use serde::ser::{Serialize, Serializer};
 use api::{self, method};
 
 pub const FIELD_CODE: &str = "code";
+pub const FIELD_EDGE_DEFINITIONS: &str = "edgeDefinitions";
 pub const FIELD_ENTITY_ID: &str = "_id";
 pub const FIELD_ENTITY_KEY: &str = "_key";
 pub const FIELD_ENTITY_REVISION: &str = "_rev";
@@ -18,8 +19,17 @@ pub const FIELD_ENTITY_OLD_REVISION: &str = "_oldRev";
 pub const FIELD_ERROR: &str = "error";
 pub const FIELD_ERROR_MESSAGE: &str = "errorMessage";
 pub const FIELD_ERROR_NUMBER: &str = "errorNum";
+pub const FIELD_GRAPH: &str = "graph";
+pub const FIELD_GRAPHS: &str = "graphs";
 pub const FIELD_ID: &str = "id";
+pub const FIELD_IS_SMART: &str = "isSmart";
+pub const FIELD_NAME: &str = "name";
+pub const FIELD_NUMBER_OF_SHARDS: &str = "numberOfShards";
+pub const FIELD_ORPHAN_COLLECTIONS: &str = "orphanCollections";
+pub const FIELD_REMOVED: &str = "removed";
+pub const FIELD_REPLICATION_FACTOR: &str = "replicationFactor";
 pub const FIELD_RESULT: &str = "result";
+pub const FIELD_SMART_GRAPH_ATTRIBUTE: &str = "smartGraphAttribute";
 
 pub const HEADER_IF_MATCH: &str = "If-Match";
 pub const HEADER_IF_NON_MATCH: &str = "If-None-Match";
@@ -42,6 +52,7 @@ pub const PATH_API_CURSOR: &str = "/_api/cursor";
 pub const PATH_API_DATABASE: &str = "/_api/database";
 pub const PATH_API_DOCUMENT: &str = "/_api/document";
 pub const PATH_API_EXPLAIN: &str = "/_api/explain";
+pub const PATH_API_GHARIAL: &str = "/_api/gharial";
 pub const PATH_API_INDEX: &str = "/_api/index";
 pub const PATH_API_QUERY: &str = "/_api/query";
 pub const PATH_API_USER: &str = "/_api/user";
@@ -288,10 +299,10 @@ impl<'de, T> Deserialize<'de> for method::Result<T>
                             let _: bool = fields.next_value()?;
                         },
                         Field::ErrorNumber => {
-                            error_code = Some(fields.next_value()?);
+                            error_code = fields.next_value()?;
                         },
                         Field::ErrorMessage => {
-                            message = Some(fields.next_value()?)
+                            message = fields.next_value()?;
                         },
                         Field::Other(name) => {
                             other.insert(name, fields.next_value()?);

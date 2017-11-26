@@ -135,15 +135,15 @@ impl GetDocumentHeader {
         }
     }
 
-    pub fn with_if_match<Im>(mut self, if_match: Im) -> Self
-        where Im: Into<Option<String>>
+    pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
+        where IfMatch: Into<Option<String>>
     {
         self.if_match = if_match.into();
         self
     }
 
-    pub fn with_if_non_match<Inm>(mut self, if_non_match: Inm) -> Self
-        where Inm: Into<Option<String>>
+    pub fn with_if_non_match<IfNonMatch>(mut self, if_non_match: IfNonMatch) -> Self
+        where IfNonMatch: Into<Option<String>>
     {
         self.if_non_match = if_non_match.into();
         self
