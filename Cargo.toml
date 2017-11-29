@@ -2,8 +2,8 @@
 members = [
     "rincon_core",
     "rincon_connector",
-    "rincon_test_helper",
     "rincon_client",
     "rincon_aql",
     "rincon_session",
+    "rincon_test_helper",
 ]
