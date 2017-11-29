@@ -1,0 +1,44 @@
+[package]
+name = "rincon_session"
+version = "0.1.0"  # remember to update html_root_url
+description = "An session managed client API for the ArangoDB driver"
+authors = ["Harald Maida <haraldmaida@innoave.com>"]
+repository = "https://github.com/innoave/arangodb-rust-driver"
+readme = "README.md"
+keywords = ["arangodb", "aql", "nosql", "database", "client", "driver", "typesafe"]
+categories = ["database"]
+license = "Apache-2.0"
+
+[badges]
+maintenance = { status = "experimental" }
+travis-ci = { repository = "innoave/arangodb-rust-driver" }
+appveyor = { repository = "innoave/arangodb-rust-driver" }
+codecov = { repository = "innoave/arangodb-rust-driver" }
+
+[features]
+default = ["mmfiles"]
+cluster = []
+enterprise = []
+mmfiles = []
+rocksdb = []
+
+[dependencies]
+rincon_core = { path = "../rincon_core" }
+rincon_client = { path = "../rincon_client" }
+rincon_aql = { path = "../rincon_aql" }
+
+[dev-dependencies]
+rincon_connector = { path = "../rincon_connector" }
+rincon_test_helper = { path = "../rincon_test_helper" }
+#quickcheck = "0.4"
+tokio-core = "0.1"
+version-sync = "0.5"
+
+[package.metadata.docs.rs]
+no-default-features = true
+features = [
+    "mmfiles",
+    "rocksdb",
+    "cluster",
+    "enterprise",
+]

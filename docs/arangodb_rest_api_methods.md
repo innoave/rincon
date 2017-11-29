@@ -7,7 +7,7 @@ Here is the list of all methods provided by the *ArangoDB* REST API.
 The list is taken from *ArangoDB* version 3.2.7
 
 The status column shows the status of the implementation for the low level API
-in the `arangodb_client` lib. The different entries and their meanings are:
+in the `rincon_client` lib. The different entries and their meanings are:
 
 * `Ready` : method is implemented and available in the code base
 * `M.x`   : method is planned to be implemented for milestone x

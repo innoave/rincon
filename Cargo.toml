@@ -1,9 +1,9 @@
 [workspace]
 members = [
-    "arangodb_core",
-    "arangodb_connector",
-    "arangodb_test_helper",
-    "arangodb_client",
-    "arangodb_aql",
-    "arangodb_session",
+    "rincon_core",
+    "rincon_connector",
+    "rincon_test_helper",
+    "rincon_client",
+    "rincon_aql",
+    "rincon_session",
 ]

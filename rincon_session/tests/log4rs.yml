@@ -1,0 +1,13 @@
+refresh_rate: 30 seconds
+appenders:
+  stdout:
+    kind: console
+root:
+  level: info
+  appenders:
+    - stdout
+loggers:
+  rincon_connector:
+    level: trace
+  hyper:
+    level: debug
