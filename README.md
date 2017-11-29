@@ -11,17 +11,17 @@
 
 [crb]: https://img.shields.io/crates/v/rincon_client.svg
 [dcb]: https://docs.rs/rincon_client/badge.svg
-[tcb]: https://travis-ci.org/innoave/arangodb-rust-driver.svg?branch=master
-[avb]: https://ci.appveyor.com/api/projects/status/github/innoave/arangodb-rust-driver?branch=master&svg=true
-[cvb]: https://codecov.io/gh/innoave/arangodb-rust-driver/branch/master/graph/badge.svg
+[tcb]: https://travis-ci.org/innoave/rincon.svg?branch=master
+[avb]: https://ci.appveyor.com/api/projects/status/github/innoave/rincon?branch=master&svg=true
+[cvb]: https://codecov.io/gh/innoave/rincon/branch/master/graph/badge.svg
 [lib]: https://img.shields.io/badge/license-Apache%2D%2D2%2E0-blue.svg
 [gcb]: https://badges.gitter.im/innoave/arangodb-rust-driver.svg
 
 [crl]: https://crates.io/crates/rincon_client
 [dcl]: https://docs.rs/rincon_client
-[tcl]: https://travis-ci.org/innoave/arangodb-rust-driver
-[avl]: https://ci.appveyor.com/project/innoave/arangodb-rust-driver
-[cvl]: https://codecov.io/github/innoave/arangodb-rust-driver?branch=master
+[tcl]: https://travis-ci.org/innoave/rincon
+[avl]: https://ci.appveyor.com/project/innoave/rincon
+[cvl]: https://codecov.io/github/innoave/rincon?branch=master
 [lil]: https://www.apache.org/licenses/LICENSE-2.0
 [gcl]: https://gitter.im/innoave/arangodb-rust-driver
 
