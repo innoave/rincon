@@ -22,7 +22,6 @@
 )]
 
 extern crate rincon_core;
-#[cfg(test)] extern crate rincon_connector;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
 #[cfg(not(test))] extern crate serde_json;

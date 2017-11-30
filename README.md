@@ -109,7 +109,7 @@ of the [ArangoDB] server to be used.
 The provided crate features are:
 
 * `cluster` : support for cluster specific features (optional)
-* `enterprise` : support for [AangoDB] enterprise specific features (optional)
+* `enterprise` : support for [ArangoDB] enterprise specific features (optional)
 * `mmfiles` : support for MMFiles storage engine specific features (default)
 * `rocksdb` : support for RocksDB storage engine specific features (optional)
 
@@ -171,7 +171,8 @@ add this to your dependencies:
 rincon_client = { version = "0.1", features = ["cluster"] }
 ```
 
-To use a clustered server with RocksDB storage engine add this to your dependencies:
+To use a clustered server with RocksDB storage engine add this to your
+dependencies:
 
 ```toml
 [dependencies]
@@ -204,8 +205,8 @@ see [LICENSE] or http://www.apache.org/licenses/LICENSE-2.0 for details.
 ### Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the work by you, as defined in the Apache-2.0 license, shall be licensed as above, without any
-additional terms or conditions.
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+licensed as above, without any additional terms or conditions.
 
 
 [ArangoDB]: https://www.arangodb.org

@@ -1,9 +1,9 @@
 [package]
 name = "rincon_aql"
 version = "0.1.0"  # remember to update html_root_url
-description = "A typesafe AQL driver for the ArangoDB"
+description = "A typesafe AQL driver for ArangoDB"
 authors = ["Harald Maida <haraldmaida@innoave.com>"]
-repository = "https://github.com/innoave/arangodb-rust-driver"
+repository = "https://github.com/innoave/rincon"
 readme = "README.md"
 keywords = ["arangodb", "aql", "nosql", "database", "client", "driver", "typesafe"]
 categories = ["database"]
@@ -11,16 +11,13 @@ license = "Apache-2.0"
 
 [badges]
 maintenance = { status = "experimental" }
-travis-ci = { repository = "innoave/arangodb-rust-driver" }
-appveyor = { repository = "innoave/arangodb-rust-driver" }
-codecov = { repository = "innoave/arangodb-rust-driver" }
+travis-ci = { repository = "innoave/rincon" }
+appveyor = { repository = "innoave/rincon" }
+codecov = { repository = "innoave/rincon" }
 
 [features]
-default = ["mmfiles"]
+default = []
 cluster = []
-enterprise = []
-mmfiles = []
-rocksdb = []
 
 [dependencies]
 rincon_core = { path = "../rincon_core" }
@@ -30,6 +27,7 @@ serde_derive = "1.0"
 
 [dev-dependencies]
 rincon_connector = { path = "../rincon_connector" }
+rincon_client = { path = "../rincon_client" }
 rincon_test_helper = { path = "../rincon_test_helper" }
 #quickcheck = "0.4"
 serde_json = "1.0"
@@ -39,8 +37,5 @@ version-sync = "0.5"
 [package.metadata.docs.rs]
 no-default-features = true
 features = [
-    "mmfiles",
-    "rocksdb",
     "cluster",
-    "enterprise",
 ]
