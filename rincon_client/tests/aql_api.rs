@@ -5,7 +5,6 @@ extern crate tokio_core;
 extern crate rincon_core;
 extern crate rincon_connector;
 extern crate rincon_client;
-extern crate rincon_aql;
 extern crate rincon_test_helper;
 
 use std::env;
@@ -15,8 +14,8 @@ use rincon_core::api::query::Query;
 use rincon_core::api::types::{Empty, JsonValue};
 use rincon_connector::connection::Error;
 use rincon_client::index::{CreateIndex, HashIndex, IndexDetails, IndexIdOption, IndexKey, NewHashIndex};
-use rincon_aql::aql::*;
-use rincon_aql::cursor::CreateCursor;
+use rincon_client::aql::*;
+use rincon_client::cursor::CreateCursor;
 
 use rincon_test_helper::*;
 

@@ -28,7 +28,9 @@ extern crate serde;
 #[cfg(test)] #[macro_use] extern crate serde_json;
 
 pub mod admin;
+pub mod aql;
 pub mod collection;
+pub mod cursor;
 pub mod database;
 pub mod document;
 pub mod graph;

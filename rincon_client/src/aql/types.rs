@@ -10,7 +10,7 @@ use serde::ser::{Serialize, Serializer};
 
 use rincon_core::api::query::Query;
 use rincon_core::api::types::{JsonValue, Value};
-use rincon_client::index::Index;
+use index::Index;
 
 const COLLECT_METHOD_SORTED: &str = "sorted";
 const COLLECT_METHOD_HASH: &str = "hash";

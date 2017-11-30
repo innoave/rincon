@@ -3,7 +3,7 @@ extern crate tokio_core;
 
 extern crate rincon_core;
 extern crate rincon_connector;
-extern crate rincon_aql;
+extern crate rincon_client;
 extern crate rincon_test_helper;
 
 use rincon_test_helper::*;
@@ -11,8 +11,8 @@ use rincon_core::api::ErrorCode;
 use rincon_core::api::query::Query;
 use rincon_core::api::types::{EMPTY, Empty, JsonValue};
 use rincon_connector::connection::Error;
-use rincon_aql::aql::OptimizerRule;
-use rincon_aql::cursor::*;
+use rincon_client::aql::OptimizerRule;
+use rincon_client::cursor::*;
 
 #[test]
 fn query_returns_cursor_with_no_results() {

@@ -14,10 +14,4 @@
 )]
 
 extern crate rincon_core;
-extern crate rincon_client;
 extern crate serde;
-#[macro_use] extern crate serde_derive;
-#[cfg(test)] extern crate serde_json;
-
-pub mod aql;
-pub mod cursor;
