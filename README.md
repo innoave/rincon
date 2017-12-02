@@ -20,7 +20,7 @@
 [crl]: https://crates.io/crates/rincon_client
 [dcl]: https://docs.rs/rincon_client
 [tcl]: https://travis-ci.org/innoave/rincon
-[avl]: https://ci.appveyor.com/project/innoave/rincon
+[avl]: https://ci.appveyor.com/project/innoave/arangodb-rust-driver
 [cvl]: https://codecov.io/github/innoave/rincon?branch=master
 [lil]: https://www.apache.org/licenses/LICENSE-2.0
 [gcl]: https://gitter.im/innoave/rincon
