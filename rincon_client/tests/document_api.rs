@@ -1327,7 +1327,7 @@ fn replace_with_struct_document_with_if_match_unknown_revision() {
 }
 
 #[test]
-fn update_struct_document() {
+fn modify_struct_document() {
     arango_test_with_document_collection("customers40", |conn, ref mut core| {
 
         let customer = Customer {
@@ -1365,7 +1365,7 @@ fn update_struct_document() {
         };
 
         let document_update = DocumentUpdate::new(document_key.clone(), update);
-        let method = UpdateDocument::<_, Customer, Customer>::new(document_id.clone(), document_update)
+        let method = ModifyDocument::<_, Customer, Customer>::new(document_id.clone(), document_update)
             .with_return_new(true);
         let updated = core.run(conn.execute(method)).unwrap();
 

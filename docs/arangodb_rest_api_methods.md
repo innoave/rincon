@@ -129,13 +129,13 @@ in the `rincon_client` lib. The different entries and their meanings are:
 | Status | Rust method struct | REST API method                     | Description |
 |--------|--------------------|-------------------------------------|-------------|
 | Ready  | DeleteDocuments, DeleteDocumentsReturnOld | DELETE /_api/document/{collection} | Removes multiple documents |
-| Ready  | UpdateDocuments    | PATCH /_api/document/{collection} | Update documents |
+| Ready  | ModifyDocuments    | PATCH /_api/document/{collection} | Update documents |
 | Ready  | InsertDocument, InsertDocumentReturnNew, InsertDocuments, InsertDocumentsReturnNew | POST /_api/document/{collection} | Create document |
 | Ready  | ReplaceDocuments   | PUT /_api/document/{collection} | Replace documents |
 | Ready  | DeleteDocument, DeleteDocumentReturnOld | DELETE /_api/document/{document-handle} | Removes a document |
 | Ready  | GetDocument        | GET /_api/document/{document-handle} | Read document |
 | M.2    | GetDocumentHeader  | HEAD /_api/document/{document-handle} | Read document header |
-| Ready  | UpdateDocument     | PATCH /_api/document/{document-handle} | Update document |
+| Ready  | ModifyDocument     | PATCH /_api/document/{document-handle} | Update document |
 | Ready  | ReplaceDocument    | PUT /_api/document/{document-handle} | Replace document |
 |        |                    | PUT /_api/simple/all-keys | Read all documents |
 
@@ -167,30 +167,30 @@ in the `rincon_client` lib. The different entries and their meanings are:
 
 ### Graph [M.1]
 
-| Status | Rust method struct | REST API method                     | Description |
-|--------|--------------------|-------------------------------------|-------------|
-| Ready  | ListGraphs         | GET /_api/gharial | List all graphs |
-| Ready  | CreateGraph        | POST /_api/gharial | Create a graph |
-| Ready  | DeleteGraph        | DELETE /_api/gharial/{graph-name} | Drop a graph |
-| Ready  | GetGraph           | GET /_api/gharial/{graph-name} | Get a graph |
-| M.1    |                    | GET /_api/gharial/{graph-name}/edge | List edge definitions |
-| M.1    |                    | POST /_api/gharial/{graph-name}/edge | Add edge definition |
-| M.1    |                    | POST /_api/gharial/{graph-name}/edge/{collection-name} | Create an edge |
-| M.1    |                    | DELETE /_api/gharial/{graph-name}/edge/{collection-name}/{edge-key} | Remove an edge |
-| M.1    |                    | GET /_api/gharial/{graph-name}/edge/{collection-name}/{edge-key} | Get an edge |
-| M.1    |                    | PATCH /_api/gharial/{graph-name}/edge/{collection-name}/{edge-key} | Modify an edge |
-| M.1    |                    | PUT /_api/gharial/{graph-name}/edge/{collection-name}/{edge-key} | Replace an edge |
-| M.1    |                    | DELETE /_api/gharial/{graph-name}/edge/{definition-name} | Remove an edge definition from the graph |
-| M.1    |                    | PUT /_api/gharial/{graph-name}/edge/{definition-name} | Replace an edge definition |
-| M.1    |                    | GET /_api/gharial/{graph-name}/vertex | List vertex collections |
-| M.1    |                    | POST /_api/gharial/{graph-name}/vertex | Add vertex collection |
-| M.1    |                    | DELETE /_api/gharial/{graph-name}/vertex/{collection-name} | Remove vertex collection |
-| M.1    |                    | POST /_api/gharial/{graph-name}/vertex/{collection-name} | Create a vertex |
-| M.1    |                    | DELETE /_api/gharial/{graph-name}/vertex/{collection-name}/{vertex-key} | Remove a vertex |
-| M.1    |                    | GET /_api/gharial/{graph-name}/vertex/{collection-name}/{vertex-key} | Get a vertex |
-| M.1    |                    | PATCH /_api/gharial/{graph-name}/vertex/{collection-name}/{vertex-key} | Modify a vertex |
-| M.1    |                    | PUT /_api/gharial/{graph-name}/vertex/{collection-name}/{vertex-key} | Replace a vertex |
-
+| Status | Rust method struct     | REST API method                     | Description |
+|--------|------------------------|-------------------------------------|-------------|
+| Ready  | ListGraphs             | GET /_api/gharial | List all graphs |
+| Ready  | CreateGraph            | POST /_api/gharial | Create a graph |
+| Ready  | DropGraph              | DELETE /_api/gharial/{graph-name} | Drop a graph |
+| Ready  | GetGraph               | GET /_api/gharial/{graph-name} | Get a graph |
+| Ready  | ListEdgeDefinitions    | GET /_api/gharial/{graph-name}/edge | List edge definitions |
+| Ready  | AddEdgeDefinition      | POST /_api/gharial/{graph-name}/edge | Add edge definition |
+| Ready  | InsertEdge             | POST /_api/gharial/{graph-name}/edge/{collection-name} | Create an edge |
+| Ready  | RemoveEdge             | DELETE /_api/gharial/{graph-name}/edge/{collection-name}/{edge-key} | Remove an edge |
+| Ready  | GetEdge                | GET /_api/gharial/{graph-name}/edge/{collection-name}/{edge-key} | Get an edge |
+| Ready  | ModifyEdge             | PATCH /_api/gharial/{graph-name}/edge/{collection-name}/{edge-key} | Modify an edge |
+| Ready  | ReplaceEdge            | PUT /_api/gharial/{graph-name}/edge/{collection-name}/{edge-key} | Replace an edge |
+| Ready  | RemoveEdgeDefinition   | DELETE /_api/gharial/{graph-name}/edge/{definition-name} | Remove an edge definition from the graph |
+| Ready  | ReplaceEdgeDefinition  | PUT /_api/gharial/{graph-name}/edge/{definition-name} | Replace an edge definition |
+| Ready  | ListVertexCollections  | GET /_api/gharial/{graph-name}/vertex | List vertex collections |
+| Ready  | AddVertexCollection    | POST /_api/gharial/{graph-name}/vertex | Add vertex collection |
+| Ready  | RemoveVertexCollection | DELETE /_api/gharial/{graph-name}/vertex/{collection-name} | Remove vertex collection |
+| Ready  | InsertVertex           | POST /_api/gharial/{graph-name}/vertex/{collection-name} | Create a vertex |
+| Ready  | RemoveVertex           | DELETE /_api/gharial/{graph-name}/vertex/{collection-name}/{vertex-key} | Remove a vertex |
+| Ready  | GetVertex              | GET /_api/gharial/{graph-name}/vertex/{collection-name}/{vertex-key} | Get a vertex |
+| Ready  | ModifyVertex           | PATCH /_api/gharial/{graph-name}/vertex/{collection-name}/{vertex-key} | Modify a vertex |
+| Ready  | ReplaceVertex          | PUT /_api/gharial/{graph-name}/vertex/{collection-name}/{vertex-key} | Replace a vertex |
+ 
 ### Graph edges [M.1]
 
 | Status | Rust method struct | REST API method                     | Description |

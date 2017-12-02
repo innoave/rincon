@@ -304,7 +304,6 @@ impl<'de> Deserialize<'de> for DocumentField {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct DocumentHeader {
     #[serde(rename = "_id")]
     id: DocumentId,
@@ -337,6 +336,40 @@ impl DocumentHeader {
 
     pub fn deconstruct(self) -> (DocumentId, DocumentKey, Revision) {
         (self.id, self.key, self.revision)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize)]
+pub struct UpdatedDocumentHeader {
+    #[serde(rename = "_id")]
+    id: DocumentId,
+    #[serde(rename = "_key")]
+    key: DocumentKey,
+    #[serde(rename = "_rev")]
+    revision: Revision,
+    #[serde(rename = "_oldRev")]
+    old_revision: Revision,
+}
+
+impl UpdatedDocumentHeader {
+    pub fn id(&self) -> &DocumentId {
+        &self.id
+    }
+
+    pub fn key(&self) -> &DocumentKey {
+        &self.key
+    }
+
+    pub fn revision(&self) -> &Revision {
+        &self.revision
+    }
+
+    pub fn old_revision(&self) -> &Revision {
+        &self.old_revision
+    }
+
+    pub fn deconstruct(self) -> (DocumentId, DocumentKey, Revision, Revision) {
+        (self.id, self.key, self.revision, self.old_revision)
     }
 }
 
@@ -393,7 +426,7 @@ impl<T> Document<T> {
 }
 
 impl<'de, T> Deserialize<'de> for Document<T>
-    where T: DeserializeOwned
+    where T: DeserializeOwned,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
@@ -528,6 +561,7 @@ impl<T> Serialize for NewDocument<T>
     {
         use serde::ser::Error;
         use serde_json::{self, Value};
+
         if let Some(ref key) = self.key {
             let mut json_value = serde_json::to_value(&self.content).map_err(S::Error::custom)?;
             match json_value {
@@ -535,7 +569,7 @@ impl<T> Serialize for NewDocument<T>
                     fields.insert(FIELD_ENTITY_KEY.to_owned(), Value::String(key.as_str().to_owned()));
                 },
                 _ => return Err(S::Error::custom(format!("Invalid document content! Only types that serialize into valid Json objects are supported. But got: {:?}", &self.content))),
-            };
+            }
             let json_value_with_key = json_value;
             json_value_with_key.serialize(serializer)
         } else {

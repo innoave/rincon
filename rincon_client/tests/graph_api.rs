@@ -114,7 +114,7 @@ fn create_graph_with_2_edge_definitions() {
 }
 
 #[test]
-fn delete_graph() {
+fn drop_graph() {
     arango_test_with_user_db("test_graph_user20", "test_graph_db20", |conn, ref mut core| {
 
         let edge_defs = vec![
@@ -130,7 +130,7 @@ fn delete_graph() {
         let graph = core.run(conn.execute(CreateGraph::new(new_graph))).unwrap();
         assert_eq!("_graphs/test_graph1".to_owned(), graph.id().to_string());
 
-        let method = DeleteGraph::with_name("test_graph1");
+        let method = DropGraph::with_name("test_graph1");
         let deleted = core.run(conn.execute(method)).unwrap();
 
         assert_eq!(true, deleted);
@@ -198,5 +198,254 @@ fn list_graphs() {
         let graph2 = graphs.iter().find(|g| g.name() == "test_graph2").unwrap();
         assert_eq!(&created1, graph1);
         assert_eq!(&created2, graph2);
+    });
+}
+
+#[test]
+fn add_vertex_collection() {
+    arango_test_with_user_db("test_graph_user50", "test_graph_db50", |conn, ref mut core| {
+
+        let edge_defs = vec![
+            EdgeDefinition::new("UsersInGroups",
+                vec!["Users".to_owned()],
+                vec!["Groups".to_owned()]
+            ),
+        ];
+        #[cfg(not(feature = "enterprise"))]
+        let new_graph = NewGraph::new("test_graph1", edge_defs);
+        #[cfg(feature = "enterprise")]
+        let new_graph = NewGraph::new("test_graph1", edge_defs, false);
+        let created = core.run(conn.execute(CreateGraph::new(new_graph))).unwrap();
+        assert_eq!("_graphs/test_graph1".to_owned(), created.id().to_string());
+        assert_eq!(0, created.orphan_collections().len());
+
+        let vertex_collection = VertexCollection::new("other_vertices");
+        let method = AddVertexCollection::new("test_graph1", vertex_collection);
+        let graph = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("_graphs", graph.id().collection_name());
+        assert_eq!("test_graph1", graph.id().document_key());
+        assert_eq!(1, graph.orphan_collections().len());
+        assert!(graph.orphan_collections().contains(&"other_vertices".to_owned()));
+    });
+}
+
+#[test]
+fn remove_vertex_collection() {
+    arango_test_with_user_db("test_graph_user60", "test_graph_db60", |conn, ref mut core| {
+
+        let edge_defs = vec![
+            EdgeDefinition::new("UsersInGroups",
+                vec!["Users".to_owned()],
+                vec!["Groups".to_owned()]
+            ),
+        ];
+        #[cfg(not(feature = "enterprise"))]
+        let new_graph = NewGraph::new("test_graph1", edge_defs)
+            .with_orphan_collections(vec![
+                "add_ons".to_owned(),
+                "spare".to_owned()
+            ]);
+        #[cfg(feature = "enterprise")]
+        let new_graph = NewGraph::new("test_graph1", edge_defs, false)
+            .with_orphan_collections(vec![
+                "add_ons".to_owned(),
+                "spare".to_owned()
+            ]);
+        let created = core.run(conn.execute(CreateGraph::new(new_graph))).unwrap();
+        assert_eq!("_graphs/test_graph1".to_owned(), created.id().to_string());
+        assert_eq!(2, created.orphan_collections().len());
+
+        let method = RemoveVertexCollection::new("test_graph1", "add_ons");
+        let graph = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("_graphs", graph.id().collection_name());
+        assert_eq!("test_graph1", graph.id().document_key());
+        assert_eq!(1, graph.orphan_collections().len());
+        assert!(graph.orphan_collections().contains(&"spare".to_owned()));
+    });
+}
+
+#[test]
+fn list_vertex_collections() {
+    arango_test_with_user_db("test_graph_user70", "test_graph_db70", |conn, ref mut core| {
+
+        let edge_defs = vec![
+            EdgeDefinition::new("UsersInGroups",
+                vec!["Users".to_owned()],
+                vec!["Groups".to_owned()]
+            ),
+        ];
+        #[cfg(not(feature = "enterprise"))]
+        let new_graph = NewGraph::new("test_graph1", edge_defs)
+            .with_orphan_collections(vec![
+                "add_ons".to_owned(),
+                "spare".to_owned()
+            ]);
+        #[cfg(feature = "enterprise")]
+        let new_graph = NewGraph::new("test_graph1", edge_defs, false)
+            .with_orphan_collections(vec![
+                "add_ons".to_owned(),
+                "spare".to_owned()
+            ]);
+        let created = core.run(conn.execute(CreateGraph::new(new_graph))).unwrap();
+        assert_eq!("_graphs/test_graph1".to_owned(), created.id().to_string());
+
+        let method = ListVertexCollections::new("test_graph1");
+        let vertices = core.run(conn.execute(method)).unwrap();
+
+        assert!(vertices.contains(&"Users".to_owned()));
+        assert!(vertices.contains(&"Groups".to_owned()));
+        assert!(vertices.contains(&"add_ons".to_owned()));
+        assert!(vertices.contains(&"spare".to_owned()));
+        assert_eq!(4, vertices.len());
+    });
+}
+
+#[test]
+fn add_edge_definition() {
+    arango_test_with_user_db("test_graph_user80", "test_graph_db80", |conn, ref mut core| {
+
+        let edge_defs = vec![
+            EdgeDefinition::new("relation",
+                vec!["female".to_owned(), "male".to_owned()],
+                vec!["female".to_owned(), "male".to_owned()],
+            ),
+        ];
+        #[cfg(not(feature = "enterprise"))]
+        let new_graph = NewGraph::new("social", edge_defs);
+        #[cfg(feature = "enterprise")]
+        let new_graph = NewGraph::new("social", edge_defs, false);
+        let created = core.run(conn.execute(CreateGraph::new(new_graph))).unwrap();
+        assert_eq!("_graphs/social".to_owned(), created.id().to_string());
+
+        let works_in = EdgeDefinition::new("works_in",
+            vec!["female".to_owned(), "male".to_owned()],
+            vec!["city".to_owned()],
+        );
+        let method = AddEdgeDefinition::new("social", works_in);
+        let graph = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("_graphs", graph.id().collection_name());
+        assert_eq!("social", graph.id().document_key());
+        assert_eq!("social", graph.name());
+        let expected_edge_defs = vec![
+            EdgeDefinition::new("relation",
+                vec!["female".to_owned(), "male".to_owned()],
+                vec!["female".to_owned(), "male".to_owned()],
+            ),
+            EdgeDefinition::new("works_in",
+                vec!["female".to_owned(), "male".to_owned()],
+                vec!["city".to_owned()],
+            ),
+        ];
+        assert_eq!(&expected_edge_defs[..], graph.edge_definitions());
+        assert!(graph.orphan_collections().is_empty());
+    });
+}
+
+#[test]
+fn remove_edge_definition() {
+    arango_test_with_user_db("test_graph_user90", "test_graph_db90", |conn, ref mut core| {
+
+        let edge_defs = vec![
+            EdgeDefinition::new("relation",
+                vec!["female".to_owned(), "male".to_owned()],
+                vec!["female".to_owned(), "male".to_owned()],
+            ),
+            EdgeDefinition::new("works_in",
+                vec!["female".to_owned(), "male".to_owned()],
+                vec!["city".to_owned()],
+            ),
+        ];
+        #[cfg(not(feature = "enterprise"))]
+        let new_graph = NewGraph::new("social", edge_defs);
+        #[cfg(feature = "enterprise")]
+        let new_graph = NewGraph::new("social", edge_defs, false);
+        let created = core.run(conn.execute(CreateGraph::new(new_graph))).unwrap();
+        assert_eq!("_graphs/social".to_owned(), created.id().to_string());
+
+        let method = RemoveEdgeDefinition::new("social", "works_in");
+        let graph = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("_graphs", graph.id().collection_name());
+        assert_eq!("social", graph.id().document_key());
+        assert_eq!("social", graph.name());
+        let expected_edge_defs = vec![
+            EdgeDefinition::new("relation",
+                vec!["female".to_owned(), "male".to_owned()],
+                vec!["female".to_owned(), "male".to_owned()],
+            ),
+        ];
+        assert_eq!(&expected_edge_defs[..], graph.edge_definitions());
+        assert_eq!(&vec!["city".to_owned()][..], graph.orphan_collections());
+    });
+}
+
+#[test]
+fn replace_edge_definition() {
+    arango_test_with_user_db("test_graph_user100", "test_graph_db100", |conn, ref mut core| {
+
+        let edge_defs = vec![
+            EdgeDefinition::new("relation",
+                vec!["female".to_owned(), "male".to_owned()],
+                vec!["female".to_owned(), "male".to_owned()],
+            ),
+        ];
+        #[cfg(not(feature = "enterprise"))]
+        let new_graph = NewGraph::new("social", edge_defs);
+        #[cfg(feature = "enterprise")]
+        let new_graph = NewGraph::new("social", edge_defs, false);
+        let created = core.run(conn.execute(CreateGraph::new(new_graph))).unwrap();
+        assert_eq!("_graphs/social".to_owned(), created.id().to_string());
+
+        let replacement_edge_def = EdgeDefinition::new("relation",
+            vec!["female".to_owned(), "male".to_owned(), "animal".to_owned()],
+            vec!["female".to_owned(), "male".to_owned(), "animal".to_owned()],
+        );
+        let method = ReplaceEdgeDefinition::new("social", "relation", replacement_edge_def);
+        let graph = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("_graphs", graph.id().collection_name());
+        assert_eq!("social", graph.id().document_key());
+        assert_eq!("social", graph.name());
+        let expected_edge_defs = vec![
+            EdgeDefinition::new("relation",
+                vec!["animal".to_owned(), "female".to_owned(), "male".to_owned()],
+                vec!["animal".to_owned(), "female".to_owned(), "male".to_owned()],
+            ),
+        ];
+        assert_eq!(&expected_edge_defs[..], graph.edge_definitions());
+        assert!(graph.orphan_collections().is_empty());
+    });
+}
+
+#[test]
+fn list_edge_collections() {
+    arango_test_with_user_db("test_graph_user110", "test_graph_db110", |conn, ref mut core| {
+
+        let edge_defs = vec![
+            EdgeDefinition::new("relation",
+                vec!["female".to_owned(), "male".to_owned()],
+                vec!["female".to_owned(), "male".to_owned()],
+            ),
+            EdgeDefinition::new("works_in",
+                vec!["female".to_owned(), "male".to_owned()],
+                vec!["city".to_owned()],
+            ),
+        ];
+        #[cfg(not(feature = "enterprise"))]
+        let new_graph = NewGraph::new("social", edge_defs);
+        #[cfg(feature = "enterprise")]
+        let new_graph = NewGraph::new("social", edge_defs, false);
+        let created = core.run(conn.execute(CreateGraph::new(new_graph))).unwrap();
+        assert_eq!("_graphs/social".to_owned(), created.id().to_string());
+
+        let method = ListEdgeCollections::new("social");
+        let edges = core.run(conn.execute(method)).unwrap();
+
+        assert!(edges.contains(&"relation".to_owned()));
+        assert!(edges.contains(&"works_in".to_owned()));
+        assert_eq!(2, edges.len());
     });
 }

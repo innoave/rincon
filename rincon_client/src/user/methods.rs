@@ -492,7 +492,7 @@ impl Prepare for ListDatabasesForUser {
 
     fn path(&self) -> String {
         String::from(PATH_API_USER) + "/" + &self.user_name
-            + "/" + PATH_DATABASE
+            + PATH_DATABASE
     }
 
     fn parameters(&self) -> Parameters {
@@ -554,7 +554,7 @@ impl Prepare for GetDatabaseAccessLevel {
 
     fn path(&self) -> String {
         String::from(PATH_API_USER) + "/" + &self.user_name
-            + "/" + PATH_DATABASE + "/" + &self.database
+            + PATH_DATABASE + "/" + &self.database
     }
 
     fn parameters(&self) -> Parameters {
@@ -626,7 +626,7 @@ impl Prepare for SetDatabaseAccessLevel {
 
     fn path(&self) -> String {
         String::from(PATH_API_USER) + "/" + &self.user_name
-            + "/" + PATH_DATABASE + "/" + &self.database
+            + PATH_DATABASE + "/" + &self.database
     }
 
     fn parameters(&self) -> Parameters {
@@ -693,7 +693,7 @@ impl Prepare for ResetDatabaseAccessLevel {
 
     fn path(&self) -> String {
         String::from(PATH_API_USER) + "/" + &self.user_name
-            + "/" + PATH_DATABASE + "/" + &self.database
+            + PATH_DATABASE + "/" + &self.database
     }
 
     fn parameters(&self) -> Parameters {
@@ -763,7 +763,7 @@ impl Prepare for GetCollectionAccessLevel {
 
     fn path(&self) -> String {
         String::from(PATH_API_USER) + "/" + &self.user_name
-            + "/" + PATH_DATABASE + "/" + &self.database
+            + PATH_DATABASE + "/" + &self.database
             + "/" + &self.collection
     }
 
@@ -848,7 +848,7 @@ impl Prepare for SetCollectionAccessLevel {
 
     fn path(&self) -> String {
         String::from(PATH_API_USER) + "/" + &self.user_name
-            + "/" + PATH_DATABASE + "/" + &self.database
+            + PATH_DATABASE + "/" + &self.database
             + "/" + &self.collection
     }
 
@@ -924,7 +924,7 @@ impl Prepare for ResetCollectionAccessLevel {
 
     fn path(&self) -> String {
         String::from(PATH_API_USER) + "/" + &self.user_name
-            + "/" + PATH_DATABASE + "/" + &self.database
+            + PATH_DATABASE + "/" + &self.database
             + "/" + &self.collection
     }
 

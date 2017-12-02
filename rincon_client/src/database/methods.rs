@@ -35,7 +35,7 @@ impl Prepare for GetCurrentDatabase {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_DATABASE) + "/" + PATH_CURRENT
+        String::from(PATH_API_DATABASE) + PATH_CURRENT
     }
 
     fn parameters(&self) -> Parameters {
@@ -129,7 +129,7 @@ impl Prepare for ListAccessibleDatabases {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_DATABASE) + "/" + PATH_USER
+        String::from(PATH_API_DATABASE) + PATH_USER
     }
 
     fn parameters(&self) -> Parameters {

@@ -413,8 +413,7 @@ impl Prepare for GetCollectionProperties {
 
     fn path(&self) -> String {
         String::from(PATH_API_COLLECTION)
-            + "/" + &self.name
-            + "/" + PATH_PROPERTIES
+            + "/" + &self.name + PATH_PROPERTIES
     }
 
     fn parameters(&self) -> Parameters {
@@ -484,7 +483,7 @@ impl Prepare for ChangeCollectionProperties {
 
     fn path(&self) -> String {
         String::from(PATH_API_COLLECTION)
-            + "/" + &self.name + "/" + PATH_PROPERTIES
+            + "/" + &self.name + PATH_PROPERTIES
     }
 
     fn parameters(&self) -> Parameters {
@@ -548,7 +547,7 @@ impl Prepare for RenameCollection {
     fn path(&self) -> String {
         String::from(PATH_API_COLLECTION)
             + "/" + &self.name
-            + "/" + PATH_RENAME
+            + PATH_RENAME
     }
 
     fn parameters(&self) -> Parameters {

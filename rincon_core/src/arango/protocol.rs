@@ -9,13 +9,17 @@ use serde::ser::{Serialize, Serializer};
 use api::{self, method};
 
 pub const FIELD_CODE: &str = "code";
+pub const FIELD_COLLECTIONS: &str = "collections";
+pub const FIELD_EDGE: &str = "edge";
 pub const FIELD_EDGE_DEFINITIONS: &str = "edgeDefinitions";
+pub const FIELD_ENTITY_FROM: &str = "_from";
 pub const FIELD_ENTITY_ID: &str = "_id";
 pub const FIELD_ENTITY_KEY: &str = "_key";
 pub const FIELD_ENTITY_REVISION: &str = "_rev";
 pub const FIELD_ENTITY_NEW: &str = "new";
 pub const FIELD_ENTITY_OLD: &str = "old";
 pub const FIELD_ENTITY_OLD_REVISION: &str = "_oldRev";
+pub const FIELD_ENTITY_TO: &str = "_to";
 pub const FIELD_ERROR: &str = "error";
 pub const FIELD_ERROR_MESSAGE: &str = "errorMessage";
 pub const FIELD_ERROR_NUMBER: &str = "errorNum";
@@ -30,6 +34,7 @@ pub const FIELD_REMOVED: &str = "removed";
 pub const FIELD_REPLICATION_FACTOR: &str = "replicationFactor";
 pub const FIELD_RESULT: &str = "result";
 pub const FIELD_SMART_GRAPH_ATTRIBUTE: &str = "smartGraphAttribute";
+pub const FIELD_VERTEX: &str = "vertex";
 
 pub const HEADER_IF_MATCH: &str = "If-Match";
 pub const HEADER_IF_NON_MATCH: &str = "If-None-Match";
@@ -58,13 +63,15 @@ pub const PATH_API_USER: &str = "/_api/user";
 pub const PATH_API_VERSION: &str = "/_api/version";
 pub const PATH_OPEN_AUTH: &str = "/_open/auth";
 
-pub const PATH_CURRENT: &str = "current";
-pub const PATH_DATABASE: &str = "database";
+pub const PATH_CURRENT: &str = "/current";
+pub const PATH_DATABASE: &str = "/database";
 pub const PATH_DB: &str = "/_db/";
-pub const PATH_PROPERTIES: &str = "properties";
-pub const PATH_RENAME: &str = "rename";
-pub const PATH_TARGET_VERSION: &str = "target-version";
-pub const PATH_USER: &str = "user";
+pub const PATH_EDGE: &str = "/edge";
+pub const PATH_PROPERTIES: &str = "/properties";
+pub const PATH_RENAME: &str = "/rename";
+pub const PATH_TARGET_VERSION: &str = "/target-version";
+pub const PATH_USER: &str = "/user";
+pub const PATH_VERTEX: &str = "/vertex";
 
 
 const CAPTURE_CONTEXT_NAME: &str = "ctx";

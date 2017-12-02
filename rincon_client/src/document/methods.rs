@@ -26,10 +26,23 @@ impl<T> GetDocument<T> {
     pub fn new<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
         where Coll: Into<String>
     {
-        GetDocument::with_id(DocumentId::new(
-            collection_name,
-            document_key.deconstruct()
-        ))
+        GetDocument {
+            id: DocumentId::new(collection_name, document_key.deconstruct()),
+            if_match: None,
+            if_non_match: None,
+            content: PhantomData,
+        }
+    }
+
+    pub fn with_key<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
+        where Coll: Into<String>
+    {
+        GetDocument {
+            id: DocumentId::new(collection_name, document_key.deconstruct()),
+            if_match: None,
+            if_non_match: None,
+            content: PhantomData,
+        }
     }
 
     pub fn with_id(id: DocumentId) -> Self {
@@ -122,10 +135,21 @@ impl GetDocumentHeader {
     pub fn new<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
         where Coll: Into<String>
     {
-        GetDocumentHeader::with_id(DocumentId::new(
-            collection_name,
-            document_key.deconstruct()
-        ))
+        GetDocumentHeader {
+            id: DocumentId::new(collection_name, document_key.deconstruct()),
+            if_match: None,
+            if_non_match: None,
+        }
+    }
+
+    pub fn with_key<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
+        where Coll: Into<String>
+    {
+        GetDocumentHeader {
+            id: DocumentId::new(collection_name, document_key.deconstruct()),
+            if_match: None,
+            if_non_match: None,
+        }
     }
 
     pub fn with_id(id: DocumentId) -> Self {
@@ -581,6 +605,14 @@ impl<Old, New> ReplaceDocument<Old, New> {
         self
     }
 
+    pub fn document_id(&self) -> &DocumentId {
+        &self.document_id
+    }
+
+    pub fn new_document(&self) -> &DocumentUpdate<New> {
+        &self.new_document
+    }
+
     pub fn force_wait_for_sync(&self) -> Option<bool> {
         self.force_wait_for_sync
     }
@@ -711,6 +743,14 @@ impl<Old, New> ReplaceDocuments<Old, New> {
         self
     }
 
+    pub fn collection_name(&self) -> &str {
+        &self.collection_name
+    }
+
+    pub fn new_documents(&self) -> &[DocumentUpdate<New>] {
+        &self.new_documents
+    }
+
     pub fn force_wait_for_sync(&self) -> Option<bool> {
         self.force_wait_for_sync
     }
@@ -778,7 +818,7 @@ impl<Old, New> Prepare for ReplaceDocuments<Old, New>
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct UpdateDocument<Upd, Old, New> {
+pub struct ModifyDocument<Upd, Old, New> {
     document_id: DocumentId,
     update: DocumentUpdate<Upd>,
     old_content: PhantomData<Old>,
@@ -792,9 +832,9 @@ pub struct UpdateDocument<Upd, Old, New> {
     return_new: Option<bool>,
 }
 
-impl<Upd, Old, New> UpdateDocument<Upd, Old, New> {
+impl<Upd, Old, New> ModifyDocument<Upd, Old, New> {
     pub fn new(document_id: DocumentId, update: DocumentUpdate<Upd>) -> Self {
-        UpdateDocument {
+        ModifyDocument {
             document_id,
             update,
             old_content: PhantomData,
@@ -858,6 +898,14 @@ impl<Upd, Old, New> UpdateDocument<Upd, Old, New> {
         self
     }
 
+    pub fn document_id(&self) -> &DocumentId {
+        &self.document_id
+    }
+
+    pub fn update(&self) -> &DocumentUpdate<Upd> {
+        &self.update
+    }
+
     pub fn force_wait_for_sync(&self) -> Option<bool> {
         self.force_wait_for_sync
     }
@@ -887,7 +935,7 @@ impl<Upd, Old, New> UpdateDocument<Upd, Old, New> {
     }
 }
 
-impl<Upd, Old, New> Method for UpdateDocument<Upd, Old, New>
+impl<Upd, Old, New> Method for ModifyDocument<Upd, Old, New>
     where Old: DeserializeOwned, New: DeserializeOwned
 {
     type Result = UpdatedDocument<Old, New>;
@@ -897,7 +945,7 @@ impl<Upd, Old, New> Method for UpdateDocument<Upd, Old, New>
     };
 }
 
-impl<Upd, Old, New> Prepare for UpdateDocument<Upd, Old, New>
+impl<Upd, Old, New> Prepare for ModifyDocument<Upd, Old, New>
     where Upd: Serialize + Debug
 {
     type Content = DocumentUpdate<Upd>;
@@ -949,7 +997,7 @@ impl<Upd, Old, New> Prepare for UpdateDocument<Upd, Old, New>
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct UpdateDocuments<Upd, Old, New> {
+pub struct ModifyDocuments<Upd, Old, New> {
     collection_name: String,
     updates: Vec<DocumentUpdate<Upd>>,
     old_content: PhantomData<Old>,
@@ -962,11 +1010,11 @@ pub struct UpdateDocuments<Upd, Old, New> {
     return_new: Option<bool>,
 }
 
-impl<Upd, Old, New> UpdateDocuments<Upd, Old, New> {
+impl<Upd, Old, New> ModifyDocuments<Upd, Old, New> {
     pub fn new<Coll, Upds>(collection_name: Coll, updates: Upds) -> Self
         where Coll: Into<String>, Upds: IntoIterator<Item=DocumentUpdate<Upd>>
     {
-        UpdateDocuments {
+        ModifyDocuments {
             collection_name: collection_name.into(),
             updates: Vec::from_iter(updates.into_iter()),
             old_content: PhantomData,
@@ -1022,6 +1070,14 @@ impl<Upd, Old, New> UpdateDocuments<Upd, Old, New> {
         self
     }
 
+    pub fn collection_name(&self) -> &str {
+        &self.collection_name
+    }
+
+    pub fn updates(&self) -> &[DocumentUpdate<Upd>] {
+        &self.updates
+    }
+
     pub fn force_wait_for_sync(&self) -> Option<bool> {
         self.force_wait_for_sync
     }
@@ -1047,7 +1103,7 @@ impl<Upd, Old, New> UpdateDocuments<Upd, Old, New> {
     }
 }
 
-impl<Upd, Old, New> Method for UpdateDocuments<Upd, Old, New>
+impl<Upd, Old, New> Method for ModifyDocuments<Upd, Old, New>
     where Old: DeserializeOwned, New: DeserializeOwned
 {
     type Result = ResultList<UpdatedDocument<Old, New>>;
@@ -1057,7 +1113,7 @@ impl<Upd, Old, New> Method for UpdateDocuments<Upd, Old, New>
     };
 }
 
-impl<Upd, Old, New> Prepare for UpdateDocuments<Upd, Old, New>
+impl<Upd, Old, New> Prepare for ModifyDocuments<Upd, Old, New>
     where Upd: Serialize + Debug
 {
     type Content = Vec<DocumentUpdate<Upd>>;
@@ -1117,6 +1173,12 @@ impl DeleteDocument {
             collection_name,
             document_key.deconstruct()
         ))
+    }
+
+    pub fn with_key<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
+        where Coll: Into<String>
+    {
+        DeleteDocument::new(collection_name, document_key)
     }
 
     pub fn with_id(id: DocumentId) -> Self {
@@ -1207,6 +1269,15 @@ pub struct DeleteDocumentReturnOld<T> {
 
 impl<T> DeleteDocumentReturnOld<T> {
     pub fn new<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
+        where Coll: Into<String>
+    {
+        DeleteDocumentReturnOld::with_id(DocumentId::new(
+            collection_name,
+            document_key.deconstruct()
+        ))
+    }
+
+    pub fn with_key<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
         where Coll: Into<String>
     {
         DeleteDocumentReturnOld::with_id(DocumentId::new(

@@ -30,8 +30,7 @@ impl Prepare for GetTargetVersion {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_ADMIN) + "/" + PATH_DATABASE
-            + "/" + PATH_TARGET_VERSION
+        String::from(PATH_ADMIN) + PATH_DATABASE + PATH_TARGET_VERSION
     }
 
     fn parameters(&self) -> Parameters {

@@ -1,143 +1,18 @@
 
-use std::fmt;
+use std::fmt::{self, Debug};
 use std::iter::FromIterator;
+use std::marker::PhantomData;
 
-use serde::de::{Deserialize, Deserializer, MapAccess, Visitor};
+use serde::de::{Deserialize, DeserializeOwned, Deserializer, MapAccess, Visitor};
+use serde::ser::{Serialize, Serializer};
 
-use rincon_core::arango::protocol::{FIELD_ENTITY_ID, FIELD_ENTITY_KEY,
-    FIELD_ENTITY_REVISION, FIELD_EDGE_DEFINITIONS, FIELD_NAME,
+use rincon_core::arango::protocol::{FIELD_EDGE_DEFINITIONS, FIELD_ENTITY_FROM,
+    FIELD_ENTITY_ID, FIELD_ENTITY_KEY, FIELD_ENTITY_OLD_REVISION,
+    FIELD_ENTITY_REVISION, FIELD_ENTITY_TO, FIELD_NAME,
     FIELD_ORPHAN_COLLECTIONS};
 use rincon_core::arango::protocol::{FIELD_NUMBER_OF_SHARDS, FIELD_REPLICATION_FACTOR};
 use rincon_core::arango::protocol::{FIELD_IS_SMART, FIELD_SMART_GRAPH_ATTRIBUTE};
 use document::{DocumentId, DocumentKey, Revision};
-
-#[derive(Clone, Debug, PartialEq, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Edge<T> {
-    #[serde(rename = "_id")]
-    id: DocumentId,
-    #[serde(rename = "_key")]
-    key: DocumentKey,
-    #[serde(rename = "_rev")]
-    revision: Revision,
-    #[serde(rename = "_from")]
-    from: DocumentId,
-    #[serde(rename = "_to")]
-    to: DocumentId,
-    content: T,
-}
-
-impl<T> Edge<T> {
-    pub fn id(&self) -> &DocumentId {
-        &self.id
-    }
-
-    pub fn key(&self) -> &DocumentKey {
-        &self.key
-    }
-
-    pub fn revision(&self) -> &Revision {
-        &self.revision
-    }
-
-    pub fn from(&self) -> &DocumentId {
-        &self.from
-    }
-
-    pub fn to(&self) -> &DocumentId {
-        &self.to
-    }
-
-    pub fn content(&self) -> &T {
-        &self.content
-    }
-
-    pub fn unwrap_content(self) -> T {
-        self.content
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct NewEdge<T> {
-    #[serde(rename = "_key")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    key: Option<DocumentKey>,
-    #[serde(rename = "_from")]
-    from: DocumentId,
-    #[serde(rename = "_to")]
-    to: DocumentId,
-    content: T,
-}
-
-impl<T> NewEdge<T> {
-    pub fn new(from: DocumentId, to: DocumentId, content: T) -> Self {
-        NewEdge {
-            key: None,
-            from,
-            to,
-            content,
-        }
-    }
-
-    pub fn with_key<Key>(mut self, key: Key) -> Self
-        where Key: Into<Option<DocumentKey>>
-    {
-        self.key = key.into();
-        self
-    }
-
-    pub fn key(&self) -> Option<&DocumentKey> {
-        self.key.as_ref()
-    }
-
-    pub fn from(&self) -> &DocumentId {
-        &self.from
-    }
-
-    pub fn to(&self) -> &DocumentId {
-        &self.to
-    }
-
-    pub fn content(&self) -> &T {
-        &self.content
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct EdgeDefinition {
-    collection: String,
-    from: Vec<String>,
-    to: Vec<String>,
-}
-
-impl EdgeDefinition {
-    pub fn new<Coll, From, To>(collection: Coll, from: From, to: To) -> Self
-        where
-            Coll: Into<String>,
-            From: IntoIterator<Item=String>,
-            To: IntoIterator<Item=String>,
-    {
-        EdgeDefinition {
-            collection: collection.into(),
-            from: Vec::from_iter(from.into_iter()),
-            to: Vec::from_iter(to.into_iter()),
-        }
-    }
-
-    pub fn collection(&self) -> &str {
-        &self.collection
-    }
-
-    pub fn from(&self) -> &[String] {
-        &self.from
-    }
-
-    pub fn to(&self) -> &[String] {
-        &self.to
-    }
-}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Graph {
@@ -685,5 +560,299 @@ impl GraphOptions {
 impl Default for GraphOptions {
     fn default() -> Self {
         GraphOptions::empty()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct VertexCollection {
+    collection: String,
+}
+
+impl VertexCollection {
+    pub fn new<Coll>(collection: Coll) -> Self
+        where Coll: Into<String>
+    {
+        VertexCollection {
+            collection: collection.into(),
+        }
+    }
+
+    pub fn collection(&self) -> &str {
+        &self.collection
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct EdgeDefinition {
+    collection: String,
+    from: Vec<String>,
+    to: Vec<String>,
+}
+
+impl EdgeDefinition {
+    pub fn new<Coll, From, To>(collection: Coll, from: From, to: To) -> Self
+        where
+            Coll: Into<String>,
+            From: IntoIterator<Item=String>,
+            To: IntoIterator<Item=String>,
+    {
+        EdgeDefinition {
+            collection: collection.into(),
+            from: Vec::from_iter(from.into_iter()),
+            to: Vec::from_iter(to.into_iter()),
+        }
+    }
+
+    pub fn collection(&self) -> &str {
+        &self.collection
+    }
+
+    pub fn from(&self) -> &[String] {
+        &self.from
+    }
+
+    pub fn to(&self) -> &[String] {
+        &self.to
+    }
+}
+
+/// All the possible keys, to avoid allocating memory if it is a key we
+/// recognize. Private.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+enum EdgeField {
+    Id,
+    Key,
+    Revision,
+    OldRevision,
+    From,
+    To,
+    Other(String),
+}
+
+impl<'de> Deserialize<'de> for EdgeField {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>,
+    {
+        use serde::de::Error;
+
+        struct FieldVisitor;
+
+        impl<'de> Visitor<'de> for FieldVisitor {
+            type Value = EdgeField;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("a string representing an edge field name")
+            }
+
+            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+                where E: Error,
+            {
+                Ok(match value {
+                    FIELD_ENTITY_ID => EdgeField::Id,
+                    FIELD_ENTITY_KEY => EdgeField::Key,
+                    FIELD_ENTITY_REVISION => EdgeField::Revision,
+                    FIELD_ENTITY_OLD_REVISION => EdgeField::OldRevision,
+                    FIELD_ENTITY_FROM => EdgeField::From,
+                    FIELD_ENTITY_TO => EdgeField::To,
+                    _ => EdgeField::Other(value.to_owned()),
+                })
+            }
+        }
+
+        deserializer.deserialize_str(FieldVisitor)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Edge<T> {
+    id: DocumentId,
+    key: DocumentKey,
+    revision: Revision,
+    from: DocumentId,
+    to: DocumentId,
+    content: T,
+}
+
+impl<T> Edge<T> {
+    pub fn id(&self) -> &DocumentId {
+        &self.id
+    }
+
+    pub fn key(&self) -> &DocumentKey {
+        &self.key
+    }
+
+    pub fn revision(&self) -> &Revision {
+        &self.revision
+    }
+
+    pub fn from(&self) -> &DocumentId {
+        &self.from
+    }
+
+    pub fn to(&self) -> &DocumentId {
+        &self.to
+    }
+
+    pub fn content(&self) -> &T {
+        &self.content
+    }
+
+    pub fn unwrap_content(self) -> T {
+        self.content
+    }
+}
+
+impl<'de, T> Deserialize<'de> for Edge<T>
+    where T: DeserializeOwned,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        use serde::de::Error;
+        use serde_json::{Map, Value, from_value};
+
+        struct EdgeVisitor<T>(PhantomData<T>);
+
+        impl<'de, T> Visitor<'de> for EdgeVisitor<T>
+            where T: DeserializeOwned,
+        {
+            type Value = Edge<T>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("at least fields '_id', '_key', '_rev', '_from' and '_to'")
+            }
+
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+                where A: MapAccess<'de>,
+            {
+                let mut id: Option<String> = None;
+                let mut key: Option<String> = None;
+                let mut revision: Option<String> = None;
+                let mut from: Option<String> = None;
+                let mut to: Option<String> = None;
+                let mut other = Map::new();
+
+                let mut fields = map;
+                while let Some(name) = fields.next_key()? {
+                    match name {
+                        EdgeField::Id => {
+                            id = fields.next_value()?;
+                        },
+                        EdgeField::Key => {
+                            key = fields.next_value()?;
+                        },
+                        EdgeField::Revision => {
+                            revision = fields.next_value()?;
+                        },
+                        EdgeField::OldRevision => {
+                            other.insert(FIELD_ENTITY_OLD_REVISION.to_owned(), fields.next_value()?);
+                        },
+                        EdgeField::From => {
+                            from = fields.next_value()?;
+                        },
+                        EdgeField::To => {
+                            to = fields.next_value()?;
+                        },
+                        EdgeField::Other(name) => {
+                            other.insert(name, fields.next_value()?);
+                        },
+                    }
+                }
+
+                match (id, key, revision, from, to) {
+                    (Some(id), Some(key), Some(revision), Some(from), Some(to)) => {
+                        let id = DocumentId::from_str(&id).map_err(A::Error::custom)?;
+                        let key = DocumentKey::from_string(key).map_err(A::Error::custom)?;
+                        let revision = Revision::from_string(revision);
+                        let from = DocumentId::from_str(&from).map_err(A::Error::custom)?;
+                        let to = DocumentId::from_str(&to).map_err(A::Error::custom)?;
+                        let content = from_value(Value::Object(other)).map_err(A::Error::custom)?;
+                        Ok(Edge {
+                            id,
+                            key,
+                            revision,
+                            from,
+                            to,
+                            content,
+                        })
+                    },
+                    (None, _, _, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_ID)),
+                    (_, None, _, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_KEY)),
+                    (_, _, None, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_REVISION)),
+                    (_, _, _, None, _) => Err(A::Error::missing_field(FIELD_ENTITY_FROM)),
+                    (_, _, _, _, None) => Err(A::Error::missing_field(FIELD_ENTITY_TO)),
+                }
+            }
+        }
+
+        deserializer.deserialize_map(EdgeVisitor(PhantomData))
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct NewEdge<T> {
+    key: Option<DocumentKey>,
+    from: DocumentId,
+    to: DocumentId,
+    content: T,
+}
+
+impl<T> NewEdge<T> {
+    pub fn new(from: DocumentId, to: DocumentId, content: T) -> Self {
+        NewEdge {
+            key: None,
+            from,
+            to,
+            content,
+        }
+    }
+
+    pub fn with_key<Key>(mut self, key: Key) -> Self
+        where Key: Into<Option<DocumentKey>>
+    {
+        self.key = key.into();
+        self
+    }
+
+    pub fn key(&self) -> Option<&DocumentKey> {
+        self.key.as_ref()
+    }
+
+    pub fn from(&self) -> &DocumentId {
+        &self.from
+    }
+
+    pub fn to(&self) -> &DocumentId {
+        &self.to
+    }
+
+    pub fn content(&self) -> &T {
+        &self.content
+    }
+}
+
+impl<T> Serialize for NewEdge<T>
+    where T: Serialize + Debug
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        use serde::ser::Error;
+        use serde_json::{self, Value};
+
+        if let Some(ref key) = self.key {
+            let mut json_value = serde_json::to_value(&self.content).map_err(S::Error::custom)?;
+            match json_value {
+                Value::Object(ref mut fields) => {
+                    fields.insert(FIELD_ENTITY_KEY.to_owned(), Value::String(key.as_str().to_owned()));
+                },
+                _ => return Err(S::Error::custom(format!("Invalid edge content! Only types that serialize into valid Json objects are supported. But got: {:?}", &self.content))),
+            }
+            let json_value_with_key = json_value;
+            json_value_with_key.serialize(serializer)
+        } else {
+            self.content.serialize(serializer)
+        }
     }
 }
