@@ -15,7 +15,7 @@
 [avb]: https://ci.appveyor.com/api/projects/status/github/innoave/rincon?branch=master&svg=true
 [cvb]: https://codecov.io/gh/innoave/rincon/branch/master/graph/badge.svg
 [lib]: https://img.shields.io/badge/license-Apache%2D%2D2%2E0-blue.svg
-[gcb]: https://badges.gitter.im/innoave/arangodb-rust-driver.svg
+[gcb]: https://badges.gitter.im/innoave/rincon.svg
 
 [crl]: https://crates.io/crates/rincon_client
 [dcl]: https://docs.rs/rincon_client
@@ -23,7 +23,7 @@
 [avl]: https://ci.appveyor.com/project/innoave/rincon
 [cvl]: https://codecov.io/github/innoave/rincon?branch=master
 [lil]: https://www.apache.org/licenses/LICENSE-2.0
-[gcl]: https://gitter.im/innoave/arangodb-rust-driver
+[gcl]: https://gitter.im/innoave/rincon
 
 [Rincon] is an [ArangoDB] driver for [Rust]. It enables low level access to
 [ArangoDB] in a typesafe and [Rust] idiomatic manner. 
