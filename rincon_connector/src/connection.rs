@@ -6,7 +6,7 @@ use std::string::FromUtf8Error;
 use futures::{future, Future, Stream};
 use hyper::{self, Client, HttpVersion, Request, StatusCode, Uri};
 use hyper::client::HttpConnector;
-use hyper::header::{Authorization, Basic, Bearer, ContentLength, ContentType, UserAgent};
+use hyper::header::{self, Authorization, Basic, Bearer, ContentLength, ContentType};
 use hyper_timeout::TimeoutConnector;
 use hyper_tls::HttpsConnector;
 use native_tls;
@@ -19,10 +19,9 @@ use url::percent_encoding::DEFAULT_ENCODE_SET;
 use rincon_core::api;
 use rincon_core::api::auth::{Authentication, Credentials, Jwt};
 use rincon_core::api::method::{Method, Operation, Prepare, RpcReturnType};
+use rincon_core::api::user_agent::UserAgent;
 use rincon_core::arango::protocol::PATH_DB;
 use datasource::DataSource;
-
-const DEFAULT_USER_AGENT: &str = "Mozilla/5.0 (compatible; ArangoDB-RustDriver/1.1)";
 
 pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=Error>>;
 
@@ -76,14 +75,14 @@ impl From<StatusCode> for Error {
 
 #[derive(Debug)]
 pub struct Connection {
+    user_agent: &'static UserAgent,
     datasource: DataSource,
     client: Client<TimeoutConnector<HttpsConnector<HttpConnector>>>,
-    user_agent: String,
     token: Option<Jwt>,
 }
 
 impl Connection {
-    pub fn establish(datasource: DataSource, reactor: &reactor::Handle)
+    pub fn establish(user_agent: &'static UserAgent, datasource: DataSource, reactor: &reactor::Handle)
         -> Result<Self, Error>
     {
         let https_connector = HttpsConnector::new(4, &reactor)?;
@@ -96,7 +95,7 @@ impl Connection {
         Ok(Connection {
             datasource,
             client,
-            user_agent: DEFAULT_USER_AGENT.to_owned(),
+            user_agent,
             token: None,
         })
     }
@@ -135,7 +134,7 @@ impl Connection {
         request.set_version(HttpVersion::Http11);
         {
             let headers = request.headers_mut();
-            headers.set(UserAgent::new(self.user_agent.clone()));
+            headers.set(header_user_agent_for(self.user_agent));
             match *self.datasource.authentication() {
                 Authentication::Basic(ref credentials) => {
                     headers.set(Authorization(Basic {
@@ -177,8 +176,8 @@ impl Connection {
         &self.datasource
     }
 
-    pub fn user_agent(&self) -> &str {
-        &self.user_agent
+    pub fn user_agent(&self) -> &UserAgent {
+        self.user_agent
     }
 }
 
@@ -226,6 +225,12 @@ fn serialize_payload<T>(content: &T) -> Result<Vec<u8>, Error>
     where T: Serialize
 {
     serde_json::to_vec(content).map_err(Error::from)
+}
+
+fn header_user_agent_for(agent: &UserAgent) -> header::UserAgent {
+    let agent_string = format!("Mozilla/5.0 (compatible; {}/{}.{}; +{})",
+        agent.name(), agent.version().major(), agent.version().minor(), agent.homepage());
+    header::UserAgent::new(agent_string)
 }
 
 fn http_method_for_operation(operation: &Operation) -> hyper::Method {
@@ -277,6 +282,7 @@ mod tests {
 
     use rincon_core::api::auth::{Authentication, Credentials};
     use rincon_core::api::method::{Parameters, Prepare};
+    use rincon_core::api::user_agent::Version;
     use super::*;
 
     struct Prepared<'a> {
@@ -407,6 +413,53 @@ mod tests {
 
         assert_eq!("https://localhost:8529/_db/the%20big%20data/_api/document\
                 ?id=25&name=JuneReport&max=42", uri.to_string());
+    }
+
+    #[test]
+    fn header_user_agent_for_my_user_agent() {
+        #[derive(Debug)]
+        struct MyUserAgent;
+        #[derive(Debug)]
+        struct MyVersion;
+
+        impl UserAgent for MyUserAgent {
+            fn name(&self) -> &str {
+                "rincon"
+            }
+
+            fn version(&self) -> &Version {
+                &MyVersion
+            }
+
+            fn homepage(&self) -> &str {
+                "https://github.com/innoave/rincon"
+            }
+        }
+
+        impl Version for MyVersion {
+            fn major(&self) -> &str {
+                "2"
+            }
+
+            fn minor(&self) -> &str {
+                "5"
+            }
+
+            fn patch(&self) -> &str {
+                "9"
+            }
+
+            fn pre(&self) -> &str {
+                ""
+            }
+        }
+
+        let agent = header_user_agent_for(&MyUserAgent);
+
+        assert_eq!(
+            header::UserAgent::new("Mozilla/5.0 (compatible; rincon/2.5; +https://github.com/innoave/rincon)"),
+            agent
+        );
     }
 
 }

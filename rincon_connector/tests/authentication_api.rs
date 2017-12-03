@@ -13,12 +13,13 @@ use std::env;
 use dotenv::dotenv;
 use tokio_core::reactor::Core;
 
-use rincon_test_helper::*;
 use rincon_core::api::auth::Credentials;
 use rincon_core::api::ErrorCode;
 use rincon_connector::connection::{Connection, Error};
 use rincon_connector::datasource::DataSource;
 use rincon_connector::authentication::*;
+
+use rincon_test_helper::*;
 
 #[test]
 fn authenticate_root_user() {
@@ -31,7 +32,7 @@ fn authenticate_root_user() {
     let system_ds = DataSource::from_url(&db_url).unwrap();
 
     let mut core = Core::new().unwrap();
-    let conn = Connection::establish(system_ds, &core.handle()).unwrap();
+    let conn = Connection::establish(&MyUserAgent, system_ds, &core.handle()).unwrap();
 
     let method = Authenticate::with_user(username, password);
     let result = core.run(conn.execute(method)).unwrap();
@@ -49,7 +50,7 @@ fn authenticate_with_invalid_credentials() {
     let system_ds = DataSource::from_url(&db_url).unwrap();
 
     let mut core = Core::new().unwrap();
-    let conn = Connection::establish(system_ds, &core.handle()).unwrap();
+    let conn = Connection::establish(&MyUserAgent, system_ds, &core.handle()).unwrap();
 
     let method = Authenticate::with_credentials(credentials);
     let result = core.run(conn.execute(method));

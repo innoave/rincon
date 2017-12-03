@@ -27,6 +27,8 @@ extern crate serde;
 #[cfg(not(test))] extern crate serde_json;
 #[cfg(test)] #[macro_use] extern crate serde_json;
 
+pub mod build;
+
 pub mod admin;
 pub mod aql;
 pub mod collection;
@@ -36,3 +38,4 @@ pub mod document;
 pub mod graph;
 pub mod index;
 pub mod user;
+pub mod user_agent;

@@ -4,6 +4,7 @@ version = "0.1.0"  # remember to update html_root_url
 description = "An ArangoDB driver for Rust"
 authors = ["Harald Maida <haraldmaida@innoave.com>"]
 repository = "https://github.com/innoave/rincon"
+documentation = "https://docs.rs/rincon"
 readme = "../README.md"
 keywords = ["arangodb", "aql", "nosql", "database", "client", "driver", "typesafe"]
 categories = ["database"]

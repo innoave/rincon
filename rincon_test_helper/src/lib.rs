@@ -31,6 +31,7 @@ use dotenv::dotenv;
 use tokio_core::reactor::Core;
 
 use rincon_core::api::types::Empty;
+use rincon_core::api::user_agent::{UserAgent, Version};
 use rincon_connector::connection::Connection;
 use rincon_connector::datasource::DataSource;
 use rincon_client::collection::{CreateCollection, DropCollection};
@@ -69,12 +70,12 @@ pub fn arango_system_db_test<Test, CleanUp>(test: Test, clean_up: CleanUp) -> ()
 
     let result = panic::catch_unwind(|| {
         let mut core = Core::new().unwrap();
-        let conn = Connection::establish(system_ds.clone(), &core.handle()).unwrap();
+        let conn = Connection::establish(&MyUserAgent, system_ds.clone(), &core.handle()).unwrap();
         test(conn, &mut core);
     });
 
     let mut core = Core::new().unwrap();
-    let sys_conn = Connection::establish(system_ds, &core.handle()).unwrap();
+    let sys_conn = Connection::establish(&MyUserAgent, system_ds, &core.handle()).unwrap();
     clean_up(sys_conn, &mut core);
 
     assert!(result.is_ok())
@@ -102,11 +103,11 @@ pub fn arango_user_db_test<Test, CleanUp>(test: Test, clean_up: CleanUp) -> ()
 
     let result = panic::catch_unwind(|| {
         let mut core = Core::new().unwrap();
-        let user_conn = Connection::establish(user_ds.clone(), &core.handle()).unwrap();
+        let user_conn = Connection::establish(&MyUserAgent, user_ds.clone(), &core.handle()).unwrap();
         test(user_conn, &mut core);
     });
 
-    let user_conn = Connection::establish(user_ds, &core.handle()).unwrap();
+    let user_conn = Connection::establish(&MyUserAgent, user_ds, &core.handle()).unwrap();
     clean_up(user_conn, &mut core);
 
     assert!(result.is_ok())
@@ -123,7 +124,7 @@ pub fn arango_test_with_user_db<Test>(user: &str, database: &str, test: Test) ->
     let mut core = Core::new().unwrap();
 
     let system_ds = DataSource::from_url(&db_url).unwrap();
-    let sys_conn = Connection::establish(system_ds, &core.handle()).unwrap();
+    let sys_conn = Connection::establish(&MyUserAgent, system_ds, &core.handle()).unwrap();
 
     setup_database(user, "", database, &sys_conn, &mut core);
 
@@ -132,7 +133,7 @@ pub fn arango_test_with_user_db<Test>(user: &str, database: &str, test: Test) ->
         let user_ds = DataSource::from_url(&db_url).unwrap()
             .with_basic_authentication(user, "")
             .use_database(database);
-        let conn = Connection::establish(user_ds, &core.handle()).unwrap();
+        let conn = Connection::establish(&MyUserAgent, user_ds, &core.handle()).unwrap();
         test(conn, &mut core);
     });
 
@@ -159,14 +160,14 @@ pub fn arango_test_with_document_collection<Test>(collection: &str, test: Test) 
     let user_ds = DataSource::from_url(&db_url).unwrap()
         .with_basic_authentication(&username, &password)
         .use_database(database);
-    let user_conn = Connection::establish(user_ds.clone(), &core.handle()).unwrap();
+    let user_conn = Connection::establish(&MyUserAgent, user_ds.clone(), &core.handle()).unwrap();
 
     core.run(user_conn.execute(CreateCollection::documents_with_name(collection)))
         .expect(&format!("Error on creating document collection: {}", collection));
 
     let result = panic::catch_unwind(|| {
         let mut core = Core::new().unwrap();
-        let conn = Connection::establish(user_ds, &core.handle()).unwrap();
+        let conn = Connection::establish(&MyUserAgent, user_ds, &core.handle()).unwrap();
         test(conn, &mut core);
     });
 
@@ -195,14 +196,14 @@ pub fn arango_test_with_edge_collection<Test>(collection: &str, test: Test) -> (
     let user_ds = DataSource::from_url(&db_url).unwrap()
         .with_basic_authentication(&username, &password)
         .use_database(database);
-    let user_conn = Connection::establish(user_ds.clone(), &core.handle()).unwrap();
+    let user_conn = Connection::establish(&MyUserAgent, user_ds.clone(), &core.handle()).unwrap();
 
     core.run(user_conn.execute(CreateCollection::edges_with_name(collection)))
         .expect(&format!("Error on creating edge collection: {}", collection));
 
     let result = panic::catch_unwind(|| {
         let mut core = Core::new().unwrap();
-        let conn = Connection::establish(user_ds, &core.handle()).unwrap();
+        let conn = Connection::establish(&MyUserAgent, user_ds, &core.handle()).unwrap();
         test(conn, &mut core);
     });
 
@@ -247,7 +248,7 @@ fn setup_database_if_not_existing(
     core: &mut Core,
 ) {
     let system_ds = DataSource::from_url(&db_url).unwrap();
-    let sys_conn = Connection::establish(system_ds, &core.handle()).unwrap();
+    let sys_conn = Connection::establish(&MyUserAgent, system_ds, &core.handle()).unwrap();
 
     let timeout = Duration::from_secs(15);
     let time = Instant::now();
@@ -292,11 +293,53 @@ fn setup_database<User, Pass, Db>(
 }
 
 #[allow(dead_code)]
-fn teardown_database<User, Db>(user: User, database: Db, sys_conn: &Connection, core: &mut Core)
+fn teardown_database<User, Db>(
+    user: User,
+    database: Db,
+    sys_conn: &Connection,
+    core: &mut Core
+)
     where
         User: Into<String>,
         Db: Into<String>,
 {
     let _ = core.run(sys_conn.execute(DropDatabase::with_name(database))).unwrap();
     let _ = core.run(sys_conn.execute(RemoveUser::with_name(user))).unwrap();
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct MyUserAgent;
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct MyVersion;
+
+impl UserAgent for MyUserAgent {
+    fn name(&self) -> &str {
+        "rincon"
+    }
+
+    fn version(&self) -> &Version {
+        &MyVersion
+    }
+
+    fn homepage(&self) -> &str {
+        "https://github.com/innoave/rincon"
+    }
+}
+
+impl Version for MyVersion {
+    fn major(&self) -> &str {
+        "2"
+    }
+
+    fn minor(&self) -> &str {
+        "5"
+    }
+
+    fn patch(&self) -> &str {
+        "9"
+    }
+
+    fn pre(&self) -> &str {
+        ""
+    }
 }

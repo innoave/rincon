@@ -238,7 +238,7 @@ fn create_collection_in_database_not_accessible_for_user() {
         let user_ds = conn.datasource()
             .with_basic_authentication("testuser8", "")
             .use_database("testbase81");
-        let user_conn = Connection::establish(user_ds, &core.handle()).unwrap();
+        let user_conn = Connection::establish(&MyUserAgent, user_ds, &core.handle()).unwrap();
 
         let method = CreateCollection::with_name("testcollection811");
         let work = user_conn.execute(method);

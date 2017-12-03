@@ -5,6 +5,7 @@ extern crate tokio_core;
 
 extern crate rincon_core;
 extern crate rincon_connector;
+extern crate rincon_test_helper;
 
 use std::io;
 use std::time::Duration;
@@ -16,6 +17,8 @@ use rincon_core::api::types::JsonValue;
 use rincon_core::arango::protocol::{PARAM_DETAILS, PATH_API_VERSION};
 use rincon_connector::connection::{self, Connection};
 use rincon_connector::datasource::DataSource;
+
+use rincon_test_helper::*;
 
 #[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq)]
@@ -67,7 +70,7 @@ fn establish_connection_timeout() {
     // 10.255.255.1 is a not a routable IP address
     let datasource = DataSource::from_url("http://10.255.255.1:8529").unwrap()
         .with_timeout(Duration::from_millis(500));
-    let conn = Connection::establish(datasource, &core.handle()).unwrap();
+    let conn = Connection::establish(&MyUserAgent, datasource, &core.handle()).unwrap();
 
     let method = GetServerVersion { details: true };
     let work = conn.execute(method);

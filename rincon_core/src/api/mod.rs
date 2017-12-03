@@ -6,6 +6,7 @@ pub mod query;
 //pub mod statement;
 pub mod types;
 #[cfg(test)] mod types_tests;
+pub mod user_agent;
 
 mod error;
 pub use self::error::*;
