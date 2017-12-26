@@ -102,4 +102,8 @@ impl<Connector> GraphSession<Connector> {
             connector,
         }
     }
+
+    pub fn graph(&self) -> &Graph {
+        &self.graph
+    }
 }
