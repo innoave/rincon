@@ -146,7 +146,7 @@ error_code_enum! {
     HttpNotAcceptable(406, "Will be raised when an unsupported HTTP content type is used for an operation, or if a request is not acceptable for a leader or follower."),
     HttpConflict(409, "Will be raised when a conflict with the current state of a resource is found."),
     HttpPreconditionFailed(412, "Will be raised when a precondition for an HTTP request is not met."),
-    HttpServerError(500, "Will be raised when an internal server is encountered."),
+    HttpServerError(500, "Will be raised when an internal server error is encountered."),
     HttpServiceUnavailable(503, "Will be raised when a service is temporarily unavailable."),
 
     // HTTP processing errors

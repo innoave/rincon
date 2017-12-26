@@ -8,9 +8,9 @@ extern crate rincon_test_helper;
 
 use rincon_test_helper::*;
 use rincon_core::api::ErrorCode;
+use rincon_core::api::connector::{Error, Execute};
 use rincon_core::api::query::Query;
 use rincon_core::api::types::{EMPTY, Empty, JsonValue};
-use rincon_connector::connection::Error;
 use rincon_client::aql::OptimizerRule;
 use rincon_client::cursor::*;
 
@@ -201,7 +201,7 @@ fn delete_cursor_before_fetching_all_results() {
         let result = core.run(conn.execute(method));
 
         match result {
-            Err(Error::ApiError(error)) => {
+            Err(Error::Method(error)) => {
                 assert_eq!(404, error.status_code());
                 assert_eq!(ErrorCode::CursorNotFound, error.error_code());
                 assert_eq!("cursor not found", error.message());

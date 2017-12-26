@@ -2,9 +2,10 @@
 use std::env;
 use std::time::Duration;
 
-use url::{ParseError, Url};
+use url::Url;
 
 use rincon_core::api::auth::{Authentication, Credentials};
+use rincon_core::api::datasource::{Error, UseDatabase};
 
 pub const DEFAULT_PROTOCOL: &str = "http";
 pub const DEFAULT_HOST: &str = "localhost";
@@ -28,7 +29,7 @@ pub struct DataSource {
 
 impl DataSource {
     pub fn from_url(url: &str) -> Result<Self, Error> {
-        let url = Url::parse(url)?;
+        let url = Url::parse(url).map_err(|cause| Error::InvalidUrl(cause.to_string()))?;
         let protocol = url.scheme();
         let host = url.host_str().unwrap_or(DEFAULT_HOST);
         let port = url.port().unwrap_or(DEFAULT_PORT);
@@ -94,36 +95,6 @@ impl DataSource {
         }
     }
 
-    pub fn use_database<N>(&self, database_name: N) -> Self
-        where N: Into<String>
-    {
-        let database_name = database_name.into();
-        let database_name = if database_name.is_empty() {
-            None
-        } else {
-            Some(database_name.to_owned())
-        };
-        DataSource {
-            protocol: self.protocol.clone(),
-            host: self.host.clone(),
-            port: self.port.clone(),
-            authentication: self.authentication.clone(),
-            database_name,
-            timeout: self.timeout.clone(),
-        }
-    }
-
-    pub fn use_default_database(&self) -> Self {
-        DataSource {
-            protocol: self.protocol.clone(),
-            host: self.host.clone(),
-            port: self.port.clone(),
-            authentication: self.authentication.clone(),
-            database_name: None,
-            timeout: self.timeout.clone(),
-        }
-    }
-
     pub fn with_timeout<D>(&self, timeout: D) -> Self
         where D: Into<Duration>
     {
@@ -153,12 +124,44 @@ impl DataSource {
         &self.authentication
     }
 
-    pub fn database_name(&self) -> Option<&String> {
-        self.database_name.as_ref()
-    }
-
     pub fn timeout(&self) -> &Duration {
         &self.timeout
+    }
+}
+
+impl UseDatabase for DataSource {
+    fn use_database<DbName>(&self, database_name: DbName) -> Self
+        where DbName: Into<String>
+    {
+        let database_name = database_name.into();
+        let database_name = if database_name.is_empty() {
+            None
+        } else {
+            Some(database_name.to_owned())
+        };
+        DataSource {
+            protocol: self.protocol.clone(),
+            host: self.host.clone(),
+            port: self.port.clone(),
+            authentication: self.authentication.clone(),
+            database_name,
+            timeout: self.timeout.clone(),
+        }
+    }
+
+    fn use_default_database(&self) -> Self {
+        DataSource {
+            protocol: self.protocol.clone(),
+            host: self.host.clone(),
+            port: self.port.clone(),
+            authentication: self.authentication.clone(),
+            database_name: None,
+            timeout: self.timeout.clone(),
+        }
+    }
+
+    fn database_name(&self) -> Option<&String> {
+        self.database_name.as_ref()
     }
 }
 
@@ -174,17 +177,5 @@ impl Default for DataSource {
             database_name: None,
             timeout: Duration::from_secs(DEFAULT_TIMEOUT),
         }
-    }
-}
-
-#[allow(missing_copy_implementations)]
-#[derive(Debug)]
-pub enum Error {
-    InvalidUrl(ParseError),
-}
-
-impl From<ParseError> for Error {
-    fn from(parse_error: ParseError) -> Self {
-        Error::InvalidUrl(parse_error)
     }
 }

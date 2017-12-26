@@ -13,5 +13,6 @@
     unused_qualifications,
 )]
 
-extern crate rincon_core;
 extern crate serde;
+
+extern crate rincon_core;

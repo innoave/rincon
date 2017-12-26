@@ -7,15 +7,15 @@ extern crate rincon_core;
 extern crate rincon_connector;
 extern crate rincon_test_helper;
 
-use std::io;
 use std::time::Duration;
 
 use tokio_core::reactor::Core;
 
+use rincon_core::api::connector::{Error, Execute};
 use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use rincon_core::api::types::JsonValue;
 use rincon_core::arango::protocol::{PARAM_DETAILS, PATH_API_VERSION};
-use rincon_connector::connection::{self, Connection};
+use rincon_connector::connection::Connection;
 use rincon_connector::datasource::DataSource;
 
 use rincon_test_helper::*;
@@ -76,8 +76,8 @@ fn establish_connection_timeout() {
     let work = conn.execute(method);
 
     match core.run(work) {
-        Err(connection::Error::CommunicationFailed(hyper::Error::Io(e))) => {
-            assert_eq!(e.kind(), io::ErrorKind::TimedOut);
+        Err(Error::Timeout(reason)) => {
+            assert_eq!("", reason);
         }
         e => panic!("Expected timeout error, got {:?}", e),
     }

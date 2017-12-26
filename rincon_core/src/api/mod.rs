@@ -1,5 +1,7 @@
 
 pub mod auth;
+pub mod connector;
+pub mod datasource;
 pub mod method;
 pub mod query;
 #[cfg(test)] mod query_tests;

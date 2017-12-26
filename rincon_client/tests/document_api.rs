@@ -9,8 +9,8 @@ extern crate rincon_test_helper;
 
 use rincon_test_helper::*;
 use rincon_core::api::ErrorCode;
+use rincon_core::api::connector::{Error, Execute};
 use rincon_core::api::types::JsonString;
-use rincon_connector::connection::Error;
 use rincon_client::document::*;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -696,7 +696,7 @@ fn get_document_but_revision_does_not_match() {
         let result = core.run(conn.execute(method));
 
         match result {
-            Err(Error::ApiError(error)) => {
+            Err(Error::Method(error)) => {
                 assert_eq!(412, error.status_code());
                 assert_eq!(ErrorCode::ArangoConflict, error.error_code());
                 assert_eq!("precondition failed", error.message());
@@ -733,7 +733,7 @@ fn get_document_for_id_that_does_not_exist() {
         let result = core.run(conn.execute(method));
 
         match result {
-            Err(Error::ApiError(error)) => {
+            Err(Error::Method(error)) => {
                 assert_eq!(404, error.status_code());
                 assert_eq!(ErrorCode::ArangoDocumentNotFound, error.error_code());
                 assert_eq!("document not found", error.message());
@@ -745,7 +745,7 @@ fn get_document_for_id_that_does_not_exist() {
         let result = core.run(conn.execute(method));
 
         match result {
-            Err(Error::ApiError(error)) => {
+            Err(Error::Method(error)) => {
                 assert_eq!(404, error.status_code());
                 assert_eq!(ErrorCode::ArangoCollectionNotFound, error.error_code());
                 assert_eq!("collection not found: not_existing99", error.message());
@@ -1205,7 +1205,7 @@ fn replace_with_struct_document_with_not_existing_revision() {
         let result = core.run(conn.execute(method));
 
         match result {
-            Err(Error::ApiError(error)) => {
+            Err(Error::Method(error)) => {
                 assert_eq!(412, error.status_code());
                 assert_eq!(ErrorCode::ArangoConflict, error.error_code());
                 assert_eq!("precondition failed", error.message());
@@ -1316,7 +1316,7 @@ fn replace_with_struct_document_with_if_match_unknown_revision() {
         let result = core.run(conn.execute(method));
 
         match result {
-            Err(Error::ApiError(error)) => {
+            Err(Error::Method(error)) => {
                 assert_eq!(412, error.status_code());
                 assert_eq!(ErrorCode::ArangoConflict, error.error_code());
                 assert_eq!("precondition failed", error.message());
@@ -1841,7 +1841,7 @@ fn delete_document_with_not_existing_revision() {
         let result = core.run(conn.execute(method));
 
         match result {
-            Err(Error::ApiError(error)) => {
+            Err(Error::Method(error)) => {
                 assert_eq!(412, error.status_code());
                 assert_eq!(ErrorCode::ArangoConflict, error.error_code());
                 assert_eq!("precondition failed", error.message());

@@ -73,6 +73,7 @@ pub const PATH_TARGET_VERSION: &str = "/target-version";
 pub const PATH_USER: &str = "/user";
 pub const PATH_VERTEX: &str = "/vertex";
 
+pub const SYSTEM_DATABASE: &str = "_system";
 
 const CAPTURE_CONTEXT_NAME: &str = "ctx";
 const CAPTURE_ELEMENT_KEY: &str = "key";

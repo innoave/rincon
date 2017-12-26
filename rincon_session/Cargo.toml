@@ -4,6 +4,7 @@ version = "0.1.0"  # remember to update html_root_url
 description = "An session managed client API for the ArangoDB driver"
 authors = ["Harald Maida <haraldmaida@innoave.com>"]
 repository = "https://github.com/innoave/rincon"
+documentation = "https://docs.rs/rincon_session"
 readme = "README.md"
 keywords = ["arangodb", "aql", "nosql", "database", "client", "driver", "typesafe"]
 categories = ["database"]
@@ -26,11 +27,15 @@ rocksdb = []
 rincon_core = { path = "../rincon_core" }
 rincon_client = { path = "../rincon_client" }
 rincon_aql = { path = "../rincon_aql" }
+failure = "0.1"
+futures = "0.1"
+serde = "1.0"
 
 [dev-dependencies]
 rincon_connector = { path = "../rincon_connector" }
 rincon_test_helper = { path = "../rincon_test_helper" }
-#quickcheck = "0.4"
+hamcrest = "0.1"
+#quickcheck = "0.5"
 tokio-core = "0.1"
 version-sync = "0.5"
 

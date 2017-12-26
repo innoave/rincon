@@ -21,16 +21,18 @@
     unused_qualifications,
 )]
 
-extern crate rincon_core;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
 #[cfg(not(test))] extern crate serde_json;
 #[cfg(test)] #[macro_use] extern crate serde_json;
 
+extern crate rincon_core;
+
 pub mod build;
 
 pub mod admin;
 pub mod aql;
+pub mod auth;
 pub mod collection;
 pub mod cursor;
 pub mod database;

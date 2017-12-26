@@ -1,35 +1,26 @@
 
-extern crate dotenv;
-extern crate futures;
-extern crate log4rs;
 extern crate tokio_core;
 
 extern crate rincon_core;
 extern crate rincon_connector;
+extern crate rincon_client;
 extern crate rincon_test_helper;
 
-use std::env;
-
-use dotenv::dotenv;
 use tokio_core::reactor::Core;
 
 use rincon_core::api::auth::Credentials;
 use rincon_core::api::ErrorCode;
-use rincon_connector::connection::{Connection, Error};
-use rincon_connector::datasource::DataSource;
-use rincon_connector::authentication::*;
+use rincon_core::api::connector::{Error, Execute};
+use rincon_connector::connection::Connection;
+use rincon_client::auth::*;
 
 use rincon_test_helper::*;
 
 #[test]
 fn authenticate_root_user() {
-    dotenv().ok();
+    let system_ds = system_datasource();
 
-    let username = env::var(ENV_ARANGO_ROOT_USERNAME).unwrap();
-    let password = env::var(ENV_ARANGO_ROOT_PASSWORD).unwrap();
-
-    let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
-    let system_ds = DataSource::from_url(&db_url).unwrap();
+    let (username, password) = root_user();
 
     let mut core = Core::new().unwrap();
     let conn = Connection::establish(&MyUserAgent, system_ds, &core.handle()).unwrap();
@@ -42,12 +33,9 @@ fn authenticate_root_user() {
 
 #[test]
 fn authenticate_with_invalid_credentials() {
-    dotenv().ok();
+    let system_ds = system_datasource();
 
     let credentials = Credentials::new("not existing", "user");
-
-    let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
-    let system_ds = DataSource::from_url(&db_url).unwrap();
 
     let mut core = Core::new().unwrap();
     let conn = Connection::establish(&MyUserAgent, system_ds, &core.handle()).unwrap();
@@ -56,7 +44,7 @@ fn authenticate_with_invalid_credentials() {
     let result = core.run(conn.execute(method));
 
     match result {
-        Err(Error::ApiError(error)) => {
+        Err(Error::Method(error)) => {
             assert_eq!(401, error.status_code());
             assert_eq!(ErrorCode::HttpUnauthorized, error.error_code());
             assert_eq!("Wrong credentials", error.message());

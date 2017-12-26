@@ -1,9 +1,9 @@
 
 use std::fmt::{self, Debug, Display};
 
-pub use arango::error_code::ErrorCode;
+pub use arango::ErrorCode;
 
-#[derive(Clone, PartialEq, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Deserialize)]
 pub struct Error {
     #[serde(rename = "code")]
     status_code: u16,

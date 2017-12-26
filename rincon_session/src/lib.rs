@@ -13,6 +13,14 @@
     unused_qualifications,
 )]
 
+#[cfg(test)] #[macro_use] extern crate hamcrest;
+
+extern crate futures;
+extern crate serde;
+
 extern crate rincon_core;
 extern crate rincon_client;
 extern crate rincon_aql;
+
+mod session;
+pub use session::*;

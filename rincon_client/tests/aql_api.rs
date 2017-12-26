@@ -9,10 +9,10 @@ extern crate rincon_test_helper;
 
 use std::env;
 
+use rincon_core::api::connector::{Error, Execute};
 use rincon_core::api::ErrorCode;
 use rincon_core::api::query::Query;
 use rincon_core::api::types::{Empty, JsonValue};
-use rincon_connector::connection::Error;
 use rincon_client::index::{CreateIndex, HashIndex, IndexDetails, IndexIdOption, IndexKey, NewHashIndex};
 use rincon_client::aql::*;
 use rincon_client::cursor::CreateCursor;
@@ -237,7 +237,7 @@ fn parse_invalid_query() {
         let result = core.run(conn.execute(method));
 
         match result {
-            Err(Error::ApiError(error)) => {
+            Err(Error::Method(error)) => {
                 assert_eq!(400, error.status_code());
                 assert_eq!(ErrorCode::QueryParse, error.error_code());
                 assert_eq!("syntax error, unexpected assignment near '= @age LIMIT 2 SORT c.name RETUR...' at position 1:39", error.message());

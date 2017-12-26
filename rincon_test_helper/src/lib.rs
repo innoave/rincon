@@ -30,6 +30,8 @@ use std::time::{Duration, Instant};
 use dotenv::dotenv;
 use tokio_core::reactor::Core;
 
+use rincon_core::api::connector::Execute;
+use rincon_core::api::datasource::UseDatabase;
 use rincon_core::api::types::Empty;
 use rincon_core::api::user_agent::{UserAgent, Version};
 use rincon_connector::connection::Connection;
@@ -53,8 +55,37 @@ pub const ENV_ARANGO_TEST_PASSWORD: &str = "ARANGO_TEST_PASSWORD";
 const LOCK_FILE: &str = "db_test.lock";
 
 #[allow(dead_code)]
+pub fn root_user() -> (String, String) {
+    dotenv().ok();
+    let username = env::var(ENV_ARANGO_ROOT_USERNAME).unwrap();
+    let password = env::var(ENV_ARANGO_ROOT_PASSWORD).unwrap();
+    (username, password)
+}
+
+#[allow(dead_code)]
 pub fn init_logging() {
     log4rs::init_file("tests/log4rs.yml", Default::default()).unwrap();
+}
+
+#[allow(dead_code)]
+pub fn system_datasource() -> DataSource {
+    dotenv().ok();
+    let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
+
+    DataSource::from_url(&db_url).unwrap()
+}
+
+#[allow(dead_code)]
+pub fn test_datasource() -> DataSource {
+    dotenv().ok();
+    let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
+    let database = env::var(ENV_ARANGO_TEST_DATABASE).unwrap();
+    let username = env::var(ENV_ARANGO_TEST_USERNAME).unwrap();
+    let password = env::var(ENV_ARANGO_TEST_PASSWORD).unwrap();
+
+    DataSource::from_url(&db_url).unwrap()
+        .with_basic_authentication(&username, &password)
+        .use_database(database)
 }
 
 #[allow(dead_code)]

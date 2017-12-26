@@ -9,7 +9,7 @@ use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
 use api::types::Value;
-use arango::error_code::ErrorCode;
+use arango::ErrorCode;
 
 pub trait Method {
     type Result: DeserializeOwned;

@@ -8,7 +8,7 @@ extern crate rincon_test_helper;
 
 use rincon_test_helper::*;
 use rincon_core::api::ErrorCode;
-use rincon_connector::connection::Error;
+use rincon_core::api::connector::{Error, Execute};
 use rincon_client::index::*;
 
 #[test]
@@ -381,7 +381,7 @@ fn delete_not_existing_index_in_existing_collection() {
         let result = core.run(conn.execute(delete));
 
         match result {
-            Err(Error::ApiError(error)) => {
+            Err(Error::Method(error)) => {
                 assert_eq!(404, error.status_code());
                 assert_eq!(ErrorCode::ArangoIndexNotFound, error.error_code());
                 assert_eq!("index not found", error.message());

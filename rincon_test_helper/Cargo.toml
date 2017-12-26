@@ -20,7 +20,7 @@ rincon_core = { path = "../rincon_core" }
 rincon_connector = { path = "../rincon_connector" }
 rincon_client = { path = "../rincon_client" }
 dotenv = "0.10"
-log4rs = "0.7"
+log4rs = "0.8"
 tokio-core = "0.1"
 
 [dev-dependencies]

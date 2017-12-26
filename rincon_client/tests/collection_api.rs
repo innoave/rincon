@@ -7,8 +7,8 @@ extern crate rincon_client;
 extern crate rincon_test_helper;
 
 use rincon_test_helper::*;
+use rincon_core::api::connector::{Error, Execute};
 use rincon_core::api::ErrorCode;
-use rincon_connector::connection::Error;
 use rincon_client::collection::*;
 
 #[test]
@@ -138,7 +138,7 @@ fn get_collection_should_return_an_error_if_collection_not_found() {
         let result = core.run(work);
 
         match result {
-            Err(Error::ApiError(error)) => {
+            Err(Error::Method(error)) => {
                 assert_eq!(404, error.status_code());
                 assert_eq!(ErrorCode::ArangoCollectionNotFound, error.error_code());
                 assert_eq!("unknown collection 'test_collection_not_existing'", error.message());
@@ -189,7 +189,7 @@ fn get_collection_properties_should_return_an_error_if_collection_not_found() {
         let result = core.run(work);
 
         match result {
-            Err(Error::ApiError(error)) => {
+            Err(Error::Method(error)) => {
                 assert_eq!(404, error.status_code());
                 assert_eq!(ErrorCode::ArangoCollectionNotFound, error.error_code());
                 assert_eq!("unknown collection 'test_collection_not_existing'", error.message());
@@ -279,7 +279,7 @@ fn rename_collection_to_empty_name() {
         let result = core.run(work);
 
         match result {
-            Err(Error::ApiError(error)) => {
+            Err(Error::Method(error)) => {
                 assert_eq!(403, error.status_code());
                 assert_eq!(ErrorCode::Forbidden, error.error_code());
                 assert_eq!("forbidden", error.message());

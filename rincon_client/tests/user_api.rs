@@ -9,8 +9,10 @@ extern crate rincon_test_helper;
 
 use rincon_test_helper::*;
 use rincon_core::api::ErrorCode;
+use rincon_core::api::connector::{Error, Execute};
+use rincon_core::api::datasource::UseDatabase;
 use rincon_core::api::types::{Empty, EMPTY};
-use rincon_connector::connection::{Connection, Error};
+use rincon_connector::connection::Connection;
 use rincon_client::collection::{CreateCollection, DropCollection};
 use rincon_client::database::{CreateDatabase, DropDatabase, NewDatabase};
 use rincon_client::user::*;
@@ -245,7 +247,7 @@ fn create_collection_in_database_not_accessible_for_user() {
         let result = core.run(work);
 
         match result {
-            Err(Error::ApiError(error)) => {
+            Err(Error::Method(error)) => {
                 assert_eq!(401, error.status_code());
                 assert_eq!(ErrorCode::HttpUnauthorized, error.error_code());
                 assert_eq!("Will be raised when authorization is required but the user is not authorized.", error.message());

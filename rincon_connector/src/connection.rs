@@ -1,7 +1,5 @@
 
-use std::io;
 use std::str::FromStr;
-use std::string::FromUtf8Error;
 
 use futures::{future, Future, Stream};
 use hyper::{self, Client, HttpVersion, Request, StatusCode, Uri};
@@ -9,7 +7,6 @@ use hyper::client::HttpConnector;
 use hyper::header::{self, Authorization, Basic, Bearer, ContentLength, ContentType};
 use hyper_timeout::TimeoutConnector;
 use hyper_tls::HttpsConnector;
-use native_tls;
 use serde::ser::Serialize;
 use serde_json::{self, Value};
 use tokio_core::reactor;
@@ -18,66 +15,20 @@ use url::percent_encoding::DEFAULT_ENCODE_SET;
 
 use rincon_core::api;
 use rincon_core::api::auth::{Authentication, Credentials, Jwt};
+use rincon_core::api::connector::{Error, Execute, FutureResult};
+use rincon_core::api::datasource::UseDatabase;
 use rincon_core::api::method::{Method, Operation, Prepare, RpcReturnType};
 use rincon_core::api::user_agent::UserAgent;
 use rincon_core::arango::protocol::PATH_DB;
 use datasource::DataSource;
 
-pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=Error>>;
-
-#[derive(Debug)]
-pub enum Error {
-    ApiError(api::Error),
-    CommunicationFailed(hyper::Error),
-    JsonError(serde_json::Error),
-    HttpError(StatusCode),
-    IoError(io::Error),
-    NativeTlsError(native_tls::Error),
-    NotAuthenticated(String),
-    NonUtf8Content(FromUtf8Error),
-}
-
-impl From<FromUtf8Error> for Error {
-    fn from(err: FromUtf8Error) -> Self {
-        Error::NonUtf8Content(err)
-    }
-}
-
-impl From<serde_json::Error> for Error {
-    fn from(err: serde_json::Error) -> Self {
-        Error::JsonError(err)
-    }
-}
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Error::IoError(err)
-    }
-}
-
-impl From<hyper::Error> for Error {
-    fn from(err: hyper::Error) -> Self {
-        Error::CommunicationFailed(err)
-    }
-}
-
-impl From<native_tls::Error> for Error {
-    fn from(err: native_tls::Error) -> Self {
-        Error::NativeTlsError(err)
-    }
-}
-
-impl From<StatusCode> for Error {
-    fn from(status_code: StatusCode) -> Self {
-        Error::HttpError(status_code)
-    }
-}
+//pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=Error>>;
 
 #[derive(Debug)]
 pub struct Connection {
     user_agent: &'static UserAgent,
     datasource: DataSource,
-    client: Client<TimeoutConnector<HttpsConnector<HttpConnector>>>,
+    client: Client<HttpsConnector<HttpConnector>>,
     token: Option<Jwt>,
 }
 
@@ -85,11 +36,12 @@ impl Connection {
     pub fn establish(user_agent: &'static UserAgent, datasource: DataSource, reactor: &reactor::Handle)
         -> Result<Self, Error>
     {
-        let https_connector = HttpsConnector::new(4, &reactor)?;
-        let mut timeout_connector = TimeoutConnector::new(https_connector, &reactor);
-        timeout_connector.set_connect_timeout(Some(*datasource.timeout()));
+        let https_connector = HttpsConnector::new(4, &reactor)
+            .map_err(|cause| Error::Communication(cause.to_string()))?;
+//        let mut timeout_connector = TimeoutConnector::new(https_connector, &reactor);
+//        timeout_connector.set_connect_timeout(Some(*datasource.timeout()));
         let client = Client::configure()
-            .connector(timeout_connector)
+            .connector(https_connector)
             .build(reactor);
         debug!("Created connection for {:?}", &datasource);
         Ok(Connection {
@@ -102,26 +54,6 @@ impl Connection {
 
     fn authenticate(&mut self, credentials: &Credentials) -> Result<(), Error> {
         unimplemented!()
-    }
-
-    pub fn execute<M>(&self, method: M) -> FutureResult<M>
-        where M: Method + Prepare + 'static
-    {
-        match self.prepare_request(&method) {
-            Ok(request) => {
-                debug!("Sending {:?}", &request);
-                Box::new(self.client.request(request).from_err()
-                    .and_then(move |response| {
-                        let status_code = response.status();
-                        response.body().concat2().from_err()
-                            .and_then(move |buffer|
-                                parse_return_type::<M>(&method.return_type(), status_code, &buffer))
-                    })
-                )
-            },
-            Err(error) =>
-                Box::new(future::err(error)),
-        }
     }
 
     pub fn prepare_request<'p, P>(&self, prepare: &'p P) -> Result<Request, Error>
@@ -151,8 +83,9 @@ impl Connection {
                         },
                         None => {
                             return Err(Error::NotAuthenticated(
-                                "the client must be authenticated first,\
-                                 when using JWT authentication".into()));
+                                "the client must be authenticated first, \
+                                 when using JWT authentication".into(),
+                            ));
                         },
                     }
                 },
@@ -181,6 +114,56 @@ impl Connection {
     }
 }
 
+impl UseDatabase for Connection {
+    fn use_database<DbName>(&self, database_name: DbName) -> Self
+        where DbName: Into<String>
+    {
+        Connection {
+            user_agent: self.user_agent.clone(),
+            datasource: self.datasource.use_database(database_name),
+            client: self.client.clone(),
+            token: self.token.clone(),
+        }
+    }
+
+    fn use_default_database(&self) -> Self {
+        Connection {
+            user_agent: self.user_agent.clone(),
+            datasource: self.datasource.use_default_database(),
+            client: self.client.clone(),
+            token: self.token.clone(),
+        }
+    }
+
+    fn database_name(&self) -> Option<&String> {
+        self.datasource.database_name()
+    }
+}
+
+impl Execute for Connection {
+    fn execute<M>(&self, method: M) -> FutureResult<M>
+        where M: Method + Prepare + 'static
+    {
+        match self.prepare_request(&method) {
+            Ok(request) => {
+                debug!("Sending {:?}", &request);
+                Box::new(self.client.request(request)
+                    .map_err(|cause| Error::Communication(cause.to_string()))
+                    .and_then(move |response| {
+                        let status_code = response.status();
+                        response.body().concat2()
+                            .map_err(|cause| Error::Communication(cause.to_string()))
+                            .and_then(move |buffer|
+                                parse_return_type::<M>(&method.return_type(), status_code, &buffer))
+                    })
+                )
+            },
+            Err(error) =>
+                Box::new(future::err(error)),
+        }
+    }
+}
+
 fn parse_return_type<M>(return_type: &RpcReturnType, status_code: StatusCode, payload: &[u8])
     -> Result<<M as Method>::Result, Error>
     where M: Method
@@ -205,7 +188,7 @@ fn parse_return_type<M>(return_type: &RpcReturnType, status_code: StatusCode, pa
         } else {
             trace!("| response body: {}", String::from_utf8_lossy(payload));
         }
-        parse_result.map_err(Error::from)
+        parse_result.map_err(|cause| Error::Deserialization(cause.to_string()))
     } else {
         debug!("| response body: {}", String::from_utf8_lossy(payload));
         let api_error = serde_json::from_slice(payload).unwrap_or_else(|_| {
@@ -217,14 +200,14 @@ fn parse_return_type<M>(return_type: &RpcReturnType, status_code: StatusCode, pa
             };
             api::Error::new(status_code.as_u16(), error_code, message)
         });
-        Err(Error::ApiError(api_error))
+        Err(Error::Method(api_error))
     }
 }
 
 fn serialize_payload<T>(content: &T) -> Result<Vec<u8>, Error>
     where T: Serialize
 {
-    serde_json::to_vec(content).map_err(Error::from)
+    serde_json::to_vec(content).map_err(|cause| Error::Serialization(cause.to_string()))
 }
 
 fn header_user_agent_for(agent: &UserAgent) -> header::UserAgent {
