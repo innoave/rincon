@@ -7,15 +7,16 @@ extern crate rincon_connector;
 extern crate rincon_client;
 extern crate rincon_test_helper;
 
-use rincon_test_helper::*;
 use rincon_core::api::ErrorCode;
-use rincon_core::api::connector::{Error, Execute};
-use rincon_core::api::datasource::UseDatabase;
+use rincon_core::api::connector::{Error, Execute, UseDatabase};
 use rincon_core::api::types::{Empty, EMPTY};
-use rincon_connector::connection::Connection;
+use rincon_connector::http::Connection;
 use rincon_client::collection::{CreateCollection, DropCollection};
 use rincon_client::database::{CreateDatabase, DropDatabase, NewDatabase};
 use rincon_client::user::*;
+
+use rincon_test_helper::*;
+
 
 #[test]
 fn list_available_users_should_return_the_root_user() {

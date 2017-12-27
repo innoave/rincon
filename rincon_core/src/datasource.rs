@@ -4,8 +4,8 @@ use std::time::Duration;
 
 use url::Url;
 
-use rincon_core::api::auth::{Authentication, Credentials};
-use rincon_core::api::datasource::{Error, UseDatabase};
+use api::auth::{Authentication, Credentials};
+use api::connector::UseDatabase;
 
 pub const DEFAULT_PROTOCOL: &str = "http";
 pub const DEFAULT_HOST: &str = "localhost";
@@ -16,6 +16,12 @@ pub const DEFAULT_DATABASE_NAME: &str = "_system";
 pub const DEFAULT_TIMEOUT: u64 = 30;
 
 pub const ENV_ROOT_PASSWORD: &str = "ARANGO_ROOT_PASSWORD";
+
+#[derive(Clone, PartialEq, Eq, Debug, Fail)]
+pub enum Error {
+    #[fail(display = "Invalid URL: {}", _0)]
+    InvalidUrl(String),
+}
 
 #[derive(Clone, Debug)]
 pub struct DataSource {

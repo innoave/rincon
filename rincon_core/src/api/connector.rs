@@ -6,7 +6,7 @@ use api::method::{Method, Prepare};
 
 pub trait Execute {
     fn execute<M>(&self, method: M) -> FutureResult<M>
-        where M: Method + Prepare + 'static;
+        where M: 'static + Method + Prepare;
 }
 
 pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=Error>>;
@@ -25,4 +25,13 @@ pub enum Error {
     Serialization(String),
     #[fail(display = "Timeout on request: {}", _0)]
     Timeout(String),
+}
+
+pub trait UseDatabase {
+    fn use_database<DbName>(&self, database_name: DbName) -> Self
+        where DbName: Into<String>;
+
+    fn use_default_database(&self) -> Self;
+
+    fn database_name(&self) -> Option<&String>;
 }

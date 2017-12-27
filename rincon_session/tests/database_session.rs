@@ -12,11 +12,12 @@ use hamcrest::prelude::*;
 
 use tokio_core::reactor::Core;
 
-use rincon_connector::connection::Connection;
+use rincon_connector::http::Connection;
 use rincon_client::graph::{EdgeDefinition, NewGraph};
 use rincon_session::async::ArangoSession;
 
 use rincon_test_helper::*;
+
 
 #[test]
 fn create_graph() {

@@ -6,14 +6,15 @@ extern crate rincon_connector;
 extern crate rincon_client;
 extern crate rincon_test_helper;
 
-use rincon_test_helper::*;
-use rincon_core::api::connector::Execute;
-use rincon_core::api::datasource::UseDatabase;
+use rincon_core::api::connector::{Execute, UseDatabase};
 use rincon_core::api::types::Empty;
-use rincon_connector::connection::Connection;
+use rincon_connector::http::Connection;
 use rincon_client::database::*;
 use rincon_client::user::{CreateUser, NewUser, RemoveUser};
 use rincon_client::user_agent::RinconUserAgent;
+
+use rincon_test_helper::*;
+
 
 #[test]
 fn create_database_for_default_user() {

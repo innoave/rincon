@@ -6,10 +6,12 @@ extern crate rincon_connector;
 extern crate rincon_client;
 extern crate rincon_test_helper;
 
-use rincon_test_helper::*;
 use rincon_core::api::ErrorCode;
 use rincon_core::api::connector::{Error, Execute};
 use rincon_client::index::*;
+
+use rincon_test_helper::*;
+
 
 #[test]
 fn get_index_list_from_document_collection() {

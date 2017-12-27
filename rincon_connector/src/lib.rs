@@ -27,5 +27,4 @@ extern crate url;
 
 extern crate rincon_core;
 
-pub mod datasource;
-pub mod connection;
+pub mod http;

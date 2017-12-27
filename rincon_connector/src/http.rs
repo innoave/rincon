@@ -15,12 +15,11 @@ use url::percent_encoding::DEFAULT_ENCODE_SET;
 
 use rincon_core::api;
 use rincon_core::api::auth::{Authentication, Credentials, Jwt};
-use rincon_core::api::connector::{Error, Execute, FutureResult};
-use rincon_core::api::datasource::UseDatabase;
+use rincon_core::api::connector::{Error, Execute, FutureResult, UseDatabase};
 use rincon_core::api::method::{Method, Operation, Prepare, RpcReturnType};
 use rincon_core::api::user_agent::UserAgent;
 use rincon_core::arango::protocol::PATH_DB;
-use datasource::DataSource;
+use rincon_core::datasource::DataSource;
 
 //pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=Error>>;
 

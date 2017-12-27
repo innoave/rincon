@@ -6,13 +6,15 @@ extern crate rincon_connector;
 extern crate rincon_client;
 extern crate rincon_test_helper;
 
-use rincon_test_helper::*;
 use rincon_core::api::ErrorCode;
 use rincon_core::api::connector::{Error, Execute};
 use rincon_core::api::query::Query;
 use rincon_core::api::types::{EMPTY, Empty, JsonValue};
 use rincon_client::aql::OptimizerRule;
 use rincon_client::cursor::*;
+
+use rincon_test_helper::*;
+
 
 #[test]
 fn query_returns_cursor_with_no_results() {

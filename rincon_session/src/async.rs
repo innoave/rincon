@@ -4,8 +4,7 @@ use std::sync::Arc;
 use futures::Future;
 use serde::ser::Serialize;
 
-use rincon_core::api::connector::{Error, Execute};
-use rincon_core::api::datasource::UseDatabase;
+use rincon_core::api::connector::{Error, Execute, UseDatabase};
 use rincon_core::arango::protocol::SYSTEM_DATABASE;
 use rincon_client::database::*;
 use rincon_client::graph::*;
@@ -14,7 +13,9 @@ use rincon_client::user::*;
 pub type FutureResult<T> = Box<Future<Item=T, Error=Error>>;
 
 #[derive(Clone, Debug)]
-pub struct ArangoSession<Connector> {
+pub struct ArangoSession<Connector>
+    where Connector: 'static + Execute + UseDatabase
+{
     connector: Arc<Connector>,
 }
 
@@ -42,8 +43,8 @@ impl<Connector> ArangoSession<Connector>
         DatabaseSession::new(connector)
     }
 
-    pub fn create_database<UserData>(&self, new_database: NewDatabase<UserData>) -> FutureResult<DatabaseSession<Connector>>
-        where UserData: UserExtra + Serialize + 'static
+    pub fn create_database<UserInfo>(&self, new_database: NewDatabase<UserInfo>) -> FutureResult<DatabaseSession<Connector>>
+        where UserInfo: UserExtra + Serialize + 'static
     {
         let connector = self.connector.clone();
         let database_name = new_database.name().to_owned();
@@ -53,7 +54,9 @@ impl<Connector> ArangoSession<Connector>
 }
 
 #[derive(Clone, Debug)]
-pub struct DatabaseSession<Connector> {
+pub struct DatabaseSession<Connector>
+    where Connector: 'static + Execute + UseDatabase
+{
     connector: Arc<Connector>,
 }
 
@@ -90,12 +93,16 @@ impl<Connector> DatabaseSession<Connector>
 }
 
 #[derive(Clone, Debug)]
-pub struct GraphSession<Connector> {
+pub struct GraphSession<Connector>
+    where Connector: 'static + Execute + UseDatabase
+{
     graph: Graph,
     connector: Arc<Connector>,
 }
 
-impl<Connector> GraphSession<Connector> {
+impl<Connector> GraphSession<Connector>
+    where Connector: 'static + Execute + UseDatabase
+{
     fn new(graph: Graph, connector: Arc<Connector>) -> Self {
         GraphSession {
             graph,

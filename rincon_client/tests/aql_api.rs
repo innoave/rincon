@@ -19,6 +19,7 @@ use rincon_client::cursor::CreateCursor;
 
 use rincon_test_helper::*;
 
+
 #[test]
 fn parse_valid_query() {
     arango_test_with_document_collection("aql_customers01", |conn, ref mut core| {

@@ -14,9 +14,9 @@ use tokio_core::reactor::Core;
 use rincon_core::api::connector::{Error, Execute};
 use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use rincon_core::api::types::JsonValue;
+use rincon_core::datasource::DataSource;
 use rincon_core::arango::protocol::{PARAM_DETAILS, PATH_API_VERSION};
-use rincon_connector::connection::Connection;
-use rincon_connector::datasource::DataSource;
+use rincon_connector::http::Connection;
 
 use rincon_test_helper::*;
 

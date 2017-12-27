@@ -30,12 +30,11 @@ use std::time::{Duration, Instant};
 use dotenv::dotenv;
 use tokio_core::reactor::Core;
 
-use rincon_core::api::connector::Execute;
-use rincon_core::api::datasource::UseDatabase;
+use rincon_core::api::connector::{Execute, UseDatabase};
 use rincon_core::api::types::Empty;
 use rincon_core::api::user_agent::{UserAgent, Version};
-use rincon_connector::connection::Connection;
-use rincon_connector::datasource::DataSource;
+use rincon_core::datasource::DataSource;
+use rincon_connector::http::Connection;
 use rincon_client::collection::{CreateCollection, DropCollection};
 use rincon_client::database::{CreateDatabase, DropDatabase, ListAccessibleDatabases, NewDatabase};
 use rincon_client::user::{NewUser, RemoveUser};
