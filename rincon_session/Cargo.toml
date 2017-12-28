@@ -1,8 +1,8 @@
 [package]
 name = "rincon_session"
 version = "0.1.0"  # remember to update html_root_url
-description = "An session managed client API for the ArangoDB driver"
-authors = ["Harald Maida <haraldmaida@innoave.com>"]
+description = "A session managed client API for the ArangoDB driver"
+authors = ["Harald Maida"]
 repository = "https://github.com/innoave/rincon"
 documentation = "https://docs.rs/rincon_session"
 readme = "README.md"

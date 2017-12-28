@@ -5,6 +5,7 @@ members = [
     "rincon_client",
     "rincon_aql",
     "rincon_session",
+    "rincon_session_async",
     "rincon_test_helper",
     "rincon",
 ]

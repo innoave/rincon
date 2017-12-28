@@ -2,7 +2,7 @@
 name = "rincon_client"
 version = "0.1.0"  # remember to update html_root_url
 description = "A typesafe client for the ArangoDB Rest API"
-authors = ["Harald Maida <haraldmaida@innoave.com>"]
+authors = ["Harald Maida"]
 homepage = "https://github.com/innoave/rincon"
 repository = "https://github.com/innoave/rincon"
 documentation = "https://docs.rs/rincon_client"

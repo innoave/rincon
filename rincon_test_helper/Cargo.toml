@@ -2,7 +2,7 @@
 name = "rincon_test_helper"
 version = "0.1.0"  # remember to update html_root_url
 description = "Helper crate for integration tests with an ArangoDB server"
-authors = ["Harald Maida <haraldmaida@innoave.com>"]
+authors = ["Harald Maida"]
 repository = "https://github.com/innoave/rincon"
 readme = "README.md"
 keywords = ["arangodb", "aql", "nosql", "database", "client", "driver", "typesafe"]

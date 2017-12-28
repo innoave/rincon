@@ -5,7 +5,7 @@ extern crate tokio_core;
 
 extern crate rincon_client;
 extern crate rincon_connector;
-extern crate rincon_session;
+extern crate rincon_session_async;
 extern crate rincon_test_helper;
 
 use hamcrest::prelude::*;
@@ -13,7 +13,7 @@ use hamcrest::prelude::*;
 use tokio_core::reactor::Core;
 
 use rincon_connector::http::Connection;
-use rincon_session::async::*;
+use rincon_session_async::*;
 
 use rincon_test_helper::*;
 

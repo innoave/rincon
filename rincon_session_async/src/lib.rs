@@ -22,5 +22,5 @@ extern crate rincon_core;
 extern crate rincon_client;
 extern crate rincon_aql;
 
-mod sync;
-pub use self::sync::*;
+mod async;
+pub use self::async::*;
