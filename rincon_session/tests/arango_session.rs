@@ -13,11 +13,8 @@ use hamcrest::prelude::*;
 
 use tokio_core::reactor::Core;
 
-use rincon_core::api::types::Empty;
-use rincon_client::database::NewDatabase;
-use rincon_client::user::NewUser;
 use rincon_connector::http::Connection;
-use rincon_session::async::ArangoSession;
+use rincon_session::async::*;
 
 use rincon_test_helper::{MyUserAgent, system_datasource};
 

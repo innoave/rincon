@@ -2,13 +2,19 @@
 use std::sync::Arc;
 
 use futures::Future;
+use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
-use rincon_core::api::connector::{Error, Execute, UseDatabase};
+pub use rincon_core::api::connector::Error;
+pub use rincon_core::api::query::Query;
+pub use rincon_core::api::types::Empty;
+pub use rincon_client::cursor::{CreateCursor, Cursor, NewCursor};
+pub use rincon_client::database::{CreateDatabase, Database, DropDatabase, NewDatabase};
+pub use rincon_client::graph::{CreateGraph, EdgeDefinition, Graph, NewGraph};
+pub use rincon_client::user::{NewUser, UserExtra};
+
 use rincon_core::arango::protocol::SYSTEM_DATABASE;
-use rincon_client::database::*;
-use rincon_client::graph::*;
-use rincon_client::user::*;
+use rincon_core::api::connector::{Execute, UseDatabase};
 
 pub type FutureResult<T> = Box<Future<Item=T, Error=Error>>;
 
@@ -81,6 +87,32 @@ impl<Connector> DatabaseSession<Connector>
     pub fn drop(self) -> FutureResult<bool> {
         let database_name = self.name().to_owned();
         Box::new(self.connector.execute(DropDatabase::new(database_name)))
+    }
+
+    /// Executes a query and returns a cursor with the first result set.
+    ///
+    /// All cursor options and query execution options are left to their default
+    /// settings.
+    ///
+    /// To specify cursor options and/or query execution options use the
+    /// `query_opt(&self, NewCursor)` function.
+    pub fn query<T>(&self, query: Query) -> FutureResult<Cursor<T>>
+        where T: 'static + DeserializeOwned
+    {
+        Box::new(self.connector.execute(CreateCursor::from_query(query)))
+    }
+
+    /// Executes a query and returns a cursor with the first result set.
+    ///
+    /// It requires a `NewCursor` struct as a parameter which allows full
+    /// control over all supported cursor options and query execution options.
+    ///
+    /// To execute a query with all options left at their defaults the
+    /// `query(&self, Query)` function might be more suitable.
+    pub fn query_opt<T>(&self, new_cursor: NewCursor) -> FutureResult<Cursor<T>>
+        where T: 'static + DeserializeOwned
+    {
+        Box::new(self.connector.execute(CreateCursor::new(new_cursor)))
     }
 
     /// Creates a new graph in the database represented by this
