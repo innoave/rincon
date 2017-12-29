@@ -15,15 +15,16 @@
 [documentation]: https://docs.rs/rincon_test_helper
 [Apache-2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [chat]: https://gitter.im/innoave/rincon
+[Rincon project]: https://github.com/innoave/rincon
 [license]: ../LICENSE
-[rincon]: https://github.com/innoave/rincon
+[rincon]: ../rincon
 [rincon_test_helper]: ../rincon_test_helper
 
 The [rincon_test_helper] [crate] provides functions to support integration tests with an [ArangoDB]
 server. This crate is mainly for being used internally in this project to factor out common setup
 and teardown functionality of the integration tests.
 
-The [rincon_test_helper] [crate] is part of the [Rincon] [ArangoDB] Rust driver project.
+The [rincon_test_helper] [crate] is part of the [Rincon ArangoDB Rust driver project][Rincon project].
 
 ## Usage
 

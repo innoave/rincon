@@ -15,6 +15,7 @@
 [documentation]: https://docs.rs/rincon_client
 [Apache-2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [chat]: https://gitter.im/innoave/rincon
+[Rincon project]: https://github.com/innoave/rincon
 [license]: ../LICENSE
 [rincon]: ../rincon
 [rincon_client]: ../rincon_client
@@ -25,7 +26,7 @@ The [rincon_client] [crate] provides types and functions to interact with the RE
 The REST API of [ArangoDB] comprises a lot of methods. An overview of the currently implemented
 methods can be found [here](../docs/arangodb_rest_api_methods.md).
 
-The [rincon_client] [crate] is part of the [Rincon] [ArangoDB] Rust driver project.
+The [rincon_client] [crate] is part of the [Rincon ArangoDB Rust driver project][Rincon project].
 
 ## Usage
 
@@ -120,8 +121,6 @@ And with RocksDB storage engine instead of MMFiles:
 [dependencies]
 rincon_client = { version = "0.1", default-features = false, features = ["rocksdb", "enterprise"] }
 ```
-
-
 
 ## License
 

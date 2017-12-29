@@ -15,8 +15,9 @@
 [documentation]: https://docs.rs/rincon_connector
 [Apache-2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [chat]: https://gitter.im/innoave/rincon
+[Rincon project]: https://github.com/innoave/rincon
 [license]: ../LICENSE
-[rincon]: https://github.com/innoave/rincon
+[rincon]: ../rincon
 [rincon_connector]: ../rincon_connector
 [rincon_client]: ../rincon_client
 [rincon_session]: ../rincon_session
@@ -31,7 +32,7 @@ for a flexible and modular design. This enables one to implement a custom connec
 sophisticated or project specific features with a minimum effort and combine it with the existing
 functionality.
 
-The [rincon_connector] [crate] is part of the [Rincon] [ArangoDB] Rust driver project.
+The [rincon_connector] [crate] is part of the [Rincon ArangoDB Rust driver project][Rincon project].
 
 ## Usage
 

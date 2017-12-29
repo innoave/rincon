@@ -15,16 +15,17 @@
 [documentation]: https://docs.rs/rincon_core
 [Apache-2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [chat]: https://gitter.im/innoave/rincon
+[Rincon project]: https://github.com/innoave/rincon
 [license]: ../LICENSE
-[rincon]: https://github.com/innoave/rincon
+[rincon]: ../rincon
 [rincon_core]: ../rincon_core
 [rincon_core API]: https://docs.rs/rincon_core
 [rincon_client]: ../rincon_client
 [rincon_session]: ../rincon_session
 [rincon_session_async]: ../rincon_session_async
 
-The [rincon_core] [crate] defines common types and functions used by all crates of the [Rincon]
-project. This crate is the foundation of the modular design and extensibility of the
+The [rincon_core] [crate] defines common types and functions used by all crates of the
+[Rincon project]. This crate is the foundation of the modular design and extensibility of the
 [Rincon] [ArangoDB] Rust driver.
 
 The aim is that any connector implementing the [rincon_core API] can be used in combination with
@@ -34,7 +35,7 @@ It should also be possible to implement methods of the [ArangoDB] REST API which
 yet or will be added in future versions of [ArangoDB] and combine the custom implementations with
 the methods provided by the existing crates.
 
-The [rincon_core] [crate] is part of the [Rincon] [ArangoDB] Rust driver project.
+The [rincon_core] [crate] is part of the [Rincon ArangoDB Rust driver project][Rincon project].
 
 ## License
 

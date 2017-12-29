@@ -15,8 +15,9 @@
 [documentation]: https://docs.rs/rincon_session_async
 [Apache-2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [chat]: https://gitter.im/innoave/rincon
+[Rincon project]: https://github.com/innoave/rincon
 [license]: ../LICENSE
-[rincon]: https://github.com/innoave/rincon
+[rincon]: ../rincon
 [rincon_session_async]: ../rincon_session_async
 [rincon_session_async API]: https://docs.rs/rincon_session_async
 [rincon_client API]: https://docs.rs/rincon_api
@@ -35,7 +36,7 @@ additional features:
 * Convenient API for transaction handling (PLANNED)
 
 
-The [rincon_session_async] [crate] is part of the [Rincon] [ArangoDB] Rust driver project.
+The [rincon_session_async] [crate] is part of the [Rincon ArangoDB Rust driver project][Rincon project].
 
 __Note__: A similar but synchronous API is provided by the [rincon_session] crate which is
 also part of the [Rincon] project.   

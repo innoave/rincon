@@ -25,7 +25,7 @@
 [Apache-2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [chat]: https://gitter.im/innoave/rincon
 [license]: LICENSE
-[rincon]: https://github.com/innoave/rincon
+[rincon]: rincon
 
 [Rincon] is an [ArangoDB] driver for [Rust]. It enables low level access to
 [ArangoDB] in a typesafe and [Rust] idiomatic manner. 

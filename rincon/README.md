@@ -16,7 +16,8 @@
 [Apache-2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [chat]: https://gitter.im/innoave/rincon
 [license]: ../LICENSE
-[rincon]: https://github.com/innoave/rincon
+[Rincon project]: https://github.com/innoave/rincon
+[rincon]: ../rincon
 [rincon_core]: ../rincon_core
 [rincon_client]: ../rincon_client
 [rincon_aql]: ../rincon_aql
@@ -34,9 +35,9 @@
 [rincon_test_helper API]: https://docs.rs/rincon_test_helper
 
 The [rincon] [crate] itself does not provide any functionality. It is just meant as an entry point
-for the [Rincon] project which aims to provide a complete [ArangoDB] driver for [Rust].
+for the [Rincon project] which aims to provide a complete [ArangoDB] driver for [Rust].
 
-The [Rincon] project provides several crates. You can choose which functionality you want for your
+The [Rincon project] provides several crates. You can choose which functionality you want for your
 project and which level of abstraction you prefer. The separation into several crates allows to only
 import those crates that are needed for your project.
 

@@ -15,8 +15,9 @@
 [documentation]: https://docs.rs/rincon_aql
 [Apache-2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [chat]: https://gitter.im/innoave/rincon
+[Rincon project]: https://github.com/innoave/rincon
 [license]: ../LICENSE
-[rincon]: https://github.com/innoave/rincon
+[rincon]: ../rincon
 [rincon_aql]: ../rincon_aql
 
 The [rincon_aql] [crate] aims to easily build [AQL] queries in a typesafe way. Composing queries in a
@@ -26,7 +27,7 @@ typesafe manner has some great advantages:
 * The autocompletion feature of an editor or IDE gives aid on the [AQL] syntax.
 * Refactoring of document fields are applied to [AQL] queries as well.
 
-The [rincon_aql] [crate] is part of the [Rincon] [ArangoDB] Rust driver project.
+The [rincon_aql] [crate] is part of the [Rincon ArangoDB Rust driver project][Rincon project].
 
 **Status: Experimental**
 
