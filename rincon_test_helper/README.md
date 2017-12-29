@@ -17,7 +17,7 @@
 [chat]: https://gitter.im/innoave/rincon
 [license]: ../LICENSE
 [rincon]: https://github.com/innoave/rincon
-[rincon_test_helper]: https://github.com/innoave/rincon/rincon_test_helper
+[rincon_test_helper]: ../rincon_test_helper
 
 The [rincon_test_helper] [crate] provides functions to support integration tests with an [ArangoDB]
 server. This crate is mainly for being used internally in this project to factor out common setup

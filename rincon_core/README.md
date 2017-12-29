@@ -17,11 +17,11 @@
 [chat]: https://gitter.im/innoave/rincon
 [license]: ../LICENSE
 [rincon]: https://github.com/innoave/rincon
-[rincon_core]: https://github.com/innoave/rincon/rincon_core
+[rincon_core]: ../rincon_core
 [rincon_core API]: https://docs.rs/rincon_core
-[rincon_client]: https://github.com/innoave/rincon/rincon_client
-[rincon_session]: https://github.com/innoave/rincon/rincon_session
-[rincon_session_async]: https://github.com/innoave/rincon/rincon_session_async
+[rincon_client]: ../rincon_client
+[rincon_session]: ../rincon_session
+[rincon_session_async]: ../rincon_session_async
 
 The [rincon_core] [crate] defines common types and functions used by all crates of the [Rincon]
 project. This crate is the foundation of the modular design and extensibility of the

@@ -17,10 +17,10 @@
 [chat]: https://gitter.im/innoave/rincon
 [license]: ../LICENSE
 [rincon]: https://github.com/innoave/rincon
-[rincon_session]: https://github.com/innoave/rincon/rincon_session
+[rincon_session]: ../rincon_session
 [rincon_session API]: https://docs.rs/rincon_session
 [rincon_client API]: https://docs.rs/rincon_api
-[rincon_session_async]: https://github.com/innoave/rincon/rincon_session_async
+[rincon_session_async]: ../rincon_session_async
 
 The [rincon_session] [crate] provides a convenient API for __synchronous__ communication with an
 [ArangoDB] server.

@@ -16,8 +16,8 @@
 [Apache-2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [chat]: https://gitter.im/innoave/rincon
 [license]: ../LICENSE
-[rincon]: https://github.com/innoave/rincon
-[rincon_client]: https://github.com/innoave/rincon/rincon_client
+[rincon]: ../rincon
+[rincon_client]: ../rincon_client
 
 The [rincon_client] [crate] provides types and functions to interact with the REST API of the
 [ArangoDB] server.

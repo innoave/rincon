@@ -17,7 +17,7 @@
 [chat]: https://gitter.im/innoave/rincon
 [license]: ../LICENSE
 [rincon]: https://github.com/innoave/rincon
-[rincon_aql]: https://github.com/innoave/rincon/rincon_aql
+[rincon_aql]: ../rincon_aql
 
 The [rincon_aql] [crate] aims to easily build [AQL] queries in a typesafe way. Composing queries in a
 typesafe manner has some great advantages:

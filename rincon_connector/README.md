@@ -17,10 +17,10 @@
 [chat]: https://gitter.im/innoave/rincon
 [license]: ../LICENSE
 [rincon]: https://github.com/innoave/rincon
-[rincon_connector]: https://github.com/innoave/rincon/rincon_connector
-[rincon_client]: https://github.com/innoave/rincon/rincon_client
-[rincon_session]: https://github.com/innoave/rincon/rincon_session
-[rincon_session_async]: https://github.com/innoave/rincon/rincon_session_async
+[rincon_connector]: ../rincon_connector
+[rincon_client]: ../rincon_client
+[rincon_session]: ../rincon_session
+[rincon_session_async]: ../rincon_session_async
 
 The [rincon_connector] [crate] provides the communication layer of the driver. Currently this crate
 provides one basic connector which uses JSON over HTTP or HTTPS. In the future also other connectors

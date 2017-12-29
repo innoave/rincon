@@ -17,13 +17,13 @@
 [chat]: https://gitter.im/innoave/rincon
 [license]: ../LICENSE
 [rincon]: https://github.com/innoave/rincon
-[rincon_core]: https://github.com/innoave/rincon/rincon_core
-[rincon_client]: https://github.com/innoave/rincon/rincon_client
-[rincon_aql]: https://github.com/innoave/rincon/rincon_aql
-[rincon_connector]: https://github.com/innoave/rincon/rincon_connector
-[rincon_session]: https://github.com/innoave/rincon/rincon_session
-[rincon_session_async]: https://github.com/innoave/rincon/rincon_session_async
-[rincon_test_helper]: https://github.com/innoave/rincon/rincon_test_helper
+[rincon_core]: ../rincon_core
+[rincon_client]: ../rincon_client
+[rincon_aql]: ../rincon_aql
+[rincon_connector]: ../rincon_connector
+[rincon_session]: ../rincon_session
+[rincon_session_async]: ../rincon_session_async
+[rincon_test_helper]: ../rincon_test_helper
 
 [rincon_core API]: https://docs.rs/rincon_core
 [rincon_client API]: https://docs.rs/rincon_client
