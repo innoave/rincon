@@ -17,12 +17,6 @@ appveyor = { repository = "innoave/rincon" }
 codecov = { repository = "innoave/rincon" }
 
 [dependencies]
-rincon_core = { path = "../rincon_core" }
-rincon_connector = { path = "../rincon_connector" }
-rincon_aql = { path = "../rincon_aql" }
-rincon_client = { path = "../rincon_client" }
-rincon_session = { path = "../rincon_session" }
-rincon_session_async = { path = "../rincon_session_async" }
 
 [dev-dependencies]
 version-sync = "0.5"

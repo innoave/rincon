@@ -1,5 +1,5 @@
 
-#![doc(html_root_url = "https://docs.rs/rincon_session/0.1.0")]
+#![doc(html_root_url = "https://docs.rs/rincon_session_async/0.1.0")]
 
 #![warn(
     missing_copy_implementations,

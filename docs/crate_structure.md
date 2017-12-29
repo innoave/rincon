@@ -11,10 +11,8 @@ artifact rincon {
     rincon_aql --> rincon_core
     rincon_client --> rincon_core
     rincon_connector --> rincon_core
-    rincon_session --> rincon_aql
     rincon_session --> rincon_client
     rincon_session --> rincon_core
-    rincon_session_async --> rincon_aql
     rincon_session_async --> rincon_client
     rincon_session_async --> rincon_core
 }

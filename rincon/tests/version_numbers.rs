@@ -1,13 +1,6 @@
 
 #[macro_use] extern crate version_sync;
 
-#[ignore]
-#[test]
-fn test_project_readme_deps() {
-    assert_markdown_deps_updated!("../README.md");
-}
-
-#[ignore]
 #[test]
 fn test_readme_deps() {
     assert_markdown_deps_updated!("README.md");
