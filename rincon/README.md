@@ -105,7 +105,6 @@ own connector instead of using one of the provided ones the custom implementatio
 [rincon_core] only. [rincon_core] is also needed to implement a method of the [ArangoDB] REST API
 that is not provided by [rincon_client] yet.
 
-
 ## License
 
 Licensed under Apache License, Version 2.0<br/>

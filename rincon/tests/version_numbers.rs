@@ -1,6 +1,9 @@
 
 #[macro_use] extern crate version_sync;
 
+// Does not work when [dependencies] sections in README.md do not contain the
+// own crate!!!
+#[ignore]
 #[test]
 fn test_readme_deps() {
     assert_markdown_deps_updated!("README.md");

@@ -102,8 +102,9 @@ e.g. something like
 ## Multiple Crates
 
 The functionality of the [Rincon] [ArangoDB] Rust driver is split up into several crates for a
-modular design. This modular design enforces a clean code base for flexible use by applications as
-well as ease of extensibility and customization.    
+modular design. This modular design enforces a clean code base. Applications can flexible combine
+the functionality they need by adding different combinations of the crates to their project.
+Developers can easily customize and extend the functionality of the existing crates.
 
 For an overview of crates in this project see the [README](rincon/README.md) in the [rincon] crates
 subdirectory.
