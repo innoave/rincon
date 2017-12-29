@@ -22,8 +22,8 @@
 The [rincon_client] [crate] provides types and functions to interact with the REST API of the
 [ArangoDB] server.
 
-
-
+The REST API of [ArangoDB] comprises a lot of methods. An overview of the currently implemented
+methods can be found [here](../docs/arangodb_rest_api_methods.md).
 
 The [rincon_client] [crate] is part of the [Rincon] [ArangoDB] Rust driver project.
 
