@@ -13,25 +13,28 @@ use hamcrest::prelude::*;
 
 use tokio_core::reactor::Core;
 
+use rincon_core::api::connector::Execute;
 use rincon_connector::http::Connection;
+use rincon_client::database::{DropDatabase};
 use rincon_session_async::*;
 
-use rincon_test_helper::{MyUserAgent, system_datasource};
+use rincon_test_helper::*;
 
 
 #[test]
 fn create_database() {
-    let mut core = Core::new().unwrap();
+    arango_system_db_test(|conn, ref mut core| {
 
-    let datasource = system_datasource();
-    let connection = Connection::establish(&MyUserAgent, datasource, &core.handle()).unwrap();
+        let arango = ArangoSession::new(conn);
 
-    let arango = ArangoSession::new(connection);
+        let database = core.run(arango.create_database::<Empty>(NewDatabase::new("the_social_network",
+            vec![NewUser::with_name("an_user", "a_pass")]))).unwrap();
 
-    let database = core.run(arango.create_database::<Empty>(NewDatabase::new("the_social_network",
-        vec![NewUser::with_name("an_user", "a_pass")]))).unwrap();
-
-    assert_that!(database.name(), is(equal_to("the_social_network")));
+        assert_that!(database.name(), is(equal_to("the_social_network")));
+    },
+    |conn, ref mut core| {
+        let _ = core.run(conn.execute(DropDatabase::with_name("the_social_network")));
+    });
 }
 
 #[test]
