@@ -2,6 +2,7 @@
 use futures::Future;
 
 use api;
+use api::auth::Jwt;
 use api::method::{Method, Prepare};
 
 pub trait Execute {
@@ -27,11 +28,14 @@ pub enum Error {
     Timeout(String),
 }
 
-pub trait UseDatabase {
-    fn use_database<DbName>(&self, database_name: DbName) -> Self
-        where DbName: Into<String>;
+pub trait Connector {
+    type Connection: 'static + Execute;
 
-    fn use_default_database(&self) -> Self;
+    fn connection(&self, database_name: &str) -> Self::Connection;
 
-    fn database_name(&self) -> Option<&String>;
+    fn system_connection(&self) -> Self::Connection;
+
+    fn accept_auth_token(&mut self, token: Jwt);
+
+    fn invalidate_auth_token(&mut self);
 }

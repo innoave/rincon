@@ -5,7 +5,6 @@ use std::time::Duration;
 use url::Url;
 
 use api::auth::{Authentication, Credentials};
-use api::connector::UseDatabase;
 
 pub const DEFAULT_PROTOCOL: &str = "http";
 pub const DEFAULT_HOST: &str = "localhost";
@@ -28,8 +27,8 @@ pub struct DataSource {
     protocol: String,
     host: String,
     port: u16,
-    authentication: Authentication,
     database_name: Option<String>,
+    authentication: Authentication,
     timeout: Duration,
 }
 
@@ -57,12 +56,42 @@ impl DataSource {
             protocol: protocol.to_owned(),
             host: host.to_owned(),
             port,
+            database_name,
             authentication: Authentication::Basic(Credentials::new(
                 username.to_owned(),
                 password)),
-            database_name,
             timeout: Duration::from_secs(DEFAULT_TIMEOUT),
         })
+    }
+
+    pub fn use_database<DbName>(&self, database_name: DbName) -> Self
+        where DbName: Into<String>
+    {
+        let database_name = database_name.into();
+        let database_name = if database_name.is_empty() {
+            None
+        } else {
+            Some(database_name.to_owned())
+        };
+        DataSource {
+            protocol: self.protocol.clone(),
+            host: self.host.clone(),
+            port: self.port.clone(),
+            database_name,
+            authentication: self.authentication.clone(),
+            timeout: self.timeout.clone(),
+        }
+    }
+
+    pub fn use_default_database(&self) -> Self {
+        DataSource {
+            protocol: self.protocol.clone(),
+            host: self.host.clone(),
+            port: self.port.clone(),
+            database_name: None,
+            authentication: self.authentication.clone(),
+            timeout: self.timeout.clone(),
+        }
     }
 
     pub fn with_basic_authentication(&self, username: &str, password: &str) -> Self {
@@ -73,8 +102,8 @@ impl DataSource {
             protocol: self.protocol.clone(),
             host: self.host.clone(),
             port: self.port.clone(),
-            authentication,
             database_name: self.database_name.clone(),
+            authentication,
             timeout: self.timeout.clone(),
         }
     }
@@ -84,8 +113,8 @@ impl DataSource {
             protocol: self.protocol.clone(),
             host: self.host.clone(),
             port: self.port.clone(),
-            authentication,
             database_name: self.database_name.clone(),
+            authentication,
             timeout: self.timeout.clone(),
         }
     }
@@ -95,8 +124,8 @@ impl DataSource {
             protocol: self.protocol.clone(),
             host: self.host.clone(),
             port: self.port.clone(),
-            authentication: Authentication::None,
             database_name: self.database_name.clone(),
+            authentication: Authentication::None,
             timeout: self.timeout.clone(),
         }
     }
@@ -126,48 +155,16 @@ impl DataSource {
         self.port
     }
 
+    pub fn database_name(&self) -> Option<&String> {
+        self.database_name.as_ref()
+    }
+
     pub fn authentication(&self) -> &Authentication {
         &self.authentication
     }
 
     pub fn timeout(&self) -> &Duration {
         &self.timeout
-    }
-}
-
-impl UseDatabase for DataSource {
-    fn use_database<DbName>(&self, database_name: DbName) -> Self
-        where DbName: Into<String>
-    {
-        let database_name = database_name.into();
-        let database_name = if database_name.is_empty() {
-            None
-        } else {
-            Some(database_name.to_owned())
-        };
-        DataSource {
-            protocol: self.protocol.clone(),
-            host: self.host.clone(),
-            port: self.port.clone(),
-            authentication: self.authentication.clone(),
-            database_name,
-            timeout: self.timeout.clone(),
-        }
-    }
-
-    fn use_default_database(&self) -> Self {
-        DataSource {
-            protocol: self.protocol.clone(),
-            host: self.host.clone(),
-            port: self.port.clone(),
-            authentication: self.authentication.clone(),
-            database_name: None,
-            timeout: self.timeout.clone(),
-        }
-    }
-
-    fn database_name(&self) -> Option<&String> {
-        self.database_name.as_ref()
     }
 }
 

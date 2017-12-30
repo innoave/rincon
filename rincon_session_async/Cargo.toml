@@ -26,7 +26,6 @@ rocksdb = []
 [dependencies]
 rincon_core = { path = "../rincon_core" }
 rincon_client = { path = "../rincon_client" }
-rincon_aql = { path = "../rincon_aql" }
 failure = "0.1"
 futures = "0.1"
 serde = "1.0"

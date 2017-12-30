@@ -3,7 +3,7 @@ use serde_json;
 
 use rincon_core::api::query::Query;
 use rincon_core::api::types::Value;
-use aql::OptimizerRule;
+use aql::types::OptimizerRule;
 use super::types::*;
 
 #[test]

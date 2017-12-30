@@ -23,4 +23,3 @@ extern crate url;
 
 pub mod api;
 pub mod arango;
-pub mod datasource;

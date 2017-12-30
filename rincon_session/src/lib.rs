@@ -13,14 +13,14 @@
     unused_qualifications,
 )]
 
-#[cfg(test)] #[macro_use] extern crate hamcrest;
+//#[cfg(test)] #[macro_use] extern crate hamcrest;
 
 extern crate futures;
 extern crate serde;
+extern crate tokio_core;
 
 extern crate rincon_core;
 extern crate rincon_client;
-extern crate rincon_aql;
 
 mod sync;
 pub use self::sync::*;

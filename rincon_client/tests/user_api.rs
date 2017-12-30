@@ -8,9 +8,9 @@ extern crate rincon_client;
 extern crate rincon_test_helper;
 
 use rincon_core::api::ErrorCode;
-use rincon_core::api::connector::{Error, Execute, UseDatabase};
+use rincon_core::api::connector::{Connector, Error, Execute};
 use rincon_core::api::types::{Empty, EMPTY};
-use rincon_connector::http::Connection;
+use rincon_connector::http::BasicConnector;
 use rincon_client::collection::methods::{CreateCollection, DropCollection};
 use rincon_client::database::methods::{CreateDatabase, DropDatabase};
 use rincon_client::database::types::NewDatabase;
@@ -241,9 +241,9 @@ fn create_collection_in_database_not_accessible_for_user() {
         let _ = core.run(conn.execute(CreateDatabase::new(new_database))).unwrap();
 
         let user_ds = conn.datasource()
-            .with_basic_authentication("testuser8", "")
-            .use_database("testbase81");
-        let user_conn = Connection::establish(&MyUserAgent, user_ds, &core.handle()).unwrap();
+            .with_basic_authentication("testuser8", "");
+        let connector = BasicConnector::new(&MyUserAgent, user_ds, &core.handle()).unwrap();
+        let user_conn = connector.connection("testbase81");
 
         let method = CreateCollection::with_name("testcollection811");
         let work = user_conn.execute(method);

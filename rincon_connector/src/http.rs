@@ -1,5 +1,6 @@
 
 use std::str::FromStr;
+use std::sync::Arc;
 
 use futures::{future, Future, Stream};
 use hyper::{self, Client, HttpVersion, Request, StatusCode, Uri};
@@ -14,45 +15,98 @@ use url;
 use url::percent_encoding::DEFAULT_ENCODE_SET;
 
 use rincon_core::api;
-use rincon_core::api::auth::{Authentication, Credentials, Jwt};
-use rincon_core::api::connector::{Error, Execute, FutureResult, UseDatabase};
+use rincon_core::api::auth::{Authentication, Jwt};
+use rincon_core::api::connector::{Connector, Error, Execute, FutureResult};
+use rincon_core::api::datasource::DataSource;
 use rincon_core::api::method::{Method, Operation, Prepare, RpcReturnType};
 use rincon_core::api::user_agent::UserAgent;
-use rincon_core::arango::protocol::PATH_DB;
-use rincon_core::datasource::DataSource;
+use rincon_core::arango::protocol::{PATH_DB, SYSTEM_DATABASE};
 
-//pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=Error>>;
+type HttpClient = Client<TimeoutConnector<HttpsConnector<HttpConnector>>>;
 
+//TODO find better name for BasicConnector
 #[derive(Debug)]
-pub struct Connection {
+pub struct BasicConnector {
     user_agent: &'static UserAgent,
-    datasource: DataSource,
-    client: Client<HttpsConnector<HttpConnector>>,
-    token: Option<Jwt>,
+    datasource: Arc<DataSource>,
+    token: Arc<Option<Jwt>>,
+    client: Arc<HttpClient>,
 }
 
-impl Connection {
-    pub fn establish(user_agent: &'static UserAgent, datasource: DataSource, reactor: &reactor::Handle)
-        -> Result<Self, Error>
-    {
+impl BasicConnector {
+    pub fn new(
+        user_agent: &'static UserAgent,
+        datasource: DataSource,
+        reactor: &reactor::Handle
+    ) -> Result<Self, Error> {
         let https_connector = HttpsConnector::new(4, &reactor)
             .map_err(|cause| Error::Communication(cause.to_string()))?;
-//        let mut timeout_connector = TimeoutConnector::new(https_connector, &reactor);
-//        timeout_connector.set_connect_timeout(Some(*datasource.timeout()));
+        let mut timeout_connector = TimeoutConnector::new(https_connector, &reactor);
+        timeout_connector.set_connect_timeout(Some(*datasource.timeout()));
         let client = Client::configure()
-            .connector(https_connector)
+            .connector(timeout_connector)
             .build(reactor);
-        debug!("Created connection for {:?}", &datasource);
-        Ok(Connection {
-            datasource,
-            client,
+        debug!("Creating new basic connector for {:?}", &datasource);
+        Ok(BasicConnector {
             user_agent,
-            token: None,
+            datasource: Arc::new(datasource),
+            token: Arc::new(None),
+            client: Arc::new(client),
         })
     }
+}
 
-    fn authenticate(&mut self, credentials: &Credentials) -> Result<(), Error> {
-        unimplemented!()
+impl Connector for BasicConnector {
+    type Connection = BasicConnection;
+
+    fn connection(&self, database_name: &str) -> BasicConnection {
+        BasicConnection {
+            user_agent: self.user_agent,
+            datasource: self.datasource.clone(),
+            database: Some(database_name.to_owned()),
+            token: self.token.clone(),
+            client: self.client.clone(),
+        }
+    }
+
+    fn system_connection(&self) -> BasicConnection {
+        self.connection(SYSTEM_DATABASE)
+    }
+
+    fn accept_auth_token(&mut self, token: Jwt) {
+        self.token = Arc::new(Some(token));
+    }
+
+    fn invalidate_auth_token(&mut self) {
+        self.token = Arc::new(None)
+    }
+}
+
+//TODO find better name for BasicConnection
+#[derive(Debug)]
+pub struct BasicConnection {
+    user_agent: &'static UserAgent,
+    datasource: Arc<DataSource>,
+    database: Option<String>,
+    token: Arc<Option<Jwt>>,
+    client: Arc<HttpClient>,
+}
+
+impl BasicConnection {
+    pub fn user_agent(&self) -> &UserAgent {
+        self.user_agent
+    }
+
+    pub fn datasource(&self) -> &DataSource {
+        &self.datasource
+    }
+
+    pub fn database(&self) -> Option<&String> {
+        self.database.as_ref().or_else(|| self.datasource.database_name())
+    }
+
+    pub fn token(&self) -> Option<&Jwt> {
+        self.token.as_ref().as_ref()
     }
 
     pub fn prepare_request<'p, P>(&self, prepare: &'p P) -> Result<Request, Error>
@@ -60,7 +114,7 @@ impl Connection {
     {
         let operation = prepare.operation();
         let http_method = http_method_for_operation(&operation);
-        let uri = build_request_uri(&self.datasource, prepare);
+        let uri = build_request_uri(&self.datasource, self.database(), prepare);
         let mut request = Request::new(http_method, uri);
         request.set_version(HttpVersion::Http11);
         {
@@ -74,8 +128,8 @@ impl Connection {
                     }))
                 },
                 Authentication::Jwt(_) => {
-                    match self.token.as_ref() {
-                        Some(token) => {
+                    match *self.token.as_ref() {
+                        Some(ref token) => {
                             headers.set(Authorization(Bearer {
                                 token: token.to_owned(),
                             }))
@@ -103,43 +157,9 @@ impl Connection {
         }
         Ok(request)
     }
-
-    pub fn datasource(&self) -> &DataSource {
-        &self.datasource
-    }
-
-    pub fn user_agent(&self) -> &UserAgent {
-        self.user_agent
-    }
 }
 
-impl UseDatabase for Connection {
-    fn use_database<DbName>(&self, database_name: DbName) -> Self
-        where DbName: Into<String>
-    {
-        Connection {
-            user_agent: self.user_agent.clone(),
-            datasource: self.datasource.use_database(database_name),
-            client: self.client.clone(),
-            token: self.token.clone(),
-        }
-    }
-
-    fn use_default_database(&self) -> Self {
-        Connection {
-            user_agent: self.user_agent.clone(),
-            datasource: self.datasource.use_default_database(),
-            client: self.client.clone(),
-            token: self.token.clone(),
-        }
-    }
-
-    fn database_name(&self) -> Option<&String> {
-        self.datasource.database_name()
-    }
-}
-
-impl Execute for Connection {
+impl Execute for BasicConnection {
     fn execute<M>(&self, method: M) -> FutureResult<M>
         where M: Method + Prepare + 'static
     {
@@ -227,7 +247,11 @@ fn http_method_for_operation(operation: &Operation) -> hyper::Method {
     }
 }
 
-fn build_request_uri<P>(datasource: &DataSource, prepare: &P) -> Uri
+fn build_request_uri<P>(
+    datasource: &DataSource,
+    database_name: Option<&String>,
+    prepare: &P
+) -> Uri
     where P: Prepare
 {
     let mut request_uri = String::new();
@@ -236,7 +260,7 @@ fn build_request_uri<P>(datasource: &DataSource, prepare: &P) -> Uri
     request_uri.push_str(datasource.host());
     request_uri.push(':');
     request_uri.push_str(&datasource.port().to_string());
-    if let Some(database_name) = datasource.database_name() {
+    if let Some(database_name) = database_name {
         request_uri.push_str(PATH_DB);
         request_uri.push_str(&percent_encode(database_name));
     }
@@ -308,7 +332,7 @@ mod tests {
             content: None,
         };
 
-        let uri = build_request_uri(&datasource, &prepared);
+        let uri = build_request_uri(&datasource, None, &prepared);
 
         assert_eq!("http://localhost:8529/_api/user", uri.to_string());
     }
@@ -325,9 +349,25 @@ mod tests {
             content: None,
         };
 
-        let uri = build_request_uri(&datasource, &prepared);
+        let uri = build_request_uri(&datasource, None, &prepared);
 
         assert_eq!("https://localhost:8529/_api/user", uri.to_string());
+    }
+
+    #[test]
+    fn build_request_uri_for_given_database() {
+        let datasource = DataSource::from_url("https://localhost:8529").unwrap()
+            .use_database("url_test");
+        let prepared = Prepared {
+            operation: Operation::Read,
+            path: "/_api/collection",
+            params: vec![],
+            content: None,
+        };
+
+        let uri = build_request_uri(&datasource, Some(&"given_db_name".to_owned()), &prepared);
+
+        assert_eq!("https://localhost:8529/_db/given_db_name/_api/collection", uri.to_string());
     }
 
     #[test]
@@ -341,7 +381,7 @@ mod tests {
             content: None,
         };
 
-        let uri = build_request_uri(&datasource, &prepared);
+        let uri = build_request_uri(&datasource, datasource.database_name(), &prepared);
 
         assert_eq!("https://localhost:8529/_db/url_test/_api/collection", uri.to_string());
     }
@@ -357,7 +397,7 @@ mod tests {
             content: None,
         };
 
-        let uri = build_request_uri(&datasource, &prepared);
+        let uri = build_request_uri(&datasource, datasource.database_name(), &prepared);
 
         assert_eq!("https://localhost:8529/_db/the%20big%20data/_api/document\
                 ?id=25", uri.to_string());
@@ -374,16 +414,16 @@ mod tests {
             content: None,
         };
 
-        let uri = build_request_uri(&datasource, &prepared);
+        let uri = build_request_uri(&datasource, datasource.database_name(), &prepared);
 
         assert_eq!("https://localhost:8529/_db/the%20b%C3%BCg%20data/_api/document\
                 ?id=25&name=JuneReport", uri.to_string());
     }
 
     #[test]
-    fn build_request_uri_for_specific_database_with_three_params() {
+    fn build_request_uri_for_given_database_with_three_params() {
         let datasource = DataSource::from_url("https://localhost:8529").unwrap()
-            .use_database("the big data");
+            .use_database("default_test_database");
         let prepared = Prepared {
             operation: Operation::Read,
             path: "/_api/document",
@@ -391,7 +431,7 @@ mod tests {
             content: None,
         };
 
-        let uri = build_request_uri(&datasource, &prepared);
+        let uri = build_request_uri(&datasource, Some(&"the big data".to_owned()), &prepared);
 
         assert_eq!("https://localhost:8529/_db/the%20big%20data/_api/document\
                 ?id=25&name=JuneReport&max=42", uri.to_string());

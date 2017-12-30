@@ -6,7 +6,7 @@ extern crate tokio_core;
 extern crate rincon_core;
 extern crate rincon_client;
 extern crate rincon_connector;
-extern crate rincon_session_async;
+extern crate rincon_session;
 extern crate rincon_test_helper;
 
 use hamcrest::prelude::*;
@@ -16,19 +16,19 @@ use tokio_core::reactor::Core;
 use rincon_core::api::connector::Execute;
 use rincon_connector::http::BasicConnector;
 use rincon_client::database::methods::DropDatabase;
-use rincon_session_async::*;
+use rincon_session::*;
 
 use rincon_test_helper::*;
 
 
 #[test]
 fn create_database() {
-    arango_session_test(|connector, mut core| {
+    arango_session_test(|connector, core| {
 
-        let arango = ArangoSession::new(connector);
+        let arango = ArangoSession::new(connector, core).unwrap();
 
-        let database = core.run(arango.create_database::<Empty>(NewDatabase::new("the_social_network",
-            vec![NewUser::with_name("an_user", "a_pass")]))).unwrap();
+        let database = arango.create_database::<Empty>(NewDatabase::new("the_social_network",
+            vec![NewUser::with_name("an_user", "a_pass")])).unwrap();
 
         assert_that!(database.name(), is(equal_to("the_social_network")));
     },
@@ -44,9 +44,9 @@ fn use_database() {
     let datasource = system_datasource();
     let connector = BasicConnector::new(&MyUserAgent, datasource, &core.handle()).unwrap();
 
-    let arango = ArangoSession::new(connector);
+    let arango = ArangoSession::new(connector, core).unwrap();
 
-    let database = arango.use_database("the_social_network");
+    let database = arango.use_database("the_social_network").unwrap();
 
     assert_that!(database.name(), is(equal_to("the_social_network")));
 }
