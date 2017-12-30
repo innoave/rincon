@@ -1,7 +1,7 @@
 
 use std::iter::{FromIterator, IntoIterator};
 
-use user::{NewUser, UserExtra};
+use user::types::{NewUser, UserExtra};
 
 /// This struct holds the properties of a database.
 #[derive(Clone, Debug, Deserialize)]

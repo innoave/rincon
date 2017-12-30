@@ -4,7 +4,7 @@ use std::mem;
 
 use rincon_core::api::query::Query;
 use rincon_core::api::types::{JsonValue, Value};
-use aql::Optimizer;
+use aql::types::Optimizer;
 
 /// A temporary cursor for retrieving query results.
 ///

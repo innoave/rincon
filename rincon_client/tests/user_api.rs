@@ -11,9 +11,11 @@ use rincon_core::api::ErrorCode;
 use rincon_core::api::connector::{Error, Execute, UseDatabase};
 use rincon_core::api::types::{Empty, EMPTY};
 use rincon_connector::http::Connection;
-use rincon_client::collection::{CreateCollection, DropCollection};
-use rincon_client::database::{CreateDatabase, DropDatabase, NewDatabase};
-use rincon_client::user::*;
+use rincon_client::collection::methods::{CreateCollection, DropCollection};
+use rincon_client::database::methods::{CreateDatabase, DropDatabase};
+use rincon_client::database::types::NewDatabase;
+use rincon_client::user::methods::*;
+use rincon_client::user::types::*;
 
 use rincon_test_helper::*;
 

@@ -1,7 +1,6 @@
 
-mod methods;
-mod types;
+pub mod methods;
+pub mod types;
 #[cfg(test)] mod types_tests;
 
-pub use self::methods::*;
-pub use self::types::*;
+pub mod prelude;

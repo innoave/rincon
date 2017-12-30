@@ -12,7 +12,7 @@ use rincon_core::arango::protocol::{FIELD_EDGE_DEFINITIONS, FIELD_ENTITY_FROM,
     FIELD_ORPHAN_COLLECTIONS};
 use rincon_core::arango::protocol::{FIELD_NUMBER_OF_SHARDS, FIELD_REPLICATION_FACTOR};
 use rincon_core::arango::protocol::{FIELD_IS_SMART, FIELD_SMART_GRAPH_ATTRIBUTE};
-use document::{DocumentId, DocumentKey, Revision};
+use document::types::{DocumentId, DocumentKey, Revision};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Graph {

@@ -12,7 +12,7 @@ use rincon_core::api::auth::Credentials;
 use rincon_core::api::ErrorCode;
 use rincon_core::api::connector::{Error, Execute};
 use rincon_connector::http::Connection;
-use rincon_client::auth::*;
+use rincon_client::auth::methods::*;
 
 use rincon_test_helper::*;
 

@@ -35,9 +35,11 @@ use rincon_core::api::types::Empty;
 use rincon_core::api::user_agent::{UserAgent, Version};
 use rincon_core::datasource::DataSource;
 use rincon_connector::http::Connection;
-use rincon_client::collection::{CreateCollection, DropCollection};
-use rincon_client::database::{CreateDatabase, DropDatabase, ListAccessibleDatabases, NewDatabase};
-use rincon_client::user::{NewUser, RemoveUser};
+use rincon_client::collection::methods::{CreateCollection, DropCollection};
+use rincon_client::database::methods::{CreateDatabase, DropDatabase, ListAccessibleDatabases};
+use rincon_client::database::types::NewDatabase;
+use rincon_client::user::methods::RemoveUser;
+use rincon_client::user::types::NewUser;
 
 pub const ENV_ARANGO_DB_URL: &str = "ARANGO_DB_URL";
 #[allow(dead_code)]

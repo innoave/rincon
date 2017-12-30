@@ -9,7 +9,7 @@ use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturn
 use rincon_core::arango::protocol::{FIELD_CODE, FIELD_COLLECTIONS, FIELD_EDGE,
     FIELD_GRAPH, FIELD_GRAPHS, FIELD_REMOVED, FIELD_VERTEX, PATH_API_GHARIAL,
     PATH_EDGE, PATH_VERTEX};
-use document::{Document, DocumentHeader, DocumentId, DocumentKey, NewDocument,
+use document::types::{Document, DocumentHeader, DocumentId, DocumentKey, NewDocument,
     UpdatedDocumentHeader};
 use super::types::*;
 

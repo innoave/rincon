@@ -5,7 +5,7 @@ use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturn
 use rincon_core::arango::protocol::{FIELD_CODE, FIELD_RESULT,
     PATH_API_DATABASE, PATH_CURRENT, PATH_USER};
 use super::types::*;
-use user::{NewUser, UserExtra};
+use user::types::{NewUser, UserExtra};
 
 /// Retrieves information about the current database.
 #[allow(missing_copy_implementations)]

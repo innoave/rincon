@@ -15,7 +15,7 @@ use tokio_core::reactor::Core;
 
 use rincon_core::api::connector::Execute;
 use rincon_connector::http::Connection;
-use rincon_client::database::{DropDatabase};
+use rincon_client::database::methods::DropDatabase;
 use rincon_session_async::*;
 
 use rincon_test_helper::*;

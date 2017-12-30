@@ -9,8 +9,9 @@ extern crate rincon_test_helper;
 use rincon_core::api::connector::{Execute, UseDatabase};
 use rincon_core::api::types::Empty;
 use rincon_connector::http::Connection;
-use rincon_client::database::*;
-use rincon_client::user::{CreateUser, NewUser, RemoveUser};
+use rincon_client::database::methods::*;
+use rincon_client::user::methods::{CreateUser, RemoveUser};
+use rincon_client::user::types::NewUser;
 use rincon_client::user_agent::RinconUserAgent;
 
 use rincon_test_helper::*;

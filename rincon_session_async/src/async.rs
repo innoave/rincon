@@ -8,13 +8,16 @@ use serde::ser::Serialize;
 pub use rincon_core::api::connector::Error;
 pub use rincon_core::api::query::Query;
 pub use rincon_core::api::types::Empty;
-pub use rincon_client::cursor::{CreateCursor, Cursor, NewCursor};
-pub use rincon_client::database::{CreateDatabase, Database, DropDatabase, NewDatabase};
-pub use rincon_client::graph::{CreateGraph, EdgeDefinition, Graph, NewGraph};
-pub use rincon_client::user::{NewUser, UserExtra};
+pub use rincon_client::cursor::types::{Cursor, NewCursor};
+pub use rincon_client::database::types::{Database, NewDatabase};
+pub use rincon_client::graph::types::{EdgeDefinition, Graph, NewGraph};
+pub use rincon_client::user::types::{NewUser, UserExtra};
 
 use rincon_core::arango::protocol::SYSTEM_DATABASE;
 use rincon_core::api::connector::{Execute, UseDatabase};
+use rincon_client::cursor::methods::CreateCursor;
+use rincon_client::database::methods::{CreateDatabase, DropDatabase};
+use rincon_client::graph::methods::CreateGraph;
 
 pub type FutureResult<T> = Box<Future<Item=T, Error=Error>>;
 

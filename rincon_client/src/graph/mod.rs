@@ -1,6 +1,5 @@
 
-mod methods;
-mod types;
+pub mod methods;
+pub mod types;
 
-pub use self::methods::*;
-pub use self::types::*;
+pub mod prelude;

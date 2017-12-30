@@ -8,7 +8,8 @@ extern crate rincon_test_helper;
 
 use rincon_core::api::ErrorCode;
 use rincon_core::api::connector::{Error, Execute};
-use rincon_client::index::*;
+use rincon_client::index::methods::*;
+use rincon_client::index::types::*;
 
 use rincon_test_helper::*;
 

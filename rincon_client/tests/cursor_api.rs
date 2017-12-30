@@ -10,8 +10,9 @@ use rincon_core::api::ErrorCode;
 use rincon_core::api::connector::{Error, Execute};
 use rincon_core::api::query::Query;
 use rincon_core::api::types::{EMPTY, Empty, JsonValue};
-use rincon_client::aql::OptimizerRule;
-use rincon_client::cursor::*;
+use rincon_client::aql::types::OptimizerRule;
+use rincon_client::cursor::methods::*;
+use rincon_client::cursor::types::*;
 
 use rincon_test_helper::*;
 

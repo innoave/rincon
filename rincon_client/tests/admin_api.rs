@@ -7,7 +7,7 @@ extern crate rincon_client;
 extern crate rincon_test_helper;
 
 use rincon_core::api::connector::Execute;
-use rincon_client::admin::*;
+use rincon_client::admin::methods::*;
 
 use rincon_test_helper::*;
 

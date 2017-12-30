@@ -7,7 +7,8 @@ extern crate rincon_client;
 extern crate rincon_test_helper;
 
 use rincon_core::api::connector::Execute;
-use rincon_client::graph::*;
+use rincon_client::graph::methods::*;
+use rincon_client::graph::types::*;
 
 use rincon_test_helper::*;
 

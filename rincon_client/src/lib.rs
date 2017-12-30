@@ -28,8 +28,6 @@ extern crate serde;
 
 extern crate rincon_core;
 
-pub mod build;
-
 pub mod admin;
 pub mod aql;
 pub mod auth;
@@ -40,4 +38,8 @@ pub mod document;
 pub mod graph;
 pub mod index;
 pub mod user;
+
+pub mod build;
 pub mod user_agent;
+
+pub mod prelude;

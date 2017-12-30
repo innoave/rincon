@@ -13,9 +13,11 @@ use rincon_core::api::connector::{Error, Execute};
 use rincon_core::api::ErrorCode;
 use rincon_core::api::query::Query;
 use rincon_core::api::types::{Empty, JsonValue};
-use rincon_client::index::{CreateIndex, HashIndex, IndexDetails, IndexIdOption, IndexKey, NewHashIndex};
-use rincon_client::aql::*;
-use rincon_client::cursor::CreateCursor;
+use rincon_client::index::methods::CreateIndex;
+use rincon_client::index::types::{HashIndex, IndexDetails, IndexIdOption, IndexKey, NewHashIndex};
+use rincon_client::aql::methods::*;
+use rincon_client::aql::types::*;
+use rincon_client::cursor::methods::CreateCursor;
 
 use rincon_test_helper::*;
 
