@@ -2,7 +2,7 @@
 use rincon_core::api::types::JsonValue;
 
 /// Represents the database-version that this server requires.
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TargetVersion {
     version: String,
@@ -16,7 +16,7 @@ impl TargetVersion {
 }
 
 /// Represents the server name and version number.
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ServerVersion {
     /// Will always contain arango.

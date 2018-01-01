@@ -9,7 +9,7 @@ use rincon_core::arango::protocol::{FIELD_ENTITY_ID, FIELD_ENTITY_KEY,
     FIELD_ENTITY_REVISION, FIELD_ENTITY_NEW, FIELD_ENTITY_OLD,
     FIELD_ENTITY_OLD_REVISION, Handle, HandleOption};
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum DocumentIdOption {
     Qualified(DocumentId),
     Local(DocumentKey),
@@ -68,7 +68,7 @@ impl<'de> Deserialize<'de> for DocumentIdOption {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DocumentId {
     collection_name: String,
     document_key: String,
@@ -136,7 +136,7 @@ impl<'de> Deserialize<'de> for DocumentId {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DocumentKey(String);
 
 impl DocumentKey {
@@ -187,7 +187,7 @@ impl<'de> Deserialize<'de> for DocumentKey {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Revision(String);
 
 impl Revision {
@@ -218,7 +218,7 @@ impl Revision {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum DocumentSelector {
     Id(DocumentId),
     Key(DocumentKey),
@@ -258,7 +258,7 @@ impl Serialize for DocumentSelector {
 
 /// All the possible keys, to avoid allocating memory if it is a key we
 /// recognize. Private.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum DocumentField {
     Id,
     Key,
@@ -303,7 +303,7 @@ impl<'de> Deserialize<'de> for DocumentField {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct DocumentHeader {
     #[serde(rename = "_id")]
     id: DocumentId,
@@ -339,7 +339,7 @@ impl DocumentHeader {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct UpdatedDocumentHeader {
     #[serde(rename = "_id")]
     id: DocumentId,
@@ -373,7 +373,7 @@ impl UpdatedDocumentHeader {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Document<T> {
     id: DocumentId,
     key: DocumentKey,
@@ -517,7 +517,7 @@ impl<'de, T> Deserialize<'de> for Document<T>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct NewDocument<T> {
     key: Option<DocumentKey>,
     content: T,
@@ -578,7 +578,7 @@ impl<T> Serialize for NewDocument<T>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UpdatedDocument<Old, New> {
     id: DocumentId,
     key: DocumentKey,
@@ -709,7 +709,7 @@ impl<'de, Old, New> Deserialize<'de> for UpdatedDocument<Old, New>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DocumentUpdate<Upd> {
     key: DocumentKey,
     revision: Option<Revision>,

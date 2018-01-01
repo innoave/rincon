@@ -91,7 +91,7 @@ The main purpose of the session shall be:
 e.g. something like
 
 ```
-    let query = Aql::from(customers)
+    let query = Aql::for(customers)
         .filter(|c| c.age == 42)
         .limit(10)
         .return(|c| (c.name, c.age, c.city))

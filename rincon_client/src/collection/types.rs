@@ -22,7 +22,7 @@ const KEY_GENERATOR_TYPE_AUTO_INCREMENT: &str = "autoincrement";
 /// This struct holds attributes of a collection.
 ///
 /// It is returned by the `GetCollection` and `ListCollection` methods.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Collection {
     /// The id of the collection.
@@ -76,7 +76,7 @@ impl Collection {
 /// The `name` attribute is mandatory. All other attributes are optional and
 /// if not specified are assigned to their default values as defined by the
 /// ArangoDB server.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewCollection {
     /// The name of the collection.
@@ -443,7 +443,7 @@ impl NewCollection {
 /// This struct holds the key options to be used when creating a new
 /// collection.
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct NewKeyOptions {
     /// If set to true, then it is allowed to supply own key values in the _key
     /// attribute of a document. If set to false, then the key generator will
@@ -545,7 +545,7 @@ impl NewKeyOptions {
 /// This struct holds basic attributes of a collection.
 ///
 /// It is returned by the `CreateCollection` method.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BasicCollectionProperties {
     /// The id of the collection.
@@ -616,7 +616,7 @@ impl BasicCollectionProperties {
 /// This struct holds the properties of a collection.
 ///
 /// It is returned by the `GetCollectionProperties` method.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionProperties {
     /// The id of the collection.
@@ -756,7 +756,7 @@ impl CollectionProperties {
 /// This struct holds optional values for the properties of a collection which
 /// shall be changed.
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionPropertiesUpdate {
     /// Whether the server should wait until the collection is synchronized to
@@ -809,7 +809,7 @@ impl CollectionPropertiesUpdate {
 }
 
 /// This struct holds the new name for rename methods.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct RenameTo {
     /// The new name to rename the object to.
     name: String,
@@ -834,7 +834,7 @@ impl RenameTo {
 
 /// This struct holds the key related properties.
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct KeyOptions {
     /// If set to true, then it is allowed to supply own key values in the _key

@@ -78,7 +78,7 @@ const OPTIMIZER_RULE_REMOVE_UNNECESSARY_REMOTE_SCATTER: &str = "remove-unnecessa
 #[cfg(feature = "cluster")]
 const OPTIMIZER_RULE_UNDISTRIBUTE_REMOVE_AFTER_ENUM_COLL: &str = "undistribute-remove-after-enum-coll";
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ParsedQuery {
     collections: Vec<String>,
@@ -119,7 +119,7 @@ impl ParsedQuery {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ParsedAstNode {
     #[serde(rename = "type")]
@@ -179,7 +179,7 @@ impl ParsedAstNode {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize)]
 pub struct AstNodeId(pub i64);
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExplainedQuery {
     plan: Option<ExecutionPlan>,
@@ -252,7 +252,7 @@ impl ExplainedQuery {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExecutionPlan {
     nodes: Vec<ExecutionNode>,
@@ -323,7 +323,7 @@ impl ExecutionPlan {
 /// Source: [https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-execution-nodes]
 ///
 /// Last update: 10/08/2017
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ExecutionNode {
     /// The purpose of a SingletonNode is to produce an empty document that is
     /// used as input for other processing steps. Each execution plan will
@@ -409,7 +409,7 @@ pub enum ExecutionNode {
 /// The purpose of a SingletonNode is to produce an empty document that is used
 /// as input for other processing steps. Each execution plan will contain
 /// exactly one SingletonNode as its top node.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SingletonNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -438,7 +438,7 @@ impl SingletonNode {
 
 /// Enumeration over documents of a collection (given in its collection
 /// attribute) without using an index.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct EnumerateCollectionNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -482,7 +482,7 @@ impl EnumerateCollectionNode {
 /// Enumeration over one or many indexes (given in its indexes attribute) of a
 /// collection. The index ranges are specified in the condition attribute of the
 /// node.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct IndexNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -531,7 +531,7 @@ impl IndexNode {
 }
 
 /// Enumeration over a list of (non-collection) values.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct EnumerateListNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -566,7 +566,7 @@ impl EnumerateListNode {
 
 /// Only lets values pass that satisfy a filter condition. Will appear once per
 /// FILTER statement.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FilterNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -598,7 +598,7 @@ impl FilterNode {
 
 /// Limits the number of results passed to other processing steps. Will appear
 /// once per LIMIT statement.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct LimitNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -636,7 +636,7 @@ impl LimitNode {
 
 /// Evaluates an expression. The expression result may be used by other nodes,
 /// e.g. FilterNode, EnumerateListNode, SortNode etc.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CalculationNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -677,7 +677,7 @@ impl CalculationNode {
 }
 
 /// Executes a sub-query.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SubQueryNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -714,7 +714,7 @@ impl SubQueryNode {
 }
 
 /// Performs a sort of its input values.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SortNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -743,7 +743,7 @@ impl SortNode {
 
 /// Aggregates its input and produces new output variables. This will appear
 /// once per COLLECT statement.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AggregateNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -785,7 +785,7 @@ impl AggregateNode {
 
 /// Returns data to the caller. Will appear in each read-only query at least
 /// once. Sub-queries will also contain ReturnNodes.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReturnNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -817,7 +817,7 @@ impl ReturnNode {
 
 /// Inserts documents into a collection (given in its collection attribute).
 /// Will appear exactly once in a query that contains an INSERT statement.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct InsertNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -864,7 +864,7 @@ impl InsertNode {
 
 /// Removes documents from a collection (given in its collection attribute).
 /// Will appear exactly once in a query that contains a REMOVE statement.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RemoveNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -911,7 +911,7 @@ impl RemoveNode {
 
 /// Replaces documents in a collection (given in its collection attribute).
 /// Will appear exactly once in a query that contains a REPLACE statement.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReplaceNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -966,7 +966,7 @@ impl ReplaceNode {
 
 /// Updates documents in a collection (given in its collection attribute).
 /// Will appear exactly once in a query that contains an UPDATE statement.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UpdateNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -1021,7 +1021,7 @@ impl UpdateNode {
 
 /// Upserts documents in a collection (given in its collection attribute).
 /// Will appear exactly once in a query that contains an UPSERT statement.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UpsertNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -1077,7 +1077,7 @@ impl UpsertNode {
 
 /// Will be inserted if FILTER statements turn out to be never satisfiable. The
 /// NoResultsNode will pass an empty result set into the processing pipeline.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct NoResultsNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -1107,7 +1107,7 @@ impl NoResultsNode {
 #[cfg(feature = "cluster")]
 //TODO add node specific fields
 /// Used on a coordinator to fan-out data to one or multiple shards.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ScatterNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -1140,7 +1140,7 @@ impl ScatterNode {
 //TODO add node specific fields
 /// Used on a coordinator to aggregate results from one or many shards into a
 /// combined stream of results.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GatherNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -1173,7 +1173,7 @@ impl GatherNode {
 //TODO add node specific fields
 /// Used on a coordinator to fan-out data to one or multiple shards, taking
 /// into account a collection's shard key.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DistributeNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -1210,7 +1210,7 @@ impl DistributeNode {
 /// via RemoteNodes. The data servers themselves might again pull further data
 /// from the coordinator, and thus might also employ RemoteNodes. So, all of the
 /// above cluster relevant nodes will be accompanied by a RemoteNode.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RemoteNode {
     id: ExecutionNodeId,
     dependencies: Vec<ExecutionNodeId>,
@@ -1239,7 +1239,7 @@ impl RemoteNode {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GenericExecutionNode {
     #[serde(rename = "type")]
@@ -1807,7 +1807,7 @@ impl<'de> Deserialize<'de> for ExecutionNode {
 /// Source: [https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-execution-nodes]
 ///
 /// Last update: 10/08/2017
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ExecutionNodeType {
     /// the purpose of a SingletonNode is to produce an empty document that is used as input for other processing steps. Each execution plan will contain exactly one SingletonNode as its top node.
     SingletonNode,
@@ -1855,7 +1855,7 @@ pub enum ExecutionNodeType {
     #[cfg(feature = "cluster")]
     /// a RemoteNode will perform communication with another ArangoDB instances in the cluster. For example, the cluster coordinator will need to communicate with other servers to fetch the actual data from the shards. It will do so via RemoteNodes. The data servers themselves might again pull further data from the coordinator, and thus might also employ RemoteNodes. So, all of the above cluster relevant nodes will be accompanied by a RemoteNode.
     RemoteNode,
-    /// Can be used to specify a execution node that has not been added to this enum yet.
+    /// Can be used to specify an execution node that has not been added to this enum yet.
     Unlisted(String),
 }
 
@@ -1938,7 +1938,7 @@ impl<'de> Deserialize<'de> for ExecutionNodeType {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExplainedSubQuery {
     nodes: Vec<ExecutionNode>,
@@ -1961,7 +1961,7 @@ impl ExplainedSubQuery {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize)]
 pub struct ExecutionNodeId(pub i64);
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExecutionVariable {
     id: ExecutionVariableId,
@@ -1990,7 +1990,7 @@ impl ExecutionVariable {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize)]
 pub struct ExecutionVariableId(pub i64);
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExecutionCollection {
     #[serde(rename = "type")]
@@ -2017,7 +2017,7 @@ impl ExecutionCollection {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExecutionExpression {
     #[serde(rename = "type")]
@@ -2103,7 +2103,7 @@ impl ExecutionExpression {
 pub struct ExecutionExpressionId(pub i64);
 
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExecutionStats {
     rules_executed: u32,
@@ -2137,7 +2137,7 @@ impl ExecutionStats {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExecutionGroup {
     in_variable: ExecutionVariable,
@@ -2164,7 +2164,7 @@ impl ExecutionGroup {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExecutionAggregate {
     #[serde(rename = "type")]
@@ -2202,7 +2202,7 @@ impl ExecutionAggregate {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectOptions {
     method: CollectMethod,
@@ -2220,7 +2220,7 @@ impl CollectOptions {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum CollectMethod {
     Sorted,
     Hash,
@@ -2265,7 +2265,7 @@ impl<'de> Deserialize<'de> for CollectMethod {
 }
 
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ModificationOptions {
     ignore_errors: bool,
@@ -2334,7 +2334,7 @@ impl ModificationOptions {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewParseQuery {
     query: String,
@@ -2361,7 +2361,7 @@ impl From<Query> for NewParseQuery {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewExplainQuery {
     /// Contains the query string to be explained.
@@ -2413,7 +2413,7 @@ impl From<Query> for NewExplainQuery {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExplainOptions {
     /// A flag indicating whether all plans should be returned.
@@ -2481,7 +2481,7 @@ impl ExplainOptions {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Optimizer {
     /// A list of to-be-included or to-be-excluded optimizer rules can be put
@@ -2508,7 +2508,7 @@ impl Optimizer {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct OptimizerRuleSet {
     rules_map: HashMap<OptimizerRule, IncludedExcluded>,
 }
@@ -2638,7 +2638,7 @@ pub enum IncludedExcluded {
 /// Source: [https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-optimizer-rules]
 ///
 /// Last updated: 10/08/2017
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum OptimizerRule {
     /// Pseudo-rule that matches all rules.
     All,

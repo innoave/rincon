@@ -5,7 +5,7 @@ use rincon_core::arango::protocol::{FIELD_CODE, PATH_OPEN_AUTH};
 use super::types::*;
 
 /// Authenticates a user.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Authenticate {
     request: AuthenticationRequest,
 }

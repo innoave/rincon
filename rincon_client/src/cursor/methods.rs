@@ -10,7 +10,7 @@ use rincon_core::arango::protocol::{FIELD_CODE, PATH_API_CURSOR};
 use super::types::*;
 
 /// Executes a query and returns a cursor with the first result set.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CreateCursor<T> {
     result_type: PhantomData<T>,
     query: NewCursor,
@@ -76,7 +76,7 @@ impl<T> Prepare for CreateCursor<T> {
 }
 
 /// Deletes the cursor and frees the resources associated with it.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DeleteCursor {
     /// An id of a cursor that shall be deleted.
     cursor_id: String,
@@ -153,7 +153,7 @@ impl Prepare for DeleteCursor {
 }
 
 /// Reads the next batch of results from a cursor.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReadNextBatchFromCursor<T> {
     result_type: PhantomData<T>,
     /// An id of a cursor from which the next batch of results shall be read.

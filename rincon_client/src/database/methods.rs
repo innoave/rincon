@@ -9,7 +9,7 @@ use user::types::{NewUser, UserExtra};
 
 /// Retrieves information about the current database.
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetCurrentDatabase {}
 
 impl GetCurrentDatabase {
@@ -58,7 +58,7 @@ impl Prepare for GetCurrentDatabase {
 /// **Note**: You should use the `user::ListDatabasesForUser` to fetch the
 /// list of the available databases now.
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ListDatabases {}
 
 impl ListDatabases {
@@ -103,7 +103,7 @@ impl Prepare for ListDatabases {
 /// Retrieves the list of all databases the current user can access without
 /// specifying a different username or password.
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ListAccessibleDatabases {}
 
 impl ListAccessibleDatabases {
@@ -149,7 +149,7 @@ impl Prepare for ListAccessibleDatabases {
 ///
 /// **Note**: creating a new database is only possible from within the `_system`
 /// database.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CreateDatabase<E>
     where E: UserExtra
 {
@@ -239,7 +239,7 @@ impl<E> Prepare for CreateDatabase<E>
 ///
 /// **Note**: dropping a database is only possible from within the `_system`
 /// database. The `_system` database itself cannot be dropped.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DropDatabase {
     database_name: String,
 }

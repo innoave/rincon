@@ -80,7 +80,7 @@ const CAPTURE_ELEMENT_KEY: &str = "key";
 const REGEX_ID_CAPTURE: &str = "^((?P<ctx>[^/]+)/)?(?P<key>[^/]+)$";
 
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum HandleOption {
     Qualified(Handle),
     Local(HandleKey),
@@ -130,7 +130,7 @@ impl<'de> Deserialize<'de> for HandleOption {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Handle {
     context: String,
     key: String,
@@ -189,7 +189,7 @@ impl<'de> Deserialize<'de> for Handle {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct HandleKey(String);
 
 impl HandleKey {

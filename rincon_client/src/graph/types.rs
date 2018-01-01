@@ -14,7 +14,7 @@ use rincon_core::arango::protocol::{FIELD_NUMBER_OF_SHARDS, FIELD_REPLICATION_FA
 use rincon_core::arango::protocol::{FIELD_IS_SMART, FIELD_SMART_GRAPH_ATTRIBUTE};
 use document::types::{DocumentId, DocumentKey, Revision};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Graph {
     id: DocumentId,
     key: DocumentKey,
@@ -378,7 +378,7 @@ impl<'de> Deserialize<'de> for Graph {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewGraph {
     name: String,
@@ -492,7 +492,7 @@ impl NewGraph {
 
 #[cfg(any(feature = "enterprise", feature = "cluster"))]
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphOptions {
     #[cfg(feature = "enterprise")]
@@ -563,7 +563,7 @@ impl Default for GraphOptions {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct VertexCollection {
     collection: String,
 }
@@ -582,7 +582,7 @@ impl VertexCollection {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EdgeDefinition {
     collection: String,
     from: Vec<String>,
@@ -618,7 +618,7 @@ impl EdgeDefinition {
 
 /// All the possible keys, to avoid allocating memory if it is a key we
 /// recognize. Private.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum EdgeField {
     Id,
     Key,
@@ -663,7 +663,7 @@ impl<'de> Deserialize<'de> for EdgeField {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Edge<T> {
     id: DocumentId,
     key: DocumentKey,
@@ -790,7 +790,7 @@ impl<'de, T> Deserialize<'de> for Edge<T>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct NewEdge<T> {
     key: Option<DocumentKey>,
     from: DocumentId,

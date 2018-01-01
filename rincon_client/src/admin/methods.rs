@@ -5,7 +5,7 @@ use rincon_core::arango::protocol::{FIELD_CODE, PARAM_DETAILS, PATH_ADMIN,
 use super::types::*;
 
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetTargetVersion {}
 
 impl GetTargetVersion {
@@ -47,7 +47,7 @@ impl Prepare for GetTargetVersion {
 }
 
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetServerVersion {
     details: bool,
 }

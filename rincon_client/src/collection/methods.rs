@@ -8,7 +8,7 @@ use super::types::*;
 
 /// Retrieves a list of existing collections.
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ListCollections {
     /// Whether or not to exclude system collections from the response.
     exclude_system: bool
@@ -80,7 +80,7 @@ impl Prepare for ListCollections {
 }
 
 /// Creates a new collection with the given name.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CreateCollection {
     collection: NewCollection,
     #[cfg(feature = "cluster")]
@@ -208,7 +208,7 @@ impl Prepare for CreateCollection {
 ///
 /// If the collection was successfully dropped, the identifier of the dropped
 /// collection is returned.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DropCollection {
     name: String,
     system: bool,
@@ -302,7 +302,7 @@ impl Prepare for DropCollection {
 }
 
 /// Fetch information about the collection identified by the given name.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetCollection {
     name: String,
 }
@@ -366,7 +366,7 @@ impl Prepare for GetCollection {
 }
 
 /// Fetch the properties of the collection identified by the given name.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetCollectionProperties {
     name: String,
 }
@@ -434,7 +434,7 @@ impl Prepare for GetCollectionProperties {
 /// **Note:** except for `wait_for_sync`, `journal_size` (for MMFiles DB) and
 /// name, collection properties cannot be changed once a collection is created.
 /// To rename a collection, the `RenameCollection` method must be used.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ChangeCollectionProperties {
     name: String,
     updates: CollectionPropertiesUpdate,
@@ -502,7 +502,7 @@ impl Prepare for ChangeCollectionProperties {
 /// Renames a collection.
 ///
 /// ***Note:** this method is not available in a cluster.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RenameCollection {
     name: String,
     rename_to: RenameTo,

@@ -16,7 +16,7 @@ use rincon_client::document::types::*;
 use rincon_test_helper::*;
 
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct Customer {
     name: String,
     contact: Vec<Contact>,
@@ -26,29 +26,29 @@ struct Customer {
     groups: Vec<String>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct Contact {
     address: String,
     kind: ContactType,
     tag: Option<Tag>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct Tag(String);
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 enum ContactType {
     Email,
     Phone,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 enum Gender {
     Male,
     Female,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct VipCustomer {
     name: String,
     contact: Vec<Contact>,
@@ -56,7 +56,7 @@ struct VipCustomer {
     status: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 struct CustomerUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,

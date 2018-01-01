@@ -17,7 +17,7 @@ const INDEX_TYPE_GEO2: &str = "geo2";
 const INDEX_TYPE_FULLTEXT: &str = "fulltext";
 const INDEX_TYPE_EDGE: &str = "edge";
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum IndexIdOption {
     Qualified(IndexId),
     Local(IndexKey),
@@ -64,7 +64,7 @@ impl<'de> Deserialize<'de> for IndexIdOption {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct IndexId {
     collection_name: String,
     index_key: String,
@@ -138,7 +138,7 @@ impl<'de> Deserialize<'de> for IndexId {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct IndexKey(String);
 
 impl IndexKey {
@@ -199,7 +199,7 @@ impl<'de> Deserialize<'de> for IndexKey {
     }
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct IndexList {
     indexes: Vec<Index>,
     identifiers: HashMap<String, Index>,
@@ -227,7 +227,7 @@ pub trait IndexDetails {
     fn is_sparse(&self) -> bool;
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Index {
     Primary(PrimaryIndex),
     Hash(HashIndex),
@@ -277,7 +277,7 @@ impl IndexDetails for Index {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PrimaryIndex {
     newly_created: bool,
     id: IndexIdOption,
@@ -321,7 +321,7 @@ impl From<PrimaryIndex> for Index {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct HashIndex {
     newly_created: bool,
     id: IndexIdOption,
@@ -393,7 +393,7 @@ impl From<HashIndex> for Index {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SkipListIndex {
     newly_created: bool,
     id: IndexIdOption,
@@ -437,7 +437,7 @@ impl From<SkipListIndex> for Index {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PersistentIndex {
     newly_created: bool,
     id: IndexIdOption,
@@ -481,7 +481,7 @@ impl From<PersistentIndex> for Index {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Geo1Index {
     newly_created: bool,
     id: IndexIdOption,
@@ -530,7 +530,7 @@ impl From<Geo1Index> for Index {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Geo2Index {
     newly_created: bool,
     id: IndexIdOption,
@@ -574,7 +574,7 @@ impl From<Geo2Index> for Index {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FulltextIndex {
     newly_created: bool,
     id: IndexIdOption,
@@ -618,7 +618,7 @@ impl From<FulltextIndex> for Index {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct EdgeIndex {
     newly_created: bool,
     id: IndexIdOption,
@@ -655,7 +655,7 @@ impl From<EdgeIndex> for Index {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum NewIndex {
     Hash(NewHashIndex),
     SkipList(NewSkipListIndex),
@@ -679,7 +679,7 @@ impl Serialize for NewIndex {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewHashIndex {
     #[serde(rename = "type")]
@@ -742,7 +742,7 @@ impl From<NewHashIndex> for NewIndex {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewSkipListIndex {
     #[serde(rename = "type")]
@@ -805,7 +805,7 @@ impl From<NewSkipListIndex> for NewIndex {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewPersistentIndex {
     #[serde(rename = "type")]
@@ -858,7 +858,7 @@ impl From<NewPersistentIndex> for NewIndex {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewGeoIndex {
     #[serde(rename = "type")]
@@ -913,7 +913,7 @@ impl From<NewGeoIndex> for NewIndex {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewFulltextIndex {
     #[serde(rename = "type")]
@@ -956,7 +956,7 @@ impl From<NewFulltextIndex> for NewIndex {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 enum IndexType {
     Primary,
     Hash,

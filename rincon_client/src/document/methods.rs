@@ -14,7 +14,7 @@ use rincon_core::arango::protocol::{FIELD_CODE, HEADER_IF_MATCH,
     PARAM_WAIT_FOR_SYNC, PATH_API_DOCUMENT};
 use super::types::*;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetDocument<T> {
     id: DocumentId,
     if_match: Option<String>,
@@ -124,7 +124,7 @@ impl<T> Prepare for GetDocument<T> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetDocumentHeader {
     id: DocumentId,
     if_match: Option<String>,
@@ -228,7 +228,7 @@ impl Prepare for GetDocumentHeader {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct InsertDocument<T> {
     collection_name: String,
     document: NewDocument<T>,
@@ -307,7 +307,7 @@ impl<T> Prepare for InsertDocument<T>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct InsertDocumentReturnNew<T> {
     collection_name: String,
     document: NewDocument<T>,
@@ -386,7 +386,7 @@ impl<T> Prepare for InsertDocumentReturnNew<T>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct InsertDocuments<T> {
     collection_name: String,
     documents: Vec<NewDocument<T>>,
@@ -465,7 +465,7 @@ impl<T> Prepare for InsertDocuments<T>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct InsertDocumentsReturnNew<T> {
     collection_name: String,
     documents: Vec<NewDocument<T>>,
@@ -544,7 +544,7 @@ impl<T> Prepare for InsertDocumentsReturnNew<T>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReplaceDocument<Old, New> {
     document_id: DocumentId,
     new_document: DocumentUpdate<New>,
@@ -689,7 +689,7 @@ impl<Old, New> Prepare for ReplaceDocument<Old, New>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReplaceDocuments<Old, New> {
     collection_name: String,
     new_documents: Vec<DocumentUpdate<New>>,
@@ -817,7 +817,7 @@ impl<Old, New> Prepare for ReplaceDocuments<Old, New>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ModifyDocument<Upd, Old, New> {
     document_id: DocumentId,
     update: DocumentUpdate<Upd>,
@@ -996,7 +996,7 @@ impl<Upd, Old, New> Prepare for ModifyDocument<Upd, Old, New>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ModifyDocuments<Upd, Old, New> {
     collection_name: String,
     updates: Vec<DocumentUpdate<Upd>>,
@@ -1158,7 +1158,7 @@ impl<Upd, Old, New> Prepare for ModifyDocuments<Upd, Old, New>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DeleteDocument {
     id: DocumentId,
     force_wait_for_sync: Option<bool>,
@@ -1259,7 +1259,7 @@ impl Prepare for DeleteDocument {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DeleteDocumentReturnOld<T> {
     id: DocumentId,
     old_content: PhantomData<T>,
@@ -1367,7 +1367,7 @@ impl<T> Prepare for DeleteDocumentReturnOld<T> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DeleteDocuments {
     collection_name: String,
     selectors: Vec<DocumentSelector>,
@@ -1479,7 +1479,7 @@ impl Prepare for DeleteDocuments {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DeleteDocumentsReturnOld<T> {
     collection_name: String,
     selectors: Vec<DocumentSelector>,

@@ -21,7 +21,7 @@ use rincon_connector::http::BasicConnector;
 use rincon_test_helper::*;
 
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 struct GetServerVersion {
     details: bool,
 }

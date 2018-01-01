@@ -18,7 +18,7 @@ impl Default for Empty {
 
 pub type JsonValue = serde_json::Value;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct JsonString(String);
 
 impl JsonString {
@@ -67,7 +67,7 @@ impl<'de> Deserialize<'de> for JsonString {
 }
 
 /// Defines the type of the value of a parameter for methods and queries.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     String(String),
     Bool(bool),

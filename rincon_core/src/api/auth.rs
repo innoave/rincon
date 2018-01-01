@@ -1,6 +1,6 @@
 
 /// This enum defines the supported authentication methods.
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 pub enum Authentication {
     /// Basic authentication.
     Basic(Credentials),
@@ -11,7 +11,7 @@ pub enum Authentication {
 }
 
 /// This struct holds the credentials needed to authenticate a user.
-#[derive(Clone, Debug, PartialEq, Hash)]
+#[derive(Debug, Clone, PartialEq, Hash)]
 pub struct Credentials {
     /// The username registered for a user.
     username: String,

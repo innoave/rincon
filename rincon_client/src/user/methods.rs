@@ -15,7 +15,7 @@ use super::types::*;
 ///
 /// You need 'Administrate server' access level in order to execute this
 /// method call.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CreateUser<E>
     where E: UserExtra
 {
@@ -78,7 +78,7 @@ impl<E> Prepare for CreateUser<E>
 ///
 /// You need the 'Administrate server' access level in order to execute this
 /// method call. Otherwise, you will only get information about yourself.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ListAvailableUsers<E>
     where E: UserExtra
 {
@@ -136,7 +136,7 @@ impl<E> Prepare for ListAvailableUsers<E>
 ///
 /// You need 'Administrate server' access level in order to execute this method
 /// call.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RemoveUser {
     name: String,
 }
@@ -194,7 +194,7 @@ impl Prepare for RemoveUser {
 ///
 /// You can fetch information about yourself or you need the 'Administrate
 /// server' access level in order to execute this method.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetUser<E>
     where E: UserExtra
 {
@@ -271,7 +271,7 @@ impl<E> Prepare for GetUser<E>
 ///
 /// You need 'Administrate server' access level in order to execute this method
 /// call. Additionally, a user can change his/her own data.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ModifyUser<E>
     where E: UserExtra
 {
@@ -356,7 +356,7 @@ impl<E> Prepare for ModifyUser<E>
 ///
 /// You need 'Administrate server' access level in order to execute this method
 /// call. Additionally, a user can change his/her own data.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReplaceUser<E>
     where E: UserExtra
 {
@@ -444,7 +444,7 @@ impl<E> Prepare for ReplaceUser<E>
 ///
 /// You need 'Administrate server' access level in order to execute this method
 /// call.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ListDatabasesForUser {
     user_name: String,
 }
@@ -509,7 +509,7 @@ impl Prepare for ListDatabasesForUser {
 }
 
 /// Fetch the database access level for a specific database.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetDatabaseAccessLevel {
     user_name: String,
     database: String,
@@ -574,7 +574,7 @@ impl Prepare for GetDatabaseAccessLevel {
 ///
 /// You need permission to the _system database in order to execute this method
 /// call.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SetDatabaseAccessLevel {
     user_name: String,
     database: String,
@@ -648,7 +648,7 @@ impl Prepare for SetDatabaseAccessLevel {
 ///
 /// You need permission to the _system database in order to execute this method
 /// call.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ResetDatabaseAccessLevel {
     user_name: String,
     database: String,
@@ -710,7 +710,7 @@ impl Prepare for ResetDatabaseAccessLevel {
 }
 
 /// Fetch the collection access level for a specific collection.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetCollectionAccessLevel {
     user_name: String,
     database: String,
@@ -784,7 +784,7 @@ impl Prepare for GetCollectionAccessLevel {
 ///
 /// You need permission to the _system database in order to execute this method
 /// call.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SetCollectionAccessLevel {
     user_name: String,
     database: String,
@@ -871,7 +871,7 @@ impl Prepare for SetCollectionAccessLevel {
 ///
 /// You need permission to the _system database in order to execute this method
 /// call.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ResetCollectionAccessLevel {
     user_name: String,
     database: String,

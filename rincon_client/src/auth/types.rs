@@ -2,7 +2,7 @@
 use rincon_core::api::auth::Jwt;
 
 /// This structs holds the properties necessary to authenticate a user.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthenticationRequest {
     username: String,
@@ -33,7 +33,7 @@ impl AuthenticationRequest {
 }
 
 /// This struct holds the result of a successful authentication.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthenticationResponse {
     jwt: Jwt,

@@ -9,7 +9,7 @@ use super::types::*;
 ///
 /// The same information is also available in the identifiers as a HashMap with
 /// the index handles as keys.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetIndexList {
     collection_name: String,
 }
@@ -69,7 +69,7 @@ impl Prepare for GetIndexList {
 }
 
 /// Returns the index description for an index of a collection.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetIndex {
     index_id: IndexId,
 }
@@ -122,7 +122,7 @@ impl Prepare for GetIndex {
 
 /// Creates a new index in the collection of the given collection name. The
 /// type of the index and its details are given in the index parameter.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CreateIndex {
     collection_name: String,
     index: NewIndex,
@@ -182,7 +182,7 @@ impl Prepare for CreateIndex {
 }
 
 /// Deletes the index with the given index id.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DeleteIndex {
     index_id: IndexId,
 }

@@ -70,7 +70,7 @@ impl<M> PreparedStatement<M>
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 pub struct StatementResult {
     document: Option<Document>,
 }

@@ -181,13 +181,13 @@ impl<'i> ExactSizeIterator for ParameterIter<'i> {
 }
 
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RpcReturnType {
     pub result_field: Option<&'static str>,
     pub code_field: Option<&'static str>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Result<T> {
     Success(T),
     Failed(Error),
@@ -221,7 +221,7 @@ impl<T> From<std::result::Result<T, Error>> for Result<T> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct ResultList<T>(#[serde(bound(deserialize = "T: DeserializeOwned"))] Vec<Result<T>>);
 
 impl<T> ResultList<T> {

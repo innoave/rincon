@@ -12,7 +12,7 @@ pub trait Execute {
 
 pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=Error>>;
 
-#[derive(Clone, Debug, PartialEq, Eq, Fail)]
+#[derive(Debug, Clone, PartialEq, Eq, Fail)]
 pub enum Error {
     #[fail(display = "Communication failed: {}", _0)]
     Communication(String),

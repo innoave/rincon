@@ -13,7 +13,7 @@ use document::types::{Document, DocumentHeader, DocumentId, DocumentKey, NewDocu
     UpdatedDocumentHeader};
 use super::types::*;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CreateGraph {
     graph: NewGraph,
 }
@@ -62,7 +62,7 @@ impl Prepare for CreateGraph {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DropGraph {
     name: String,
 }
@@ -119,7 +119,7 @@ impl Prepare for DropGraph {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetGraph {
     name: String,
 }
@@ -177,7 +177,7 @@ impl Prepare for GetGraph {
 }
 
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ListGraphs {}
 
 impl ListGraphs {
@@ -218,7 +218,7 @@ impl Prepare for ListGraphs {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AddVertexCollection {
     graph_name: String,
     vertex_collection: VertexCollection,
@@ -272,7 +272,7 @@ impl Prepare for AddVertexCollection {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RemoveVertexCollection {
     graph_name: String,
     collection_name: String,
@@ -330,7 +330,7 @@ impl Prepare for RemoveVertexCollection {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ListVertexCollections {
     graph_name: String,
 }
@@ -382,7 +382,7 @@ impl Prepare for ListVertexCollections {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct InsertVertex<T> {
     graph_name: String,
     collection_name: String,
@@ -448,7 +448,7 @@ impl<T> Prepare for InsertVertex<T>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RemoveVertex {
     graph_name: String,
     vertex_id: DocumentId,
@@ -525,7 +525,7 @@ impl Prepare for RemoveVertex {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetVertex<T> {
     graph_name: String,
     vertex_id: DocumentId,
@@ -608,7 +608,7 @@ impl<T> Prepare for GetVertex<T> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReplaceVertex<T> {
     graph_name: String,
     vertex_id: DocumentId,
@@ -675,7 +675,7 @@ impl<T> Prepare for ReplaceVertex<T>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ModifyVertex<Upd> {
     graph_name: String,
     vertex_id: DocumentId,
@@ -718,7 +718,7 @@ impl<Upd> Prepare for ModifyVertex<Upd>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AddEdgeDefinition {
     graph_name: String,
     edge_definition: EdgeDefinition,
@@ -776,7 +776,7 @@ impl Prepare for AddEdgeDefinition {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RemoveEdgeDefinition {
     graph_name: String,
     edge_definition_name: String,
@@ -834,7 +834,7 @@ impl Prepare for RemoveEdgeDefinition {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReplaceEdgeDefinition {
     graph_name: String,
     edge_definition_name: String,
@@ -898,7 +898,7 @@ impl Prepare for ReplaceEdgeDefinition {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ListEdgeCollections {
     graph_name: String
 }
@@ -950,7 +950,7 @@ impl Prepare for ListEdgeCollections {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct InsertEdge<T> {
     graph_name: String,
     collection_name: String,
@@ -1016,7 +1016,7 @@ impl<T> Prepare for InsertEdge<T>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RemoveEdge {
     graph_name: String,
     edge_id: DocumentId,
@@ -1090,7 +1090,7 @@ impl Prepare for RemoveEdge {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetEdge<T> {
     graph_name: String,
     edge_id: DocumentId,
@@ -1173,7 +1173,7 @@ impl<T> Prepare for GetEdge<T> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReplaceEdge<T> {
     graph_name: String,
     edge_id: DocumentId,
@@ -1240,7 +1240,7 @@ impl<T> Prepare for ReplaceEdge<T>
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ModifyEdge<Upd> {
     graph_name: String,
     edge_id: DocumentId,

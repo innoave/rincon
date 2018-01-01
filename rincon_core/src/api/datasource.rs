@@ -22,7 +22,7 @@ pub enum Error {
     InvalidUrl(String),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 pub struct DataSource {
     protocol: String,
     host: String,

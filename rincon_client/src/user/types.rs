@@ -17,7 +17,7 @@ const PERMISSION_NONE: &str = "none";
 /// The type parameter `E` specifies the type of the extra data about the
 /// user. If users are created without any extra data one can use the
 /// provided `Empty` type.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct User<E>
     where E: UserExtra
@@ -65,7 +65,7 @@ impl UserExtra for JsonValue {}
 /// The type parameter `E` defines the type of the extra data about the user.
 /// If users are created without any extra data one can use the provided
 /// `Empty` type.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewUser<E>
     where E: UserExtra
@@ -181,7 +181,7 @@ impl<E> NewUser<E>
 /// The type parameter `E` defines the type of the extra data about the user.
 /// If users are created without any extra data one can use the provided
 /// `Empty` type.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserUpdate<E>
     where E: UserExtra
@@ -278,7 +278,7 @@ impl<E> From<User<E>> for UserUpdate<E>
 
 /// This struct specifies an access level to be granted.
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewAccessLevel {
     grant: Permission,

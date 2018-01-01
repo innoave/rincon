@@ -4,7 +4,7 @@ use std::mem;
 
 use api::types::{Value, UnwrapValue};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Query {
     string: String,
     params: HashMap<String, Value>,

@@ -4,7 +4,7 @@ use std::iter::{FromIterator, IntoIterator};
 use user::types::{NewUser, UserExtra};
 
 /// This struct holds the properties of a database.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Database {
     /// the id of the database
@@ -44,7 +44,7 @@ impl Database {
 
 /// This struct specifies the properties of a database that is going to be
 /// created.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewDatabase<E>
     where E: UserExtra

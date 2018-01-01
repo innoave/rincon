@@ -23,7 +23,7 @@ use aql::types::Optimizer;
 ///
 /// **Note**: the server will also destroy abandoned cursors automatically
 /// after a certain server-controlled timeout to avoid resource leakage.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Cursor<T> {
     /// The id of the cursor created on the server.
@@ -101,7 +101,7 @@ impl<T> Cursor<T> {
 pub type Warning = JsonValue;
 
 /// Holds extra information about the query execution.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CursorExtra {
     /// Statistics about the query execution.
     stats: CursorStatistics,
@@ -123,7 +123,7 @@ impl CursorExtra {
 
 /// Holds statistics information about the query execution.
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CursorStatistics {
     /// The execution time of the query.
@@ -191,7 +191,7 @@ impl CursorStatistics {
 
 /// This struct defines the parameters of a cursor for an AQL query that is
 /// to be created.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewCursor {
     /// Contains the query string to be executed.
@@ -379,7 +379,7 @@ impl From<Query> for NewCursor {
 }
 
 /// Optional parameters for tweaking query execution.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CursorOptions {
     /// When set to true, the query will throw an exception and abort instead of

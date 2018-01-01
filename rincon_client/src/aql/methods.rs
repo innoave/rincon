@@ -4,7 +4,7 @@ use rincon_core::api::query::Query;
 use rincon_core::arango::protocol::{FIELD_CODE, PATH_API_EXPLAIN, PATH_API_QUERY};
 use super::types::*;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ParseQuery {
     options: NewParseQuery,
 }
@@ -57,7 +57,7 @@ impl Prepare for ParseQuery {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ExplainQuery {
     query_options: NewExplainQuery,
 }
