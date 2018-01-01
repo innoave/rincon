@@ -13,4 +13,11 @@
     unused_qualifications,
 )]
 
+#[cfg(test)] #[macro_use] extern crate hamcrest;
+
 extern crate rincon_core;
+
+pub mod ast;
+pub mod ctx;
+pub mod dsl;
+pub mod types;

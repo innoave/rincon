@@ -20,5 +20,6 @@ codecov = { repository = "innoave/rincon" }
 rincon_core = { path = "../rincon_core" }
 
 [dev-dependencies]
+hamcrest = "0.1"
 #quickcheck = "0.5"
 version-sync = "0.5"
