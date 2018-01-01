@@ -2,7 +2,6 @@
 #[cfg(test)] mod tests;
 
 use std::collections::HashMap;
-use std::fmt::{self, Display};
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -117,10 +116,4 @@ impl InClause {
 pub struct ReturnClause {
     ctx: Context,
     node: AstNode,
-}
-
-impl Display for ReturnClause {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        unimplemented!()
-    }
 }

@@ -1,11 +1,14 @@
 
+use std::io::Write;
+
 pub trait ToAql {
-    fn to_aql(&self, out: &mut ToAqlOutput) -> Result<IsNull, Error>;
+    fn to_aql<W>(&self, out: &mut ToAqlOutput<W>) -> Result<IsNull, Error>
+        where W: Write;
 }
 
 #[derive(Debug)]
-pub struct ToAqlOutput {
-
+pub struct ToAqlOutput<T> {
+    out: T
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
