@@ -1,4 +1,6 @@
 
+#![cfg_attr(feature = "cargo-clippy", allow(cyclomatic_complexity))]
+
 extern crate tokio_core;
 
 extern crate rincon_core;
@@ -24,7 +26,7 @@ fn get_index_list_from_document_collection() {
         let indexes = result.indexes();
         let identifiers = result.identifiers();
         {
-            let index1 = indexes.get(0).unwrap();
+            let index1 = &indexes[0];
             let index_id = match *index1.id() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
@@ -48,7 +50,7 @@ fn get_index_list_from_document_collection() {
             assert_eq!("index_customers01/0", index_id.to_string());
             assert_eq!(&vec!["_key".to_owned()][..], identifier1.fields());
             assert_eq!(false, identifier1.is_newly_created());
-            if let &Index::Primary(ref primary_index) = identifier1 {
+            if let Index::Primary(ref primary_index) = *identifier1 {
                 assert_eq!(true, primary_index.is_unique());
                 assert_eq!(1, primary_index.selectivity_estimate());
             } else {
@@ -71,7 +73,7 @@ fn get_index_list_from_edge_collection() {
         let indexes = result.indexes();
         let identifiers = result.identifiers();
         {
-            let index1 = indexes.get(0).unwrap();
+            let index1 = &indexes[0];
             let index_id = match *index1.id() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),
@@ -88,7 +90,7 @@ fn get_index_list_from_edge_collection() {
             }
         }
         {
-            let index2 = indexes.get(1).unwrap();
+            let index2 = &indexes[1];
             let index_id = match *index2.id() {
                 IndexIdOption::Qualified(ref index_id) => index_id,
                 _ => panic!("Qualified index id expected!"),

@@ -85,6 +85,7 @@ pub struct ListAvailableUsers<E>
     user_info_type: PhantomData<E>,
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
 impl<E> ListAvailableUsers<E>
     where E: UserExtra
 {

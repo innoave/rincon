@@ -35,7 +35,6 @@ tokio-core = "0.1"
 rincon_connector = { path = "../rincon_connector" }
 rincon_test_helper = { path = "../rincon_test_helper" }
 hamcrest = "0.1"
-#quickcheck = "0.5"
 version-sync = "0.5"
 
 [package.metadata.docs.rs]

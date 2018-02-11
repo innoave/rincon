@@ -28,11 +28,11 @@ impl JsonString {
         JsonString(value.into())
     }
 
-    pub fn from_string(value: String) -> Self {
+    pub fn from_string_unchecked(value: String) -> Self {
         JsonString(value)
     }
 
-    pub fn from_str(value: &str) -> Self {
+    pub fn from_str_unchecked(value: &str) -> Self {
         JsonString(value.to_owned())
     }
 
@@ -596,6 +596,7 @@ fn format_value_list<T>(values: &[T], f: &mut fmt::Formatter) -> fmt::Result
     if let Some(first) = iter.next() {
         f.write_str(&first.to_string())?;
     }
+    #[cfg_attr(feature = "cargo-clippy", allow(while_let_on_iterator))]
     while let Some(value) = iter.next() {
         f.write_str(",")?;
         format_value(value, f)?;

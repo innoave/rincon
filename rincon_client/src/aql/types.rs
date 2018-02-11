@@ -2,7 +2,7 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::collections::hash_map::{IntoIter, Iter};
-use std::iter::{FromIterator, ExactSizeIterator, Iterator};
+use std::iter::{FromIterator, ExactSizeIterator, IntoIterator, Iterator};
 use std::mem;
 
 use serde::de::{Deserialize, Deserializer};
@@ -320,7 +320,7 @@ impl ExecutionPlan {
 /// This enum defines all possible execution nodes as listed in the official
 /// documentation of *ArangoDB*.
 ///
-/// Source: [https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-execution-nodes]
+/// Source: [https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-execution-nodes](https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-execution-nodes)
 ///
 /// Last update: 10/08/2017
 #[derive(Debug, Clone, PartialEq)]
@@ -403,12 +403,12 @@ pub enum ExecutionNode {
     /// If your application get this node type returned please file an issue
     /// for this crate. Add the query and if possible the debug output of this
     /// ExecutionNode to that issue.
-    Unlisted(GenericExecutionNode),
+    Unlisted(Box<GenericExecutionNode>),
 }
 
-/// The purpose of a SingletonNode is to produce an empty document that is used
+/// The purpose of a `SingletonNode` is to produce an empty document that is used
 /// as input for other processing steps. Each execution plan will contain
-/// exactly one SingletonNode as its top node.
+/// exactly one `SingletonNode` as its top node.
 #[derive(Debug, Clone, PartialEq)]
 pub struct SingletonNode {
     id: ExecutionNodeId,
@@ -451,6 +451,7 @@ pub struct EnumerateCollectionNode {
 }
 
 impl EnumerateCollectionNode {
+    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new<Deps, Db, Col>(
         id: ExecutionNodeId,
         dependencies: Deps,
@@ -497,6 +498,7 @@ pub struct IndexNode {
 }
 
 impl IndexNode {
+    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new<Deps, Db, Col, Idxs>(
         id: ExecutionNodeId,
         dependencies: Deps,
@@ -635,7 +637,7 @@ impl LimitNode {
 }
 
 /// Evaluates an expression. The expression result may be used by other nodes,
-/// e.g. FilterNode, EnumerateListNode, SortNode etc.
+/// e.g. `FilterNode`, `EnumerateListNode`, `SortNode` etc.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CalculationNode {
     id: ExecutionNodeId,
@@ -649,6 +651,7 @@ pub struct CalculationNode {
 }
 
 impl CalculationNode {
+    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new<Deps, Etp>(
         id: ExecutionNodeId,
         dependencies: Deps,
@@ -756,6 +759,7 @@ pub struct AggregateNode {
 }
 
 impl AggregateNode {
+    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new<Deps, Out>(
         id: ExecutionNodeId,
         dependencies: Deps,
@@ -784,7 +788,7 @@ impl AggregateNode {
 }
 
 /// Returns data to the caller. Will appear in each read-only query at least
-/// once. Sub-queries will also contain ReturnNodes.
+/// once. Sub-queries will also contain `ReturnNode`s.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ReturnNode {
     id: ExecutionNodeId,
@@ -831,6 +835,7 @@ pub struct InsertNode {
 }
 
 impl InsertNode {
+    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new<Deps, Db, Cll, OvN>(
         id: ExecutionNodeId,
         dependencies: Deps,
@@ -878,6 +883,7 @@ pub struct RemoveNode {
 }
 
 impl RemoveNode {
+    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new<Deps, Db, Cll, OvO>(
         id: ExecutionNodeId,
         dependencies: Deps,
@@ -927,6 +933,7 @@ pub struct ReplaceNode {
 }
 
 impl ReplaceNode {
+    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new<Deps, Db, Cll, IkV, OvO, OvN>(
         id: ExecutionNodeId,
         dependencies: Deps,
@@ -982,6 +989,7 @@ pub struct UpdateNode {
 }
 
 impl UpdateNode {
+    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new<Deps, Db, Cll, IkV, OvO, OvN>(
         id: ExecutionNodeId,
         dependencies: Deps,
@@ -1038,6 +1046,7 @@ pub struct UpsertNode {
 }
 
 impl UpsertNode {
+    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new<Deps, Db, Cll, IkV>(
         id: ExecutionNodeId,
         dependencies: Deps,
@@ -1076,7 +1085,7 @@ impl UpsertNode {
 }
 
 /// Will be inserted if FILTER statements turn out to be never satisfiable. The
-/// NoResultsNode will pass an empty result set into the processing pipeline.
+/// `NoResultsNode` will pass an empty result set into the processing pipeline.
 #[derive(Debug, Clone, PartialEq)]
 pub struct NoResultsNode {
     id: ExecutionNodeId,
@@ -1204,12 +1213,13 @@ impl DistributeNode {
 
 #[cfg(feature = "cluster")]
 //TODO add node specific fields
-/// A RemoteNode will perform communication with another ArangoDB instances in
-/// the cluster. For example, the cluster coordinator will need to communicate
-/// with other servers to fetch the actual data from the shards. It will do so
-/// via RemoteNodes. The data servers themselves might again pull further data
-/// from the coordinator, and thus might also employ RemoteNodes. So, all of the
-/// above cluster relevant nodes will be accompanied by a RemoteNode.
+/// A `RemoteNode` will perform communication with another *ArangoDB* instances
+/// in the cluster. For example, the cluster coordinator will need to
+/// communicate with other servers to fetch the actual data from the shards. It
+/// will do so via `RemoteNode`s. The data servers themselves might again pull
+/// further data from the coordinator, and thus might also employ `RemoteNode`s.
+/// So, all of the above cluster relevant nodes will be accompanied by a
+/// `RemoteNode`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RemoteNode {
     id: ExecutionNodeId,
@@ -1281,6 +1291,7 @@ pub struct GenericExecutionNode {
 }
 
 impl GenericExecutionNode {
+    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new(
         kind: ExecutionNodeType,
         id: ExecutionNodeId,
@@ -1758,7 +1769,7 @@ impl<'de> Deserialize<'de> for ExecutionNode {
                 })),
             //ExecutionNodeType::Unlisted(_) =>
             _ =>
-                Ok(Unlisted(GenericExecutionNode {
+                Ok(Unlisted(Box::new(GenericExecutionNode {
                     kind,
                     id,
                     dependencies,
@@ -1793,7 +1804,7 @@ impl<'de> Deserialize<'de> for ExecutionNode {
                     insert_variable,
                     update_variable,
                     is_replace,
-                })),
+                }))),
         }
     }
 }
@@ -1804,7 +1815,7 @@ impl<'de> Deserialize<'de> for ExecutionNode {
 /// This enum defines all possible execution nodes as listed in the official
 /// documentation of *ArangoDB*.
 ///
-/// Source: [https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-execution-nodes]
+/// Source: [https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-execution-nodes](https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-execution-nodes)
 ///
 /// Last update: 10/08/2017
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -2034,6 +2045,7 @@ pub struct ExecutionExpression {
 }
 
 impl ExecutionExpression {
+    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new<Kd, Nm, Id, Val, Srt, Qnt, Levs, Subs>(
         kind: Kd,
         name: Nm,
@@ -2279,6 +2291,7 @@ pub struct ModificationOptions {
 }
 
 impl ModificationOptions {
+    #[cfg_attr(feature = "cargo-clippy", allow(too_many_arguments))]
     pub fn new(
         ignore_errors: bool,
         wait_for_sync: bool,
@@ -2395,7 +2408,7 @@ impl NewExplainQuery {
     }
 
     pub fn options_mut(&mut self) -> &mut ExplainOptions {
-        self.options.get_or_insert_with(|| ExplainOptions::new())
+        self.options.get_or_insert_with(ExplainOptions::new)
     }
 
     pub fn remove_options(&mut self) -> Option<ExplainOptions> {
@@ -2466,7 +2479,7 @@ impl ExplainOptions {
 
     /// Returns a mutable reference to the optimizer options.
     pub fn optimizer_mut(&mut self) -> &mut Optimizer {
-        self.optimizer.get_or_insert_with(|| Optimizer::new())
+        self.optimizer.get_or_insert_with(Optimizer::new)
     }
 
     /// Removes the optimizer options from this struct and returns
@@ -2505,6 +2518,14 @@ impl Optimizer {
 
     pub fn rules(&self) -> &OptimizerRuleSet {
         &self.rules
+    }
+}
+
+impl Default for Optimizer {
+    fn default() -> Self {
+        Optimizer {
+            rules: OptimizerRuleSet::default()
+        }
     }
 }
 
@@ -2561,10 +2582,12 @@ impl OptimizerRuleSet {
             inner: self.rules_map.iter(),
         }
     }
+}
 
-    pub fn into_iter(self) -> OptimizerRuleIntoIter {
-        OptimizerRuleIntoIter {
-            inner: self.rules_map.into_iter(),
+impl Default for OptimizerRuleSet {
+    fn default() -> Self {
+        OptimizerRuleSet {
+            rules_map: Default::default(),
         }
     }
 }
@@ -2593,6 +2616,17 @@ impl Serialize for OptimizerRuleSet {
             }
         );
         rules_list.serialize(serializer)
+    }
+}
+
+impl IntoIterator for OptimizerRuleSet {
+    type Item = (OptimizerRule, IncludedExcluded);
+    type IntoIter = OptimizerRuleIntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        OptimizerRuleIntoIter {
+            inner: self.rules_map.into_iter(),
+        }
     }
 }
 
@@ -2635,7 +2669,7 @@ pub enum IncludedExcluded {
 /// This enum defines all possible optimizer rules as listed in the official
 /// documentation of *ArangoDB*.
 ///
-/// Source: [https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-optimizer-rules]
+/// Source: [https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-optimizer-rules](https://docs.arangodb.com/devel/AQL/ExecutionAndPerformance/Optimizer.html#list-of-optimizer-rules)
 ///
 /// Last updated: 10/08/2017
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

@@ -1,5 +1,8 @@
 
+use std::str::FromStr;
+
 use serde_json;
+
 use super::types::*;
 
 #[test]

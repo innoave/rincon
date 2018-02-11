@@ -34,7 +34,6 @@ serde = "1.0"
 rincon_connector = { path = "../rincon_connector" }
 rincon_test_helper = { path = "../rincon_test_helper" }
 hamcrest = "0.1"
-#quickcheck = "0.5"
 tokio-core = "0.1"
 version-sync = "0.5"
 

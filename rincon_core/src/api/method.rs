@@ -105,7 +105,7 @@ impl Display for Parameters {
         let mut display = String::new();
         display.push_str("Parameters[");
         if !self.list.is_empty() {
-            for &(ref key, ref value) in self.list.iter() {
+            for &(ref key, ref value) in &self.list {
                 display.push_str(key);
                 display.push('=');
                 display.push_str(&value.to_string());

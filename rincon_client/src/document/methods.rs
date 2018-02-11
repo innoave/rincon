@@ -1391,21 +1391,21 @@ impl DeleteDocuments {
         where Coll: Into<String>, Ids: IntoIterator<Item=DocumentId>
     {
         DeleteDocuments::new(collection_name, ids.into_iter()
-            .map(|id| DocumentSelector::Id(id)))
+            .map(DocumentSelector::Id))
     }
 
     pub fn with_keys<Coll, Keys>(collection_name: Coll, keys: Keys) -> Self
         where Coll: Into<String>, Keys: IntoIterator<Item=DocumentKey>
     {
         DeleteDocuments::new(collection_name, keys.into_iter()
-            .map(|key| DocumentSelector::Key(key)))
+            .map(DocumentSelector::Key))
     }
 
     pub fn with_headers<Coll, Headers>(collection_name: Coll, headers: Headers) -> Self
         where Coll: Into<String>, Headers: IntoIterator<Item=DocumentHeader>
     {
         DeleteDocuments::new(collection_name, headers.into_iter()
-            .map(|header| DocumentSelector::Header(header)))
+            .map(DocumentSelector::Header))
     }
 
     pub fn with_force_wait_for_sync<S>(mut self, force_wait_for_sync: S) -> Self
@@ -1505,21 +1505,21 @@ impl<T> DeleteDocumentsReturnOld<T> {
         where Coll: Into<String>, Ids: IntoIterator<Item=DocumentId>
     {
         DeleteDocumentsReturnOld::new(collection_name, ids.into_iter()
-            .map(|id| DocumentSelector::Id(id)))
+            .map(DocumentSelector::Id))
     }
 
     pub fn with_keys<Coll, Keys>(collection_name: Coll, keys: Keys) -> Self
         where Coll: Into<String>, Keys: IntoIterator<Item=DocumentKey>
     {
         DeleteDocumentsReturnOld::new(collection_name, keys.into_iter()
-            .map(|key| DocumentSelector::Key(key)))
+            .map(DocumentSelector::Key))
     }
 
     pub fn with_headers<Coll, Headers>(collection_name: Coll, headers: Headers) -> Self
         where Coll: Into<String>, Headers: IntoIterator<Item=DocumentHeader>
     {
         DeleteDocumentsReturnOld::new(collection_name, headers.into_iter()
-            .map(|header| DocumentSelector::Header(header)))
+            .map(DocumentSelector::Header))
     }
 
     pub fn with_force_wait_for_sync<S>(mut self, force_wait_for_sync: S) -> Self

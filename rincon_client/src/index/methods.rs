@@ -7,7 +7,7 @@ use super::types::*;
 /// Returns an `IndexList` with an attribute indexes containing an array of all
 /// index descriptions for the given collection.
 ///
-/// The same information is also available in the identifiers as a HashMap with
+/// The same information is also available in the identifiers as a hash map with
 /// the index handles as keys.
 #[derive(Debug, Clone, PartialEq)]
 pub struct GetIndexList {

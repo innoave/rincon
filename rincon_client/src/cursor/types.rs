@@ -358,7 +358,7 @@ impl NewCursor {
     ///
     /// The cursor options can be used to tweak query execution.
     pub fn options_mut(&mut self) -> &mut CursorOptions {
-        self.options.get_or_insert_with(|| CursorOptions::new())
+        self.options.get_or_insert_with(CursorOptions::new)
     }
 
     /// Removes the currently set options from this struct and returns them.
@@ -576,7 +576,7 @@ impl CursorOptions {
 
     /// Returns a mutable reference to the optimizer options.
     pub fn optimizer_mut(&mut self) -> &mut Optimizer {
-        self.optimizer.get_or_insert_with(|| Optimizer::new())
+        self.optimizer.get_or_insert_with(Optimizer::new)
     }
 
     /// Removes the optimizer options from this struct and returns

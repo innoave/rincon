@@ -180,6 +180,7 @@ impl Prepare for GetGraph {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ListGraphs {}
 
+#[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
 impl ListGraphs {
     pub fn new() -> Self {
         ListGraphs {}
@@ -759,7 +760,7 @@ impl Prepare for AddEdgeDefinition {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name()
+        String::from(PATH_API_GHARIAL) + "/" + self.graph_name()
             + PATH_EDGE
     }
 
@@ -1290,8 +1291,8 @@ impl<Upd> Prepare for ModifyEdge<Upd>
 
     fn path(&self) -> String {
         String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_EDGE + "/" + &self.edge_id.collection_name()
-            + "/" + &self.edge_id.document_key()
+            + PATH_EDGE + "/" + self.edge_id.collection_name()
+            + "/" + self.edge_id.document_key()
     }
 
     fn parameters(&self) -> Parameters {

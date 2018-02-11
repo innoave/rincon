@@ -39,9 +39,9 @@ impl BasicConnector {
         datasource: DataSource,
         reactor: &reactor::Handle
     ) -> Result<Self, Error> {
-        let https_connector = HttpsConnector::new(4, &reactor)
+        let https_connector = HttpsConnector::new(4, reactor)
             .map_err(|cause| Error::Communication(cause.to_string()))?;
-        let mut timeout_connector = TimeoutConnector::new(https_connector, &reactor);
+        let mut timeout_connector = TimeoutConnector::new(https_connector, reactor);
         timeout_connector.set_connect_timeout(Some(*datasource.timeout()));
         let client = Client::configure()
             .connector(timeout_connector)

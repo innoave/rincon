@@ -43,7 +43,7 @@ fn authenticate_with_invalid_credentials() {
     let connector = BasicConnector::new(&MyUserAgent, system_ds, &core.handle()).unwrap();
     let conn = connector.system_connection();
 
-    let method = Authenticate::with_credentials(credentials);
+    let method = Authenticate::with_credentials(&credentials);
     let result = core.run(conn.execute(method));
 
     match result {

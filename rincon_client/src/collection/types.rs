@@ -312,7 +312,7 @@ impl NewCollection {
     /// Returns the key options as mutable reference for changing key options
     /// in place.
     pub fn key_options_mut<K>(&mut self) -> &mut NewKeyOptions {
-        self.key_options.get_or_insert_with(|| NewKeyOptions::new())
+        self.key_options.get_or_insert_with(NewKeyOptions::new)
     }
 
     /// Removes the currently set key options from this struct and returns them.
@@ -768,6 +768,7 @@ pub struct CollectionPropertiesUpdate {
     journal_size: Option<u64>,
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
 impl CollectionPropertiesUpdate {
     /// Constructs a new instance of `CollectionPropertiesUpdate` with no
     /// options set.

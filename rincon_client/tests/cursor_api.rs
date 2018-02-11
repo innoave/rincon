@@ -1,4 +1,6 @@
 
+#![cfg_attr(feature = "cargo-clippy", allow(cyclomatic_complexity))]
+
 extern crate tokio_core;
 
 extern crate rincon_core;

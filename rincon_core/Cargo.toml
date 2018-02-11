@@ -26,5 +26,4 @@ serde_json = "1.0"
 url = "1.6"
 
 [dev-dependencies]
-#quickcheck = "0.5"
 version-sync = "0.5"

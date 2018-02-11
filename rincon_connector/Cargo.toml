@@ -33,7 +33,6 @@ url = "1.6"
 
 [dev-dependencies]
 rincon_test_helper = { path = "../rincon_test_helper" }
-#quickcheck = "0.5"
 dotenv = "0.10"
 log4rs = "0.8"
 version-sync = "0.5"

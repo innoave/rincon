@@ -3,7 +3,7 @@
 //! This module defines the `ErrorCode` enum for all possible error codes as
 //! listed in the official documentation of *ArangoDB*.
 //!
-//! Source: [https://docs.arangodb.com/devel/Manual/Appendix/ErrorCodes.html]
+//! Source: [https://docs.arangodb.com/devel/Manual/Appendix/ErrorCodes.html](https://docs.arangodb.com/devel/Manual/Appendix/ErrorCodes.html)
 //!
 //! The `ErrorCode` enum is defined by means of the macro `error_code_enum`.
 //! This macro defines the enum variants as well as the functions `from_u16`
@@ -37,6 +37,7 @@ macro_rules! error_code_enum {
             /// Returns the `ErrorCode` variant that is assigned to the
             /// given `u16` value.
             pub fn from_u16(value: u16) -> Self {
+                #[cfg_attr(feature = "cargo-clippy", allow(unreadable_literal))]
                 match value {
                     $(
                         $code => ErrorCode::$variant,
@@ -48,6 +49,7 @@ macro_rules! error_code_enum {
             /// Returns an integer that is assigned to the enum variant of
             /// this error code.
             pub fn as_u16(&self) -> u16 {
+                #[cfg_attr(feature = "cargo-clippy", allow(unreadable_literal))]
                 match *self {
                     $(
                         ErrorCode::$variant => $code,

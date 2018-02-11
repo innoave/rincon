@@ -5,6 +5,7 @@ use rincon_core::arango::protocol::{FIELD_CODE, PARAM_DETAILS, PATH_ADMIN,
 use super::types::*;
 
 #[allow(missing_copy_implementations)]
+#[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct GetTargetVersion {}
 
@@ -52,6 +53,7 @@ pub struct GetServerVersion {
     details: bool,
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
 impl GetServerVersion {
     pub fn new() -> Self {
         GetServerVersion {

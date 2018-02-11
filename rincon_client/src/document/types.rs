@@ -1,6 +1,7 @@
 
 use std::fmt::{self, Debug};
 use std::marker::PhantomData;
+use std::str::FromStr;
 
 use serde::de::{Deserialize, DeserializeOwned, Deserializer, MapAccess, Visitor};
 use serde::ser::{Serialize, Serializer};
@@ -15,8 +16,10 @@ pub enum DocumentIdOption {
     Local(DocumentKey),
 }
 
-impl DocumentIdOption {
-    pub fn from_str(value: &str) -> Result<Self, String> {
+impl FromStr for DocumentIdOption {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, String> {
         let handle_option = HandleOption::from_str("document id", value)?;
         Ok(match handle_option {
             HandleOption::Qualified(handle) => {
@@ -88,15 +91,6 @@ impl DocumentId {
         }
     }
 
-    pub fn from_str(value: &str) -> Result<Self, String> {
-        let handle = Handle::from_str("document id", value)?;
-        let (collection_name, document_key) = handle.deconstruct();
-        Ok(DocumentId {
-            collection_name,
-            document_key,
-        })
-    }
-
     pub fn deconstruct(self) -> (String, String) {
         (self.collection_name, self.document_key)
     }
@@ -115,6 +109,19 @@ impl DocumentId {
 
     pub fn document_key(&self) -> &str {
         &self.document_key
+    }
+}
+
+impl FromStr for DocumentId {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, String> {
+        let handle = Handle::from_str("document id", value)?;
+        let (collection_name, document_key) = handle.deconstruct();
+        Ok(DocumentId {
+            collection_name,
+            document_key,
+        })
     }
 }
 
@@ -156,16 +163,20 @@ impl DocumentKey {
         }
     }
 
-    pub fn from_str(value: &str) -> Result<Self, String> {
-        DocumentKey::from_string(value.to_owned())
-    }
-
     pub fn deconstruct(self) -> String {
         self.0
     }
 
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+}
+
+impl FromStr for DocumentKey {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, String> {
+        DocumentKey::from_string(value.to_owned())
     }
 }
 
@@ -209,12 +220,16 @@ impl Revision {
         self.0
     }
 
-    pub fn from_str(value: &str) -> Self {
-        Revision(value.to_owned())
-    }
-
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+}
+
+impl FromStr for Revision {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, String> {
+        Ok(Revision(value.to_owned()))
     }
 }
 
@@ -469,10 +484,7 @@ impl<'de, T> Deserialize<'de> for Document<T>
                         DocumentField::OldRevision => {
                             other.insert(FIELD_ENTITY_OLD_REVISION.to_owned(), fields.next_value()?);
                         },
-                        DocumentField::New => {
-                            content = fields.next_value()?;
-                        },
-                        DocumentField::Old => {
+                        DocumentField::New | DocumentField::Old => {
                             content = fields.next_value()?;
                         },
                         DocumentField::Other(name) => {

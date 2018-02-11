@@ -21,6 +21,8 @@ use rincon_client::cursor::methods::CreateCursor;
 use rincon_client::database::methods::{CreateDatabase, DropDatabase};
 use rincon_client::graph::methods::CreateGraph;
 
+/// An `ArangoSession` defines the entry point to the session api. It basically
+/// determines which `Connector` shall be used in an application.
 #[derive(Debug)]
 pub struct ArangoSession<C> {
     connector: Rc<C>,
@@ -30,27 +32,36 @@ pub struct ArangoSession<C> {
 impl<C> ArangoSession<C>
     where C: 'static + Connector
 {
-    pub fn new(connector: C, core: Core) -> Result<Self, Error> {
-        Ok(ArangoSession {
+    /// Instantiate a new `ArangoSession` using the given `Connector`.
+    pub fn new(connector: C, core: Core) -> Self {
+        ArangoSession {
             connector: Rc::new(connector),
             core: Rc::new(RefCell::new(core)),
-        })
+        }
     }
 
     pub fn close(self) {
         //TODO see if a close() method has any purpose
     }
 
-    pub fn use_system_database(&self) -> Result<DatabaseSession<C>, Error> {
+    /// Returns a new `DatabaseSession` for the system database.
+    ///
+    /// In *ArangoDB* the system database usually has the name `_system`.
+    pub fn use_system_database(&self) -> DatabaseSession<C> {
         DatabaseSession::new(SYSTEM_DATABASE.to_owned(), self.connector.clone(), self.core.clone())
     }
 
-    pub fn use_database<DbName>(&self, database_name: DbName) -> Result<DatabaseSession<C>, Error>
+    /// Returns a new `DatabaseSession` for the given database name.
+    pub fn use_database<DbName>(&self, database_name: DbName) -> DatabaseSession<C>
         where DbName: Into<String>
     {
         DatabaseSession::new(database_name.into(), self.connector.clone(), self.core.clone())
     }
 
+    /// Creates a new database with the given attributes.
+    ///
+    /// If the database could be created successfully a `DatabaseSession` using
+    /// the just created database is returned.
     pub fn create_database<UserInfo>(&self, new_database: NewDatabase<UserInfo>) -> Result<DatabaseSession<C>, Error>
         where UserInfo: UserExtra + Serialize + 'static
     {
@@ -59,11 +70,12 @@ impl<C> ArangoSession<C>
         let database_name = new_database.name().to_owned();
         self.core.borrow_mut().run(self.connector.system_connection()
             .execute(CreateDatabase::new(new_database))
-                .and_then(move |_| DatabaseSession::new(database_name, connector, core))
+                .map(move |_| DatabaseSession::new(database_name, connector, core))
         )
     }
 }
 
+/// A session for operating with a specific database.
 #[derive(Debug)]
 pub struct DatabaseSession<C> {
     database_name: String,
@@ -74,14 +86,17 @@ pub struct DatabaseSession<C> {
 impl<C> DatabaseSession<C>
     where C: 'static + Connector
 {
-    fn new(database_name: String, connector: Rc<C>, core: Rc<RefCell<Core>>) -> Result<Self, Error> {
-        Ok(DatabaseSession {
+    /// Instantiate a new `DatabaseSession` for the database with the given
+    /// name.
+    fn new(database_name: String, connector: Rc<C>, core: Rc<RefCell<Core>>) -> Self {
+        DatabaseSession {
             database_name,
             connector,
             core,
-        })
+        }
     }
 
+    /// Returns the name of the database this `DatabaseSession` operates with.
     pub fn name(&self) -> &str {
         &self.database_name
     }
@@ -135,7 +150,17 @@ impl<C> DatabaseSession<C>
         let database_name = self.database_name.clone();
         self.core.borrow_mut().run(self.connector.connection(&self.database_name)
             .execute(CreateGraph::new(new_graph))
-                .and_then(|graph| GraphSession::new(graph, database_name, connector, core))
+                .map(|graph| GraphSession::new(graph, database_name, connector, core))
+        )
+    }
+
+    /// Returns a new `GraphSession` using the given graph.
+    pub fn use_graph(&self, graph: Graph) -> GraphSession<C> {
+        GraphSession::new(
+            graph,
+            self.database_name.clone(),
+            self.connector.clone(),
+            self.core.clone()
         )
     }
 }
@@ -151,13 +176,13 @@ pub struct GraphSession<C> {
 impl<C> GraphSession<C>
     where C: 'static + Connector
 {
-    fn new(graph: Graph, database_name: String, connector: Rc<C>, core: Rc<RefCell<Core>>) -> Result<Self, Error> {
-        Ok(GraphSession {
+    fn new(graph: Graph, database_name: String, connector: Rc<C>, core: Rc<RefCell<Core>>) -> Self {
+        GraphSession {
             graph,
             database_name,
             connector,
             core,
-        })
+        }
     }
 
     pub fn graph(&self) -> &Graph {

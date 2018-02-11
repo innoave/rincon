@@ -12,6 +12,7 @@ use user::types::{NewUser, UserExtra};
 #[derive(Debug, Clone, PartialEq)]
 pub struct GetCurrentDatabase {}
 
+#[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
 impl GetCurrentDatabase {
     /// Constructs a new `GetCurrentDatabase` method.
     pub fn new() -> Self {
@@ -61,6 +62,7 @@ impl Prepare for GetCurrentDatabase {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ListDatabases {}
 
+#[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
 impl ListDatabases {
     /// Constructs a new `ListDatabases` method.
     pub fn new() -> Self {
@@ -106,6 +108,7 @@ impl Prepare for ListDatabases {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ListAccessibleDatabases {}
 
+#[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
 impl ListAccessibleDatabases {
     /// Constructs a new `ListAccessibleDatabases` method.
     pub fn new() -> Self {

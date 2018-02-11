@@ -76,10 +76,10 @@ impl DataSource {
         DataSource {
             protocol: self.protocol.clone(),
             host: self.host.clone(),
-            port: self.port.clone(),
+            port: self.port,
             database_name,
             authentication: self.authentication.clone(),
-            timeout: self.timeout.clone(),
+            timeout: self.timeout,
         }
     }
 
@@ -87,10 +87,10 @@ impl DataSource {
         DataSource {
             protocol: self.protocol.clone(),
             host: self.host.clone(),
-            port: self.port.clone(),
+            port: self.port,
             database_name: None,
             authentication: self.authentication.clone(),
-            timeout: self.timeout.clone(),
+            timeout: self.timeout,
         }
     }
 
@@ -101,10 +101,10 @@ impl DataSource {
         DataSource {
             protocol: self.protocol.clone(),
             host: self.host.clone(),
-            port: self.port.clone(),
+            port: self.port,
             database_name: self.database_name.clone(),
             authentication,
-            timeout: self.timeout.clone(),
+            timeout: self.timeout,
         }
     }
 
@@ -112,10 +112,10 @@ impl DataSource {
         DataSource {
             protocol: self.protocol.clone(),
             host: self.host.clone(),
-            port: self.port.clone(),
+            port: self.port,
             database_name: self.database_name.clone(),
             authentication,
-            timeout: self.timeout.clone(),
+            timeout: self.timeout,
         }
     }
 
@@ -123,10 +123,10 @@ impl DataSource {
         DataSource {
             protocol: self.protocol.clone(),
             host: self.host.clone(),
-            port: self.port.clone(),
+            port: self.port,
             database_name: self.database_name.clone(),
             authentication: Authentication::None,
-            timeout: self.timeout.clone(),
+            timeout: self.timeout,
         }
     }
 
@@ -136,7 +136,7 @@ impl DataSource {
         DataSource {
             protocol: self.protocol.clone(),
             host: self.host.clone(),
-            port: self.port.clone(),
+            port: self.port,
             authentication: self.authentication.clone(),
             database_name: self.database_name.clone(),
             timeout: timeout.into(),

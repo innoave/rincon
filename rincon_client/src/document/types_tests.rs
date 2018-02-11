@@ -1,5 +1,6 @@
 
 use std::collections::HashMap;
+
 use serde_json;
 
 use rincon_core::api::types::JsonString;
@@ -71,7 +72,7 @@ fn serialize_hashmap_document_with_key() {
 
 #[test]
 fn serialize_raw_json_document_without_key() {
-    let content = JsonString::from_str(r#"{"a":"Hugo","b":42}"#);
+    let content = JsonString::from_str_unchecked(r#"{"a":"Hugo","b":42}"#);
 
     let new_document = NewDocument::from_content(content);
     let json = serde_json::to_string(&new_document).unwrap();
@@ -81,7 +82,7 @@ fn serialize_raw_json_document_without_key() {
 
 #[test]
 fn serialize_raw_json_document_with_key() {
-    let content = JsonString::from_str(r#"{"a":"Hugo","b":42}"#);
+    let content = JsonString::from_str_unchecked(r#"{"a":"Hugo","b":42}"#);
 
     let new_document = NewDocument::from_content(content)
         .with_key(DocumentKey::new("29384"));
@@ -179,7 +180,7 @@ fn deserialize_json_document_just_inserted() {
 
     let document = serde_json::from_str(json_string).unwrap();
 
-    let expected = JsonString::from_str("{\
+    let expected = JsonString::from_str_unchecked("{\
             \"_id\":\"customers/29384\",\
             \"_key\":\"29384\",\
             \"_rev\":\"aOIey283aew\",\

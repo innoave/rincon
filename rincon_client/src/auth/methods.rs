@@ -13,7 +13,7 @@ pub struct Authenticate {
 impl Authenticate {
     /// Constructs a new instance of the `Authenticate` initialized with the
     /// given credentials.
-    pub fn with_credentials(credentials: Credentials) -> Self {
+    pub fn with_credentials(credentials: &Credentials) -> Self {
         Authenticate {
             request: AuthenticationRequest::new(credentials.username(), credentials.password()),
         }

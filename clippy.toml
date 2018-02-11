@@ -1,0 +1,23 @@
+
+#blacklisted-names =
+
+# The list of words that should not be considered as identifiers needing ticks
+doc-valid-idents = ["ArangoDB", "MMFiles"]
+
+#cyclomatic-complexity-threshold =
+
+#enum-variant-name-threshold =
+
+#enum-variant-size-threshold =
+
+#single-char-binding-names-threshold =
+
+#third-part =
+
+#too-large-for-stack =
+
+#too-many-arguments-threshold =
+
+#type-complexity-threshold =
+
+#verbose-bit-mask-threshold =

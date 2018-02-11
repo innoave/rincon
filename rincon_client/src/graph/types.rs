@@ -2,6 +2,7 @@
 use std::fmt::{self, Debug};
 use std::iter::FromIterator;
 use std::marker::PhantomData;
+use std::str::FromStr;
 
 use serde::de::{Deserialize, DeserializeOwned, Deserializer, MapAccess, Visitor};
 use serde::ser::{Serialize, Serializer};
@@ -464,7 +465,7 @@ impl NewGraph {
 
     #[cfg(any(feature = "enterprise", feature = "cluster"))]
     pub fn options_mut(&mut self) -> &mut GraphOptions {
-        self.options.get_or_insert_with(|| GraphOptions::default())
+        self.options.get_or_insert_with(GraphOptions::default)
     }
 
     pub fn name(&self) -> &str {

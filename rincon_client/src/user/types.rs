@@ -1,6 +1,8 @@
 
 use std::collections::HashMap;
 use std::fmt::{self, Display};
+use std::hash::BuildHasher;
+use std::str::FromStr;
 
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
@@ -49,13 +51,13 @@ impl<E> User<E>
     }
 }
 
-/// The `UserExtra' trait marks a type for being used as extra information
+/// The `UserExtra` trait marks a type for being used as extra information
 /// in the `User`, `NewUser` and `UserUpdate` structs.
 pub trait UserExtra {}
 
 impl UserExtra for Empty {}
 
-impl<K, V> UserExtra for HashMap<K, V> {}
+impl<K, V, S: BuildHasher> UserExtra for HashMap<K, V, S> {}
 
 impl UserExtra for JsonValue {}
 
@@ -310,22 +312,26 @@ pub enum Permission {
 }
 
 impl Permission {
-    pub fn from_str(value: &str) -> Result<Self, String> {
-        use self::Permission::*;
-        match value {
-            PERMISSION_READ_WRITE => Ok(ReadWrite),
-            PERMISSION_READ_ONLY => Ok(ReadOnly),
-            PERMISSION_NONE => Ok(None),
-            _ => Err(format!("Not a valid permission string: {:?}", value)),
-        }
-    }
-
     pub fn as_str(&self) -> &str {
         use self::Permission::*;
         match *self {
             ReadWrite => PERMISSION_READ_WRITE,
             ReadOnly => PERMISSION_READ_ONLY,
             None => PERMISSION_NONE,
+        }
+    }
+}
+
+impl FromStr for Permission {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, String> {
+        use self::Permission::*;
+        match value {
+            PERMISSION_READ_WRITE => Ok(ReadWrite),
+            PERMISSION_READ_ONLY => Ok(ReadOnly),
+            PERMISSION_NONE => Ok(None),
+            _ => Err(format!("Not a valid permission string: {:?}", value)),
         }
     }
 }
@@ -355,6 +361,6 @@ impl<'de> Deserialize<'de> for Permission {
     {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;
-        Permission::from_str(&value).map_err(|err| D::Error::custom(err))
+        Permission::from_str(&value).map_err(D::Error::custom)
     }
 }

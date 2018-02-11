@@ -8,6 +8,7 @@ use super::types::*;
 
 /// Retrieves a list of existing collections.
 #[allow(missing_copy_implementations)]
+#[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct ListCollections {
     /// Whether or not to exclude system collections from the response.
@@ -431,9 +432,14 @@ impl Prepare for GetCollectionProperties {
 
 /// Change the properties of a collection identified by name.
 ///
-/// **Note:** except for `wait_for_sync`, `journal_size` (for MMFiles DB) and
-/// name, collection properties cannot be changed once a collection is created.
-/// To rename a collection, the `RenameCollection` method must be used.
+/// With this method only the properties `wait_for_sync`, `journal_size`
+/// (for MMFiles DB) can be changed.
+///
+/// To change the `name` of a collection, rename the collection using the
+/// `RenameCollection` method.
+///
+/// All other collection properties can not be changed once the collection is
+/// created.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ChangeCollectionProperties {
     name: String,
@@ -501,7 +507,7 @@ impl Prepare for ChangeCollectionProperties {
 
 /// Renames a collection.
 ///
-/// ***Note:** this method is not available in a cluster.
+/// **Note:** this method is not available in a cluster.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RenameCollection {
     name: String,
@@ -572,6 +578,7 @@ pub struct RenameCollectionBuilder {
 
 impl RenameCollectionBuilder {
     //noinspection RsSelfConvention
+    #[cfg_attr(feature = "cargo-clippy", allow(wrong_self_convention))]
     /// Constructs a new instance of the `RenameCollection` method for the
     /// collection name of this builder and the given new name.
     pub fn to_name<N>(self, name: N) -> RenameCollection

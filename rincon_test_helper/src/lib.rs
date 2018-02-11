@@ -339,7 +339,7 @@ fn setup_database_if_not_existing(
     db_url: &str,
     core: &mut Core,
 ) {
-    let system_ds = DataSource::from_url(&db_url).unwrap();
+    let system_ds = DataSource::from_url(db_url).unwrap();
     let connector = BasicConnector::new(&MyUserAgent, system_ds.clone(), &core.handle()).unwrap();
     let sys_conn = connector.system_connection();
 

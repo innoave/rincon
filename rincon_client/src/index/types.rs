@@ -1,6 +1,7 @@
 
 use std::collections::HashMap;
 use std::iter::{FromIterator, IntoIterator};
+use std::str::FromStr;
 
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
@@ -23,8 +24,10 @@ pub enum IndexIdOption {
     Local(IndexKey),
 }
 
-impl IndexIdOption {
-    pub fn from_str(value: &str) -> Result<Self, String> {
+impl FromStr for IndexIdOption {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, String> {
         let handle_option = HandleOption::from_str("index id", value)?;
         Ok(match handle_option {
             HandleOption::Qualified(handle) => {
@@ -84,15 +87,6 @@ impl IndexId {
         }
     }
 
-    pub fn from_str(value: &str) -> Result<Self, String> {
-        let handle = Handle::from_str("index id", value)?;
-        let (collection_name, index_key) = handle.deconstruct();
-        Ok(IndexId {
-            collection_name,
-            index_key,
-        })
-    }
-
     pub fn deconstruct(self) -> (String, String) {
         (self.collection_name, self.index_key)
     }
@@ -111,6 +105,19 @@ impl IndexId {
 
     pub fn index_key(&self) -> &str {
         &self.index_key
+    }
+}
+
+impl FromStr for IndexId {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, String> {
+        let handle = Handle::from_str("index id", value)?;
+        let (collection_name, index_key) = handle.deconstruct();
+        Ok(IndexId {
+            collection_name,
+            index_key,
+        })
     }
 }
 
@@ -150,10 +157,6 @@ impl IndexKey {
         IndexKey(index_key)
     }
 
-    pub fn from_str(value: &str) -> Result<Self, String> {
-        IndexKey::from_string(value.to_owned())
-    }
-
     pub fn from_string(value: String) -> Result<Self, String> {
         if value.contains('/') {
             Err(format!("An index key must not contain any '/' character, but got: {:?}", &value))
@@ -172,6 +175,14 @@ impl IndexKey {
 
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+}
+
+impl FromStr for IndexKey {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, String> {
+        IndexKey::from_string(value.to_owned())
     }
 }
 

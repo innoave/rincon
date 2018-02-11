@@ -218,7 +218,7 @@ fn insert_json_document_with_key_and_return_new() {
             "groups": []
         }"#;
 
-        let new_document = NewDocument::from_content(JsonString::from_str(json_doc))
+        let new_document = NewDocument::from_content(JsonString::from_str_unchecked(json_doc))
             .with_key(DocumentKey::new("7713996"));
         let method = InsertDocumentReturnNew::new("customers05", new_document);
         let document = core.run(conn.execute(method)).unwrap();
@@ -272,7 +272,7 @@ fn insert_multiple_struct_documents_without_key() {
             .with_force_wait_for_sync(true);
         let documents = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref header1) = documents.get(0).unwrap() {
+        if let Ok(header1) = documents.get(0).unwrap() {
             assert_eq!("customers06", header1.id().collection_name());
             assert!(!header1.id().document_key().is_empty());
             assert_eq!(header1.id().document_key(), header1.key().as_str());
@@ -281,7 +281,7 @@ fn insert_multiple_struct_documents_without_key() {
             panic!("Expected document header 1, but got: {:?}", documents.get(0));
         }
 
-        if let Ok(ref header2) = documents.get(1).unwrap() {
+        if let Ok(header2) = documents.get(1).unwrap() {
             assert_eq!("customers06", header2.id().collection_name());
             assert!(!header2.id().document_key().is_empty());
             assert_eq!(header2.id().document_key(), header2.key().as_str());
@@ -331,7 +331,7 @@ fn insert_multiple_struct_documents_without_key_and_return_new() {
         let method = InsertDocumentsReturnNew::new("customers07", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref document1) = documents.get(0).unwrap() {
+        if let Ok(document1) = documents.get(0).unwrap() {
             assert_eq!("customers07", document1.id().collection_name());
             assert!(!document1.id().document_key().is_empty());
             assert_eq!(document1.id().document_key(), document1.key().as_str());
@@ -340,7 +340,7 @@ fn insert_multiple_struct_documents_without_key_and_return_new() {
         } else {
             panic!("Expected document 1, but got: {:?}", documents.get(0));
         }
-        if let Ok(ref document2) = documents.get(1).unwrap() {
+        if let Ok(document2) = documents.get(1).unwrap() {
             assert_eq!("customers07", document2.id().collection_name());
             assert!(!document2.id().document_key().is_empty());
             assert_eq!(document2.id().document_key(), document2.key().as_str());
@@ -393,7 +393,7 @@ fn insert_multiple_struct_documents_with_key() {
         let method = InsertDocuments::new("customers08", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref header1) = documents.get(0).unwrap() {
+        if let Ok(header1) = documents.get(0).unwrap() {
             assert_eq!("customers08/94711", &header1.id().to_string());
             assert_eq!("customers08", header1.id().collection_name());
             assert_eq!("94711", header1.id().document_key());
@@ -403,7 +403,7 @@ fn insert_multiple_struct_documents_with_key() {
             panic!("Expected document header 1, but got: {:?}", documents.get(0))
         }
 
-        if let Ok(ref header2) = documents.get(1).unwrap() {
+        if let Ok(header2) = documents.get(1).unwrap() {
             assert_eq!("customers08/90815", &header2.id().to_string());
             assert_eq!("customers08", header2.id().collection_name());
             assert_eq!("90815", header2.id().document_key());
@@ -456,7 +456,7 @@ fn insert_multiple_struct_documents_with_key_and_return_new() {
         let method = InsertDocumentsReturnNew::new("customers09", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref document1) = documents.get(0).unwrap() {
+        if let Ok(document1) = documents.get(0).unwrap() {
             assert_eq!("customers09/94712", &document1.id().to_string());
             assert_eq!("customers09", document1.id().collection_name());
             assert_eq!("94712", document1.id().document_key());
@@ -467,7 +467,7 @@ fn insert_multiple_struct_documents_with_key_and_return_new() {
             panic!("Expected document 1, but got: {:?}", documents.get(0));
         }
 
-        if let Ok(ref document2) = documents.get(1).unwrap() {
+        if let Ok(document2) = documents.get(1).unwrap() {
             assert_eq!("customers09/90815", &document2.id().to_string());
             assert_eq!("customers09", document2.id().collection_name());
             assert_eq!("90815", document2.id().document_key());
@@ -759,7 +759,7 @@ fn get_document_for_id_that_does_not_exist() {
 }
 
 #[ignore] //TODO refactor get document header to document exists (with possibly returning the revision)
-#[test]
+#[test] #[cfg_attr(feature = "cargo-clippy", allow(let_unit_value))]
 fn get_document_header() {
     arango_test_with_document_collection("customers20", |conn, ref mut core| {
 
@@ -1433,7 +1433,7 @@ fn insert_two_struct_documents_with_same_key() {
         let method = InsertDocuments::new("customers50", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref header1) = documents.get(0).unwrap() {
+        if let Ok(header1) = documents.get(0).unwrap() {
             assert_eq!("customers50/94711", &header1.id().to_string());
             assert_eq!("customers50", header1.id().collection_name());
             assert_eq!("94711", header1.id().document_key());
@@ -1443,7 +1443,7 @@ fn insert_two_struct_documents_with_same_key() {
             panic!("Expected document header 1, but got: {:?}", documents.get(0))
         }
 
-        if let Err(ref error) = documents.get(1).unwrap() {
+        if let Err(error) = documents.get(1).unwrap() {
             assert_eq!(ErrorCode::ArangoUniqueConstraintViolated, error.code());
             assert_eq!("unique constraint violated - in index 0 of type primary over [\"_key\"]", error.message());
         } else {
@@ -1493,7 +1493,7 @@ fn insert_two_struct_documents_with_same_key_and_return_new() {
         let method = InsertDocumentsReturnNew::new("customers51", vec![new_document1, new_document2]);
         let documents = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref document1) = documents.get(0).unwrap() {
+        if let Ok(document1) = documents.get(0).unwrap() {
             assert_eq!("customers51/94712", &document1.id().to_string());
             assert_eq!("customers51", document1.id().collection_name());
             assert_eq!("94712", document1.id().document_key());
@@ -1504,7 +1504,7 @@ fn insert_two_struct_documents_with_same_key_and_return_new() {
             panic!("Expected document 1, but got: {:?}", documents.get(0));
         }
 
-        if let Err(ref error) = documents.get(1).unwrap() {
+        if let Err(error) = documents.get(1).unwrap() {
             assert_eq!(ErrorCode::ArangoUniqueConstraintViolated, error.code());
             assert_eq!("unique constraint violated - in index 0 of type primary over [\"_key\"]", error.message());
         } else {
@@ -1592,7 +1592,7 @@ fn replace_multiple_struct_documents_without_revision() {
         ]);
         let updates = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref updated1) = updates.get(0).unwrap() {
+        if let Ok(updated1) = updates.get(0).unwrap() {
             assert_eq!(original1.id(), updated1.id());
             assert_eq!(original1.key(), updated1.key());
             assert_ne!(original1.revision(), updated1.revision());
@@ -1602,7 +1602,7 @@ fn replace_multiple_struct_documents_without_revision() {
             panic!("Expected document header 1, but got: {:?}", updates.get(0));
         }
 
-        if let Ok(ref updated2) = updates.get(1).unwrap() {
+        if let Ok(updated2) = updates.get(1).unwrap() {
             assert_eq!(original2.id(), updated2.id());
             assert_eq!(original2.key(), updated2.key());
             assert_ne!(original2.revision(), updated2.revision());
@@ -1695,7 +1695,7 @@ fn replace_multiple_struct_documents_with_revision() {
         ]).with_ignore_revisions(false);
         let updates = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref updated1) = updates.get(0).unwrap() {
+        if let Ok(updated1) = updates.get(0).unwrap() {
             assert_eq!(original1.id(), updated1.id());
             assert_eq!(original1.key(), updated1.key());
             assert_ne!(original1.revision(), updated1.revision());
@@ -1903,14 +1903,14 @@ fn delete_multiple_documents_by_ids() {
         ]);
         let result_list = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+        if let Ok(deleted) = result_list.get(0).unwrap() {
             assert_eq!(original1.id(), deleted.id());
             assert_eq!(original1.key(), deleted.key());
             assert_eq!(original1.revision(), deleted.revision());
         } else {
             panic!("Expected document header 1, but got: {:?}", result_list.get(0));
         }
-        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+        if let Ok(deleted) = result_list.get(1).unwrap() {
             assert_eq!(original2.id(), deleted.id());
             assert_eq!(original2.key(), deleted.key());
             assert_eq!(original2.revision(), deleted.revision());
@@ -1969,14 +1969,14 @@ fn delete_multiple_documents_by_keys() {
         ]);
         let result_list = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+        if let Ok(deleted) = result_list.get(0).unwrap() {
             assert_eq!(original1.id(), deleted.id());
             assert_eq!(original1.key(), deleted.key());
             assert_eq!(original1.revision(), deleted.revision());
         } else {
             panic!("Expected document header 1, but got: {:?}", result_list.get(0));
         }
-        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+        if let Ok(deleted) = result_list.get(1).unwrap() {
             assert_eq!(original2.id(), deleted.id());
             assert_eq!(original2.key(), deleted.key());
             assert_eq!(original2.revision(), deleted.revision());
@@ -2035,14 +2035,14 @@ fn delete_multiple_documents_by_headers() {
         ]).with_ignore_revisions(false);
         let result_list = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+        if let Ok(deleted) = result_list.get(0).unwrap() {
             assert_eq!(original1.id(), deleted.id());
             assert_eq!(original1.key(), deleted.key());
             assert_eq!(original1.revision(), deleted.revision());
         } else {
             panic!("Expected document header 1, but got: {:?}", result_list.get(0));
         }
-        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+        if let Ok(deleted) = result_list.get(1).unwrap() {
             assert_eq!(original2.id(), deleted.id());
             assert_eq!(original2.key(), deleted.key());
             assert_eq!(original2.revision(), deleted.revision());
@@ -2105,14 +2105,14 @@ fn delete_multiple_documents_by_headers_ignore_revisions() {
         ]).with_ignore_revisions(true);
         let result_list = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+        if let Ok(deleted) = result_list.get(0).unwrap() {
             assert_eq!(original1.id(), deleted.id());
             assert_eq!(original1.key(), deleted.key());
             assert_eq!(original1.revision(), deleted.revision());
         } else {
             panic!("Expected document header 1, but got: {:?}", result_list.get(0));
         }
-        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+        if let Ok(deleted) = result_list.get(1).unwrap() {
             assert_eq!(original2.id(), deleted.id());
             assert_eq!(original2.key(), deleted.key());
             assert_eq!(original2.revision(), deleted.revision());
@@ -2181,7 +2181,7 @@ fn delete_multiple_documents_by_headers_one_not_existing_revision() {
         } else {
             panic!("Expected error, but got: {:?}", result_list.get(0))
         }
-        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+        if let Ok(deleted) = result_list.get(1).unwrap() {
             assert_eq!(original2.id(), deleted.id());
             assert_eq!(original2.key(), deleted.key());
             assert_eq!(original2.revision(), deleted.revision());
@@ -2240,7 +2240,7 @@ fn delete_multiple_documents_by_ids_return_old() {
         ]);
         let result_list = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+        if let Ok(deleted) = result_list.get(0).unwrap() {
             assert_eq!(original1.id(), deleted.id());
             assert_eq!(original1.key(), deleted.key());
             assert_eq!(original1.revision(), deleted.revision());
@@ -2248,7 +2248,7 @@ fn delete_multiple_documents_by_ids_return_old() {
         } else {
             panic!("Expected document header 1, but got: {:?}", result_list.get(0));
         }
-        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+        if let Ok(deleted) = result_list.get(1).unwrap() {
             assert_eq!(original2.id(), deleted.id());
             assert_eq!(original2.key(), deleted.key());
             assert_eq!(original2.revision(), deleted.revision());
@@ -2308,7 +2308,7 @@ fn delete_multiple_documents_by_keys_return_old() {
         ]);
         let result_list = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+        if let Ok(deleted) = result_list.get(0).unwrap() {
             assert_eq!(original1.id(), deleted.id());
             assert_eq!(original1.key(), deleted.key());
             assert_eq!(original1.revision(), deleted.revision());
@@ -2316,7 +2316,7 @@ fn delete_multiple_documents_by_keys_return_old() {
         } else {
             panic!("Expected document header 1, but got: {:?}", result_list.get(0));
         }
-        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+        if let Ok(deleted) = result_list.get(1).unwrap() {
             assert_eq!(original2.id(), deleted.id());
             assert_eq!(original2.key(), deleted.key());
             assert_eq!(original2.revision(), deleted.revision());
@@ -2376,7 +2376,7 @@ fn delete_multiple_documents_by_headers_return_old() {
         ]).with_ignore_revisions(false);
         let result_list = core.run(conn.execute(method)).unwrap();
 
-        if let Ok(ref deleted) = result_list.get(0).unwrap() {
+        if let Ok(deleted) = result_list.get(0).unwrap() {
             assert_eq!(original1.id(), deleted.id());
             assert_eq!(original1.key(), deleted.key());
             assert_eq!(original1.revision(), deleted.revision());
@@ -2384,7 +2384,7 @@ fn delete_multiple_documents_by_headers_return_old() {
         } else {
             panic!("Expected document header 1, but got: {:?}", result_list.get(0));
         }
-        if let Ok(ref deleted) = result_list.get(1).unwrap() {
+        if let Ok(deleted) = result_list.get(1).unwrap() {
             assert_eq!(original2.id(), deleted.id());
             assert_eq!(original2.key(), deleted.key());
             assert_eq!(original2.revision(), deleted.revision());

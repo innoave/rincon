@@ -120,9 +120,9 @@ fn list_databases_for_user_testuser3() {
         let databases = core.run(work).unwrap();
 
         assert!(databases.contains_key("testbase31"));
-        assert_eq!(&Permission::ReadWrite, databases.get("testbase31").unwrap());
+        assert_eq!(&Permission::ReadWrite, &databases["testbase31"]);
         assert!(databases.contains_key("testbase32"));
-        assert_eq!(&Permission::ReadWrite, databases.get("testbase32").unwrap());
+        assert_eq!(&Permission::ReadWrite, &databases["testbase32"]);
 
     }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase32"))).unwrap();

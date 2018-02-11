@@ -25,7 +25,7 @@ use rincon_test_helper::*;
 fn create_database() {
     arango_session_test(|connector, core| {
 
-        let arango = ArangoSession::new(connector, core).unwrap();
+        let arango = ArangoSession::new(connector, core);
 
         let database = arango.create_database::<Empty>(NewDatabase::new("the_social_network",
             vec![NewUser::with_name("an_user", "a_pass")])).unwrap();
@@ -44,9 +44,9 @@ fn use_database() {
     let datasource = system_datasource();
     let connector = BasicConnector::new(&MyUserAgent, datasource, &core.handle()).unwrap();
 
-    let arango = ArangoSession::new(connector, core).unwrap();
+    let arango = ArangoSession::new(connector, core);
 
-    let database = arango.use_database("the_social_network").unwrap();
+    let database = arango.use_database("the_social_network");
 
     assert_that!(database.name(), is(equal_to("the_social_network")));
 }

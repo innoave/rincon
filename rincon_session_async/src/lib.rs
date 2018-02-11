@@ -13,8 +13,6 @@
     unused_qualifications,
 )]
 
-//#[cfg(test)] #[macro_use] extern crate hamcrest;
-
 extern crate futures;
 extern crate serde;
 
