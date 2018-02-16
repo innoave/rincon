@@ -1,4 +1,7 @@
 
+#[cfg(test)]
+mod tests;
+
 use std::fmt::{self, Display};
 
 use serde::de::{Deserialize, Deserializer};

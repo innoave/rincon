@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use serde_json;
 
-use super::types::*;
+use super::*;
 
 #[test]
 fn get_index_key_from_str() {

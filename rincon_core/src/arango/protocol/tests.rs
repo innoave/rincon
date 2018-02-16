@@ -1,5 +1,5 @@
 
-use super::protocol::*;
+use super::*;
 
 #[test]
 fn get_handle_key_from_str() {

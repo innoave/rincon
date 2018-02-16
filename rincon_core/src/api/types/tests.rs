@@ -1,5 +1,5 @@
 
-use super::types::*;
+use super::*;
 
 #[test]
 fn convert_string_value_to_string() {

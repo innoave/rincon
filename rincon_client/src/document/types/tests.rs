@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use serde_json;
 
 use rincon_core::api::types::JsonString;
-use super::types::*;
+use super::*;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct MyContent {

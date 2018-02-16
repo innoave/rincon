@@ -1,6 +1,6 @@
 
 use api::types::Value;
-use super::query::*;
+use super::*;
 
 #[test]
 fn query_set_string_parameter() {

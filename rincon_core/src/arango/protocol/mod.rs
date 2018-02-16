@@ -1,4 +1,7 @@
 
+#[cfg(test)]
+mod tests;
+
 use std::fmt;
 use std::marker::PhantomData;
 

@@ -4,7 +4,7 @@ use serde_json;
 use rincon_core::api::query::Query;
 use rincon_core::api::types::Value;
 use aql::types::OptimizerRule;
-use super::types::*;
+use super::*;
 
 #[test]
 fn convert_query_into_new_cursor_to_be_created() {

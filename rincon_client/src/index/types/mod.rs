@@ -1,4 +1,7 @@
 
+#[cfg(test)]
+mod tests;
+
 use std::collections::HashMap;
 use std::iter::{FromIterator, IntoIterator};
 use std::str::FromStr;
