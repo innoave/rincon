@@ -18,7 +18,6 @@ codecov = { repository = "innoave/rincon" }
 
 [dependencies]
 rincon_core = { path = "../rincon_core" }
-failure = "0.1"
 futures = "0.1"
 hyper = "0.11"
 hyper-timeout = "0.1"

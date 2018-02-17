@@ -1,9 +1,9 @@
 
-use std::fmt::{self, Debug, Display};
+use std::fmt;
 
 pub use arango::ErrorCode;
 
-#[derive(Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Fail)]
 pub struct Error {
     #[serde(rename = "code")]
     status_code: u16,
@@ -37,14 +37,7 @@ impl Error {
     }
 }
 
-impl Debug for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(&format!("Error {}: {} (Status: {})",
-            &self.error_code.as_u16(), &self.message, &self.status_code))
-    }
-}
-
-impl Display for Error {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(&format!("Error {}: {} (Status: {})",
             &self.error_code.as_u16(), &self.message, &self.status_code))

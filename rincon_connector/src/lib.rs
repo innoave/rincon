@@ -13,7 +13,6 @@
     unused_qualifications,
 )]
 
-extern crate failure;
 extern crate futures;
 extern crate hyper;
 extern crate hyper_timeout;
