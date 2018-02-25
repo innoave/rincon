@@ -19,7 +19,7 @@ codecov = { repository = "innoave/rincon" }
 rincon_core = { path = "../rincon_core" }
 rincon_connector = { path = "../rincon_connector" }
 rincon_client = { path = "../rincon_client" }
-dotenv = "0.10"
+dotenv = "0.11"
 log4rs = "0.8"
 tokio-core = "0.1"
 
