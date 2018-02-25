@@ -243,11 +243,11 @@ pub struct NewCollection {
 }
 
 impl NewCollection {
-    fn new<K, S>(name: String, kind: K, is_system: S) -> Self
-        where K: Into<Option<CollectionType>>, S: Into<Option<bool>>
+    fn new<N, K, S>(name: N, kind: K, is_system: S) -> Self
+        where N: Into<String>, K: Into<Option<CollectionType>>, S: Into<Option<bool>>
     {
         NewCollection {
-            name,
+            name: name.into(),
             kind: kind.into(),
             is_system: is_system.into(),
             key_options: None,

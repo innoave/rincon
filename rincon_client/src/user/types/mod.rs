@@ -102,11 +102,11 @@ impl<E> NewUser<E>
 {
     /// Constructs an new instance of `NewUser` with all attributes explicitly
     /// set.
-    pub fn new<P, A, O>(name: String, password: P, active: A, extra: O) -> Self
-        where P: Into<Option<String>>, A: Into<Option<bool>>, O: Into<Option<E>>
+    pub fn new<N, P, A, O>(name: N, password: P, active: A, extra: O) -> Self
+        where N: Into<String>, P: Into<Option<String>>, A: Into<Option<bool>>, O: Into<Option<E>>
     {
         NewUser {
-            user: name,
+            user: name.into(),
             passwd: password.into(),
             active: active.into(),
             extra: extra.into(),

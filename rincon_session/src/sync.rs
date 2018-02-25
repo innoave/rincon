@@ -922,25 +922,31 @@ impl<C> CollectionSession<C>
 
     /// Fetches the document with the given key from this collection if the
     /// revision matches the given predicate.
-    pub fn get_document_if_match<T, M>(&self, key: DocumentKey, if_match: M) -> Result<Document<T>>
-        where T: 'static + DeserializeOwned, M: Into<String>
+    pub fn get_document_if_match<IfMatch, T>(&self, key: DocumentKey, if_match: IfMatch) -> Result<Document<T>>
+        where
+            IfMatch: Into<String>,
+            T: 'static + DeserializeOwned,
     {
         self.execute(GetDocument::new(self.name(), key).with_if_match(if_match))
     }
 
     /// Fetches the document with the given key from this collection if the
     /// revision does not match the given predicate.
-    pub fn get_document_if_non_match<T, M>(&self, key: DocumentKey, if_non_match: M) -> Result<Document<T>>
-        where T: 'static + DeserializeOwned, M: Into<String>
+    pub fn get_document_if_non_match<IfNonMatch, T>(&self, key: DocumentKey, if_non_match: IfNonMatch) -> Result<Document<T>>
+        where
+            IfNonMatch: Into<String>,
+            T: 'static + DeserializeOwned,
     {
         self.execute(GetDocument::new(self.name(), key).with_if_non_match(if_non_match))
     }
 
     /// Fetches multiple documents with the given keys from this collection.
-    pub fn get_documents<T>(&self, keys: Vec<DocumentKey>) -> Result<ResultList<Document<T>>>
-        where T: 'static + DeserializeOwned
+    pub fn get_documents<Keys, T>(&self, keys: Keys) -> Result<ResultList<Document<T>>>
+        where
+            Keys: IntoIterator<Item=DocumentKey>,
+            T: 'static + DeserializeOwned,
     {
-        self.execute(GetDocuments::new(self.name(), keys))
+        self.execute(GetDocuments::with_keys(self.name(), keys))
     }
 
     /// Replaces an existing document with new content.
@@ -949,14 +955,14 @@ impl<C> CollectionSession<C>
     ///
     /// * `key` : The key of the document to be replaced
     /// * `new_document` : The new content of the document
-    pub fn replace_document<O, T>(
+    pub fn replace_document<Old, New>(
         &self,
         key: DocumentKey,
-        new_document: DocumentUpdate<T>,
-    ) -> Result<UpdatedDocument<O, T>>
+        new_document: DocumentUpdate<New>,
+    ) -> Result<UpdatedDocument<Old, New>>
         where
-            O: 'static + DeserializeOwned,
-            T: 'static + Serialize + DeserializeOwned + Debug,
+            Old: 'static + DeserializeOwned,
+            New: 'static + Serialize + DeserializeOwned + Debug,
     {
         let id = DocumentId::new(self.name(), key.deconstruct());
         self.execute(ReplaceDocument::new(id, new_document))
@@ -971,19 +977,51 @@ impl<C> CollectionSession<C>
     /// * `new_document` : The new content of the document
     /// * `if_match` : The match condition that must be met to replace a
     ///   document
-    pub fn replace_document_if_match<O, T, M>(
+    pub fn replace_document_if_match<IfMatch, Old, New>(
         &self,
         key: DocumentKey,
-        new_document: DocumentUpdate<T>,
-        if_match: M
-    ) -> Result<UpdatedDocument<O, T>>
+        new_document: DocumentUpdate<New>,
+        if_match: IfMatch,
+    ) -> Result<UpdatedDocument<Old, New>>
         where
-            O: 'static + DeserializeOwned,
-            T: 'static + Serialize + DeserializeOwned + Debug,
-            M: Into<String>,
+            IfMatch: Into<String>,
+            Old: 'static + DeserializeOwned,
+            New: 'static + Serialize + DeserializeOwned + Debug,
     {
         let id = DocumentId::new(self.name(), key.deconstruct());
-        self.execute(ReplaceDocument::new(id, new_document).with_if_match(if_match))
+        self.execute(ReplaceDocument::new(id, new_document)
+            .with_if_match(if_match)
+        )
+    }
+
+    /// Replaces an existing document with new content if the match condition
+    /// is met. This function allows to specify detailed options for the
+    /// replace method.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` : The key of the document to be replaced
+    /// * `new_document` : The new content of the document
+    /// * `if_match` : The match condition that must be met to replace a
+    ///   document
+    /// * `options` : Additional options for the replace method
+    pub fn replace_document_if_match_opt<IfMatch, Old, New>(
+        &self,
+        key: DocumentKey,
+        new_document: DocumentUpdate<New>,
+        if_match: IfMatch,
+        options: DocumentReplaceOptions,
+    ) -> Result<UpdatedDocument<Old, New>>
+        where
+            IfMatch: Into<String>,
+            Old: 'static + DeserializeOwned,
+            New: 'static + Serialize + DeserializeOwned + Debug,
+    {
+        let id = DocumentId::new(self.name(), key.deconstruct());
+        self.execute(ReplaceDocument::new(id, new_document)
+            .with_if_match(if_match)
+            .with_options(options)
+        )
     }
 
     /// Replaces an existing document with new content. This function allows
@@ -994,15 +1032,15 @@ impl<C> CollectionSession<C>
     /// * `key` : The key of the document to be replaced
     /// * `new_document` : The new content of the document
     /// * `options` : Additional options for the replace method
-    pub fn replace_document_opt<O, T>(
+    pub fn replace_document_opt<Old, New>(
         &self,
         key: DocumentKey,
-        new_document: DocumentUpdate<T>,
+        new_document: DocumentUpdate<New>,
         options: DocumentReplaceOptions,
-    ) -> Result<UpdatedDocument<O, T>>
+    ) -> Result<UpdatedDocument<Old, New>>
         where
-            O: 'static + DeserializeOwned,
-            T: 'static + Serialize + DeserializeOwned + Debug,
+            Old: 'static + DeserializeOwned,
+            New: 'static + Serialize + DeserializeOwned + Debug,
     {
         let id = DocumentId::new(self.name(), key.deconstruct());
         self.execute(ReplaceDocument::new(id, new_document).with_options(options))
@@ -1020,14 +1058,14 @@ impl<C> CollectionSession<C>
     /// * `key` : The key of the document to be replaced
     /// * `modifications` : A document with the content to be modified
     ///   (patch document)
-    pub fn modify_document<O, T>(
+    pub fn modify_document<Old, New>(
         &self,
         key: DocumentKey,
-        modifications: DocumentUpdate<T>,
-    ) -> Result<UpdatedDocument<O, T>>
+        modifications: DocumentUpdate<New>,
+    ) -> Result<UpdatedDocument<Old, New>>
         where
-            O: 'static + DeserializeOwned,
-            T: 'static + Serialize + DeserializeOwned + Debug,
+            Old: 'static + DeserializeOwned,
+            New: 'static + Serialize + DeserializeOwned + Debug,
     {
         let id = DocumentId::new(self.name(), key.deconstruct());
         self.execute(ModifyDocument::new(id, modifications))
@@ -1047,19 +1085,56 @@ impl<C> CollectionSession<C>
     ///   (patch document)
     /// * `if_match` : The match condition that must be met to replace a
     ///   document
-    pub fn modify_document_if_match<O, T, M>(
+    pub fn modify_document_if_match<IfMatch, Old, New>(
         &self,
         key: DocumentKey,
-        modifications: DocumentUpdate<T>,
-        if_match: M
-    ) -> Result<UpdatedDocument<O, T>>
+        modifications: DocumentUpdate<New>,
+        if_match: IfMatch,
+    ) -> Result<UpdatedDocument<Old, New>>
         where
-            O: 'static + DeserializeOwned,
-            T: 'static + Serialize + DeserializeOwned + Debug,
-            M: Into<String>
+            IfMatch: Into<String>,
+            Old: 'static + DeserializeOwned,
+            New: 'static + Serialize + DeserializeOwned + Debug,
     {
         let id = DocumentId::new(self.name(), key.deconstruct());
-        self.execute(ModifyDocument::new(id, modifications).with_if_match(if_match))
+        self.execute(ModifyDocument::new(id, modifications)
+            .with_if_match(if_match)
+        )
+    }
+
+    /// Partially modifies an existing document if the match condition is met.
+    /// This function allows to specify detailed options for the modify method.
+    ///
+    /// The modifications argument must contain a document with the attributes
+    /// to patch (the patch document). All attributes from the patch document
+    /// will be added to the existing document if they do not exist yet or
+    /// overwritten in the existing document if they already exist there.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` : The key of the document to be replaced
+    /// * `modifications` : A document with the content to be modified
+    ///   (patch document)
+    /// * `if_match` : The match condition that must be met to replace a
+    ///   document
+    /// * `options` : Additional options for the modify method
+    pub fn modify_document_if_match_opt<IfMatch, Old, New>(
+        &self,
+        key: DocumentKey,
+        modifications: DocumentUpdate<New>,
+        if_match: IfMatch,
+        options: DocumentModifyOptions,
+    ) -> Result<UpdatedDocument<Old, New>>
+        where
+            IfMatch: Into<String>,
+            Old: 'static + DeserializeOwned,
+            New: 'static + Serialize + DeserializeOwned + Debug,
+    {
+        let id = DocumentId::new(self.name(), key.deconstruct());
+        self.execute(ModifyDocument::new(id, modifications)
+            .with_if_match(if_match)
+            .with_options(options)
+        )
     }
 
     /// Partially modifies an existing document. This function allows to
@@ -1076,44 +1151,46 @@ impl<C> CollectionSession<C>
     /// * `modifications` : A document with the content to be modified
     ///   (patch document)
     /// * `options` : Additional options for the modify method
-    pub fn modify_document_opt<O, T>(
+    pub fn modify_document_opt<Old, New>(
         &self,
         key: DocumentKey,
-        modifications: DocumentUpdate<T>,
+        modifications: DocumentUpdate<New>,
         options: DocumentModifyOptions,
-    ) -> Result<UpdatedDocument<O, T>>
+    ) -> Result<UpdatedDocument<Old, New>>
         where
-            O: 'static + DeserializeOwned,
-            T: 'static + Serialize + DeserializeOwned + Debug,
+            Old: 'static + DeserializeOwned,
+            New: 'static + Serialize + DeserializeOwned + Debug,
     {
         let id = DocumentId::new(self.name(), key.deconstruct());
-        self.execute(ModifyDocument::new(id, modifications).with_options(options))
+        self.execute(ModifyDocument::new(id, modifications)
+            .with_options(options)
+        )
     }
 
     pub fn delete_document(&self, document_key: DocumentKey) -> Result<DocumentHeader> {
         self.execute(DeleteDocument::new(self.name(), document_key))
     }
 
-    pub fn delete_document_if_match<M>(
+    pub fn delete_document_if_match<IfMatch>(
         &self,
         document_key: DocumentKey,
-        if_match: M
+        if_match: IfMatch,
     ) -> Result<DocumentHeader>
         where
-            M: Into<String>,
+            IfMatch: Into<String>,
     {
         self.execute(DeleteDocument::new(self.name(), document_key)
             .with_if_match(if_match)
         )
     }
 
-    pub fn delete_document_if_match_synced<M>(
+    pub fn delete_document_if_match_synced<IfMatch>(
         &self,
         document_key: DocumentKey,
-        if_match: M
+        if_match: IfMatch,
     ) -> Result<DocumentHeader>
         where
-            M: Into<String>,
+            IfMatch: Into<String>,
     {
         self.execute(DeleteDocument::new(self.name(), document_key)
             .with_if_match(if_match)
@@ -1127,20 +1204,20 @@ impl<C> CollectionSession<C>
         )
     }
 
-    pub fn delete_document_return_old<T>(&self, document_key: DocumentKey) -> Result<Document<T>>
+    pub fn delete_document_return_old<Old>(&self, document_key: DocumentKey) -> Result<Document<Old>>
         where
-            T: 'static + DeserializeOwned,
+            Old: 'static + DeserializeOwned,
     {
         self.execute(DeleteDocumentReturnOld::new(self.name(), document_key))
     }
 
-    pub fn delete_document_if_match_return_old<M, T>(
+    pub fn delete_document_if_match_return_old<IfMatch, T>(
         &self,
         document_key: DocumentKey,
-        if_match: M
+        if_match: IfMatch,
     ) -> Result<Document<T>>
         where
-            M: Into<String>,
+            IfMatch: Into<String>,
             T: 'static + DeserializeOwned,
     {
         self.execute(DeleteDocumentReturnOld::new(self.name(), document_key)
@@ -1148,13 +1225,13 @@ impl<C> CollectionSession<C>
         )
     }
 
-    pub fn delete_document_if_match_return_old_synced<M, T>(
+    pub fn delete_document_if_match_return_old_synced<IfMatch, T>(
         &self,
         document_key: DocumentKey,
-        if_match: M
+        if_match: IfMatch,
     ) -> Result<Document<T>>
         where
-            M: Into<String>,
+            IfMatch: Into<String>,
             T: 'static + DeserializeOwned,
     {
         self.execute(DeleteDocumentReturnOld::new(self.name(), document_key)
@@ -1165,7 +1242,7 @@ impl<C> CollectionSession<C>
 
     pub fn delete_document_return_old_synced<T>(
         &self,
-        document_key: DocumentKey
+        document_key: DocumentKey,
     ) -> Result<Document<T>>
         where
             T: 'static + DeserializeOwned,

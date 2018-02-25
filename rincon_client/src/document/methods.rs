@@ -122,29 +122,37 @@ impl<T> Prepare for GetDocument<T> {
 #[derive(Debug, Clone, PartialEq)]
 pub struct GetDocuments<T> {
     collection_name: String,
-    keys: Vec<DocumentKey>,
+    selectors: Vec<DocumentSelector>,
     if_match: Option<String>,
     if_non_match: Option<String>,
     content: PhantomData<T>,
 }
 
 impl<T> GetDocuments<T> {
-    pub fn new<Coll>(collection_name: Coll, document_keys: Vec<DocumentKey>) -> Self
-        where Coll: Into<String>
+    pub fn new<Coll, Selectors>(collection_name: Coll, selectors: Selectors) -> Self
+        where Coll: Into<String>, Selectors: IntoIterator<Item=DocumentSelector>
     {
         GetDocuments {
             collection_name: collection_name.into(),
-            keys: document_keys,
+            selectors: Vec::from_iter(selectors.into_iter()),
             if_match: None,
             if_non_match: None,
             content: PhantomData,
         }
     }
 
-    pub fn with_keys<Coll>(collection_name: Coll, document_keys: Vec<DocumentKey>) -> Self
-        where Coll: Into<String>
+    pub fn with_ids<Coll, Ids>(collection_name: Coll, ids: Ids) -> Self
+        where Coll: Into<String>, Ids: IntoIterator<Item=DocumentId>
     {
-        GetDocuments::new(collection_name, document_keys)
+        GetDocuments::new(collection_name, ids.into_iter()
+            .map(DocumentSelector::Id))
+    }
+
+    pub fn with_keys<Coll, Keys>(collection_name: Coll, keys: Keys) -> Self
+        where Coll: Into<String>, Keys: IntoIterator<Item=DocumentKey>
+    {
+        GetDocuments::new(collection_name, keys.into_iter()
+            .map(DocumentSelector::Key))
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
@@ -165,8 +173,8 @@ impl<T> GetDocuments<T> {
         &self.collection_name
     }
 
-    pub fn keys(&self) -> &[DocumentKey] {
-        &self.keys
+    pub fn selectors(&self) -> &[DocumentSelector] {
+        &self.selectors
     }
 
     pub fn if_match(&self) -> Option<&String> {
@@ -189,7 +197,7 @@ impl<T> Method for GetDocuments<T>
 }
 
 impl<T> Prepare for GetDocuments<T> {
-    type Content = Vec<DocumentKey>;
+    type Content = Vec<DocumentSelector>;
 
     fn operation(&self) -> Operation {
         Operation::Replace
@@ -218,7 +226,7 @@ impl<T> Prepare for GetDocuments<T> {
     }
 
     fn content(&self) -> Option<&Self::Content> {
-        Some(&self.keys)
+        Some(&self.selectors)
     }
 }
 
