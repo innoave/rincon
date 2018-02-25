@@ -308,16 +308,16 @@ impl PrimaryIndex {
 }
 
 impl IndexDetails for PrimaryIndex {
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
-    }
-
     fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
     fn fields(&self) -> &[String] {
         &self.fields
+    }
+
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
     }
 
     fn is_unique(&self) -> bool {
@@ -380,16 +380,16 @@ impl HashIndex {
 }
 
 impl IndexDetails for HashIndex {
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
-    }
-
     fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
     fn fields(&self) -> &[String] {
         &self.fields
+    }
+
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
     }
 
     fn is_unique(&self) -> bool {
@@ -424,16 +424,16 @@ impl SkipListIndex {
 }
 
 impl IndexDetails for SkipListIndex {
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
-    }
-
     fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
     fn fields(&self) -> &[String] {
         &self.fields
+    }
+
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
     }
 
     fn is_unique(&self) -> bool {
@@ -468,16 +468,16 @@ impl PersistentIndex {
 }
 
 impl IndexDetails for PersistentIndex {
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
-    }
-
     fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
     fn fields(&self) -> &[String] {
         &self.fields
+    }
+
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
     }
 
     fn is_unique(&self) -> bool {
@@ -517,16 +517,16 @@ impl Geo1Index {
 }
 
 impl IndexDetails for Geo1Index {
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
-    }
-
     fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
     fn fields(&self) -> &[String] {
         &self.fields
+    }
+
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
     }
 
     fn is_unique(&self) -> bool {
@@ -561,16 +561,16 @@ impl Geo2Index {
 }
 
 impl IndexDetails for Geo2Index {
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
-    }
-
     fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
     fn fields(&self) -> &[String] {
         &self.fields
+    }
+
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
     }
 
     fn is_unique(&self) -> bool {
@@ -605,16 +605,16 @@ impl FulltextIndex {
 }
 
 impl IndexDetails for FulltextIndex {
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
-    }
-
     fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
     fn fields(&self) -> &[String] {
         &self.fields
+    }
+
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
     }
 
     fn is_unique(&self) -> bool {
@@ -642,16 +642,16 @@ pub struct EdgeIndex {
 }
 
 impl IndexDetails for EdgeIndex {
-    fn is_newly_created(&self) -> bool {
-        self.newly_created
-    }
-
     fn id(&self) -> &IndexIdOption {
         &self.id
     }
 
     fn fields(&self) -> &[String] {
         &self.fields
+    }
+
+    fn is_newly_created(&self) -> bool {
+        self.newly_created
     }
 
     fn is_unique(&self) -> bool {

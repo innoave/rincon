@@ -91,15 +91,6 @@ impl<T> Cursor<T> {
         self.cached
     }
 
-    /// Returns an optional JSON object with extra information about the query
-    /// result contained in its `stats` sub-attribute. For data-modification
-    /// queries, the `extra.stats` sub-attribute will contain the number of
-    /// modified documents and the number of documents that could not be
-    /// modified due to an error (if `ignoreErrors` query option is specified).
-    fn extra(&self) -> Option<&CursorExtra> {
-        self.extra.as_ref()
-    }
-
     /// Returns the statistics about the execution of data modification queries.
     ///
     /// The stats will be `None` if the query is not a data modification query
@@ -492,22 +483,7 @@ impl CursorOptions {
     ///
     /// All fields are set to `None`.
     fn new() -> Self {
-        CursorOptions {
-            fail_on_warning: None,
-            profile: None,
-            max_warning_count: None,
-            full_count: None,
-            max_plans: None,
-            optimizer: None,
-            #[cfg(feature = "rocksdb")]
-            intermediate_commit_count: None,
-            #[cfg(feature = "rocksdb")]
-            intermediate_commit_size: None,
-            #[cfg(feature = "rocksdb")]
-            max_transaction_size: None,
-            #[cfg(feature = "enterprise")]
-            satellite_sync_wait: None,
-        }
+        CursorOptions::default()
     }
 
     /// Sets the flag indicating whether the query shall fail on warnings.
@@ -695,5 +671,26 @@ impl CursorOptions {
     /// into sync.
     pub fn satellite_sync_wait(&self) -> Option<bool> {
         self.satellite_sync_wait
+    }
+}
+
+impl Default for CursorOptions {
+    fn default() -> Self {
+        CursorOptions {
+            fail_on_warning: None,
+            profile: None,
+            max_warning_count: None,
+            full_count: None,
+            max_plans: None,
+            optimizer: None,
+            #[cfg(feature = "rocksdb")]
+            intermediate_commit_count: None,
+            #[cfg(feature = "rocksdb")]
+            intermediate_commit_size: None,
+            #[cfg(feature = "rocksdb")]
+            max_transaction_size: None,
+            #[cfg(feature = "enterprise")]
+            satellite_sync_wait: None,
+        }
     }
 }

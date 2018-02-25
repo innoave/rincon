@@ -512,12 +512,7 @@ impl NewKeyOptions {
     /// Constructs a new instance of `NewKeyOptions` with the kind set to
     /// `KeyGeneratorType::Traditional` and all optional fields set to `None`.
     fn new() -> Self {
-        NewKeyOptions {
-            allow_user_keys: None,
-            kind: KeyGeneratorType::Traditional,
-            increment: None,
-            offset: None,
-        }
+        NewKeyOptions::default()
     }
 
     /// Sets the flag indicating whether user keys shall be allowed.
@@ -575,6 +570,17 @@ impl NewKeyOptions {
     /// Returns the initial offset value for autoincrement key generator.
     pub fn offset(&self) -> Option<u64> {
         self.offset
+    }
+}
+
+impl Default for NewKeyOptions {
+    fn default() -> Self {
+        NewKeyOptions {
+            allow_user_keys: None,
+            kind: KeyGeneratorType::Traditional,
+            increment: None,
+            offset: None,
+        }
     }
 }
 
