@@ -8,6 +8,12 @@ use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer, SerializeSeq};
 use serde_json;
 
+#[derive(Debug)]
+pub enum Entity<T> {
+    Name(String),
+    Object(T),
+}
+
 pub const EMPTY: Empty = Empty {};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

@@ -27,8 +27,8 @@ fn create_database() {
 
         let arango = ArangoSession::new(connector, core);
 
-        let database = arango.create_database::<Empty>(NewDatabase::new("the_social_network",
-            vec![NewUser::with_name("an_user", "a_pass")])).unwrap();
+        let database = arango.create_database::<_, Empty>("the_social_network",
+            vec![NewUser::with_name("an_user", "a_pass")]).unwrap();
 
         assert_that!(database.name(), is(equal_to("the_social_network")));
     },
@@ -46,7 +46,7 @@ fn use_database() {
 
     let arango = ArangoSession::new(connector, core);
 
-    let database = arango.use_database("the_social_network");
+    let database = arango.use_database_with_name("the_social_network");
 
     assert_that!(database.name(), is(equal_to("the_social_network")));
 }
