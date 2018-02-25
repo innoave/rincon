@@ -10,7 +10,7 @@ use rincon_core::api::method::{Method, Operation, Parameters, Prepare,
     ResultList, RpcReturnType};
 use rincon_core::arango::protocol::{FIELD_CODE, HEADER_IF_MATCH,
     HEADER_IF_NON_MATCH, PARAM_IGNORE_REVISIONS, PARAM_KEEP_NULL,
-    PARAM_MERGE_OBJECTS, PARAM_RETURN_NEW, PARAM_RETURN_OLD,
+    PARAM_MERGE_OBJECTS, PARAM_ONLY_GET, PARAM_RETURN_NEW, PARAM_RETURN_OLD,
     PARAM_WAIT_FOR_SYNC, PATH_API_DOCUMENT};
 use super::types::*;
 
@@ -37,12 +37,7 @@ impl<T> GetDocument<T> {
     pub fn with_key<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
         where Coll: Into<String>
     {
-        GetDocument {
-            id: DocumentId::new(collection_name, document_key.deconstruct()),
-            if_match: None,
-            if_non_match: None,
-            content: PhantomData,
-        }
+        GetDocument::new(collection_name, document_key)
     }
 
     pub fn with_id(id: DocumentId) -> Self {
@@ -55,16 +50,16 @@ impl<T> GetDocument<T> {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<Option<String>>
+        where IfMatch: Into<String>
     {
-        self.if_match = if_match.into();
+        self.if_match = Some(if_match.into());
         self
     }
 
     pub fn with_if_non_match<IfNonMatch>(mut self, if_non_match: IfNonMatch) -> Self
-        where IfNonMatch: Into<Option<String>>
+        where IfNonMatch: Into<String>
     {
-        self.if_non_match = if_non_match.into();
+        self.if_non_match = Some(if_non_match.into());
         self
     }
 
@@ -125,6 +120,109 @@ impl<T> Prepare for GetDocument<T> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct GetDocuments<T> {
+    collection_name: String,
+    keys: Vec<DocumentKey>,
+    if_match: Option<String>,
+    if_non_match: Option<String>,
+    content: PhantomData<T>,
+}
+
+impl<T> GetDocuments<T> {
+    pub fn new<Coll>(collection_name: Coll, document_keys: Vec<DocumentKey>) -> Self
+        where Coll: Into<String>
+    {
+        GetDocuments {
+            collection_name: collection_name.into(),
+            keys: document_keys,
+            if_match: None,
+            if_non_match: None,
+            content: PhantomData,
+        }
+    }
+
+    pub fn with_keys<Coll>(collection_name: Coll, document_keys: Vec<DocumentKey>) -> Self
+        where Coll: Into<String>
+    {
+        GetDocuments::new(collection_name, document_keys)
+    }
+
+    pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
+        where IfMatch: Into<String>
+    {
+        self.if_match = Some(if_match.into());
+        self
+    }
+
+    pub fn with_if_non_match<IfNonMatch>(mut self, if_non_match: IfNonMatch) -> Self
+        where IfNonMatch: Into<String>
+    {
+        self.if_non_match = Some(if_non_match.into());
+        self
+    }
+
+    pub fn collection_name(&self) -> &str {
+        &self.collection_name
+    }
+
+    pub fn keys(&self) -> &[DocumentKey] {
+        &self.keys
+    }
+
+    pub fn if_match(&self) -> Option<&String> {
+        self.if_match.as_ref()
+    }
+
+    pub fn if_non_match(&self) -> Option<&String> {
+        self.if_non_match.as_ref()
+    }
+}
+
+impl<T> Method for GetDocuments<T>
+    where T: DeserializeOwned
+{
+    type Result = ResultList<Document<T>>;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some(FIELD_CODE),
+    };
+}
+
+impl<T> Prepare for GetDocuments<T> {
+    type Content = Vec<DocumentKey>;
+
+    fn operation(&self) -> Operation {
+        Operation::Replace
+    }
+
+    fn path(&self) -> String {
+        String::from(PATH_API_DOCUMENT)
+            + "/" + &self.collection_name
+    }
+
+    fn parameters(&self) -> Parameters {
+        let mut params = Parameters::with_capacity(1);
+        params.insert(PARAM_ONLY_GET, true);
+        params
+    }
+
+    fn header(&self) -> Parameters {
+        let mut header = Parameters::new();
+        if let Some(ref if_match) = self.if_match {
+            header.insert(HEADER_IF_MATCH, if_match.to_owned());
+        }
+        if let Some(ref if_non_match) = self.if_non_match {
+            header.insert(HEADER_IF_NON_MATCH, if_non_match.to_owned());
+        }
+        header
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        Some(&self.keys)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct GetDocumentHeader {
     id: DocumentId,
     if_match: Option<String>,
@@ -161,16 +259,16 @@ impl GetDocumentHeader {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<Option<String>>
+        where IfMatch: Into<String>
     {
-        self.if_match = if_match.into();
+        self.if_match = Some(if_match.into());
         self
     }
 
     pub fn with_if_non_match<IfNonMatch>(mut self, if_non_match: IfNonMatch) -> Self
-        where IfNonMatch: Into<Option<String>>
+        where IfNonMatch: Into<String>
     {
-        self.if_non_match = if_non_match.into();
+        self.if_non_match = Some(if_non_match.into());
         self
     }
 
@@ -254,10 +352,8 @@ impl<T> InsertDocument<T> {
         &self.document
     }
 
-    pub fn with_force_wait_for_sync<Wfs>(mut self, force_wait_for_sync: Wfs) -> Self
-        where Wfs: Into<Option<bool>>
-    {
-        self.force_wait_for_sync = force_wait_for_sync.into();
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
         self
     }
 
@@ -333,10 +429,8 @@ impl<T> InsertDocumentReturnNew<T> {
         &self.document
     }
 
-    pub fn with_force_wait_for_sync<Wfs>(mut self, force_wait_for_sync: Wfs) -> Self
-        where Wfs: Into<Option<bool>>
-    {
-        self.force_wait_for_sync = force_wait_for_sync.into();
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
         self
     }
 
@@ -412,10 +506,8 @@ impl<T> InsertDocuments<T> {
         &self.documents
     }
 
-    pub fn with_force_wait_for_sync<Wfs>(mut self, force_wait_for_sync: Wfs) -> Self
-        where Wfs: Into<Option<bool>>
-    {
-        self.force_wait_for_sync = force_wait_for_sync.into();
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
         self
     }
 
@@ -491,10 +583,8 @@ impl<T> InsertDocumentsReturnNew<T> {
         &self.documents
     }
 
-    pub fn with_force_wait_for_sync<Wfs>(mut self, force_wait_for_sync: Wfs) -> Self
-        where Wfs: Into<Option<bool>>
-    {
-        self.force_wait_for_sync = force_wait_for_sync.into();
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
         self
     }
 
@@ -549,11 +639,8 @@ pub struct ReplaceDocument<Old, New> {
     document_id: DocumentId,
     new_document: DocumentUpdate<New>,
     old_content: PhantomData<Old>,
-    force_wait_for_sync: Option<bool>,
-    ignore_revisions: Option<bool>,
     if_match: Option<String>,
-    return_old: Option<bool>,
-    return_new: Option<bool>,
+    options: DocumentReplaceOptions,
 }
 
 impl<Old, New> ReplaceDocument<Old, New> {
@@ -562,46 +649,20 @@ impl<Old, New> ReplaceDocument<Old, New> {
             document_id,
             new_document,
             old_content: PhantomData,
-            force_wait_for_sync: None,
-            ignore_revisions: None,
             if_match: None,
-            return_old: None,
-            return_new: None,
+            options: Default::default(),
         }
     }
 
-    pub fn with_force_wait_for_sync<W>(mut self, force_wait_for_sync: W) -> Self
-        where W: Into<Option<bool>>
+    pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
+        where IfMatch: Into<String>
     {
-        self.force_wait_for_sync = force_wait_for_sync.into();
+        self.if_match = Some(if_match.into());
         self
     }
 
-    pub fn with_ignore_revisions<R>(mut self, ignore_revisions: R) -> Self
-        where R: Into<Option<bool>>
-    {
-        self.ignore_revisions = ignore_revisions.into();
-        self
-    }
-
-    pub fn with_if_match<M>(mut self, if_match: M) -> Self
-        where M: Into<Option<String>>
-    {
-        self.if_match = if_match.into();
-        self
-    }
-
-    pub fn with_return_old<O>(mut self, return_old: O) -> Self
-        where O: Into<Option<bool>>
-    {
-        self.return_old = return_old.into();
-        self
-    }
-
-    pub fn with_return_new<N>(mut self, return_new: N) -> Self
-        where N: Into<Option<bool>>
-    {
-        self.return_new = return_new.into();
+    pub fn with_options(mut self, options: DocumentReplaceOptions) -> Self {
+        self.options = options;
         self
     }
 
@@ -613,24 +674,12 @@ impl<Old, New> ReplaceDocument<Old, New> {
         &self.new_document
     }
 
-    pub fn force_wait_for_sync(&self) -> Option<bool> {
-        self.force_wait_for_sync
-    }
-
-    pub fn ignore_revisions(&self) -> Option<bool> {
-        self.ignore_revisions
-    }
-
     pub fn if_match(&self) -> Option<&String> {
         self.if_match.as_ref()
     }
 
-    pub fn return_old(&self) -> Option<bool> {
-        self.return_old
-    }
-
-    pub fn return_new(&self) -> Option<bool> {
-        self.return_new
+    pub fn options(&self) -> &DocumentReplaceOptions {
+        &self.options
     }
 }
 
@@ -661,16 +710,16 @@ impl<Old, New> Prepare for ReplaceDocument<Old, New>
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::new();
-        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+        if let Some(force_wait_for_sync) = self.options.force_wait_for_sync() {
             params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
         }
-        if let Some(ignore_revisions) = self.ignore_revisions {
+        if let Some(ignore_revisions) = self.options.ignore_revisions() {
             params.insert(PARAM_IGNORE_REVISIONS, ignore_revisions);
         }
-        if let Some(return_old) = self.return_old {
+        if let Some(return_old) = self.options.return_old() {
             params.insert(PARAM_RETURN_OLD, return_old);
         }
-        if let Some(return_new) = self.return_new {
+        if let Some(return_new) = self.options.return_new() {
             params.insert(PARAM_RETURN_NEW, return_new);
         }
         params
@@ -694,10 +743,7 @@ pub struct ReplaceDocuments<Old, New> {
     collection_name: String,
     new_documents: Vec<DocumentUpdate<New>>,
     old_content: PhantomData<Old>,
-    force_wait_for_sync: Option<bool>,
-    ignore_revisions: Option<bool>,
-    return_old: Option<bool>,
-    return_new: Option<bool>,
+    options: DocumentReplaceOptions,
 }
 
 impl<Old, New> ReplaceDocuments<Old, New> {
@@ -708,38 +754,12 @@ impl<Old, New> ReplaceDocuments<Old, New> {
             collection_name: collection_name.into(),
             new_documents: Vec::from_iter(new_documents.into_iter()),
             old_content: PhantomData,
-            force_wait_for_sync: None,
-            ignore_revisions: None,
-            return_old: None,
-            return_new: None,
+            options: Default::default(),
         }
     }
 
-    pub fn with_force_wait_for_sync<W>(mut self, force_wait_for_sync: W) -> Self
-        where W: Into<Option<bool>>
-    {
-        self.force_wait_for_sync = force_wait_for_sync.into();
-        self
-    }
-
-    pub fn with_ignore_revisions<R>(mut self, ignore_revisions: R) -> Self
-        where R: Into<Option<bool>>
-    {
-        self.ignore_revisions = ignore_revisions.into();
-        self
-    }
-
-    pub fn with_return_old<O>(mut self, return_old: O) -> Self
-        where O: Into<Option<bool>>
-    {
-        self.return_old = return_old.into();
-        self
-    }
-
-    pub fn with_return_new<N>(mut self, return_new: N) -> Self
-        where N: Into<Option<bool>>
-    {
-        self.return_new = return_new.into();
+    pub fn with_options(mut self, options: DocumentReplaceOptions) -> Self {
+        self.options = options;
         self
     }
 
@@ -751,20 +771,8 @@ impl<Old, New> ReplaceDocuments<Old, New> {
         &self.new_documents
     }
 
-    pub fn force_wait_for_sync(&self) -> Option<bool> {
-        self.force_wait_for_sync
-    }
-
-    pub fn ignore_revisions(&self) -> Option<bool> {
-        self.ignore_revisions
-    }
-
-    pub fn return_old(&self) -> Option<bool> {
-        self.return_old
-    }
-
-    pub fn return_new(&self) -> Option<bool> {
-        self.return_new
+    pub fn options(&self) -> &DocumentReplaceOptions {
+        &self.options
     }
 }
 
@@ -793,16 +801,16 @@ impl<Old, New> Prepare for ReplaceDocuments<Old, New>
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::new();
-        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+        if let Some(force_wait_for_sync) = self.options.force_wait_for_sync() {
             params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
         }
-        if let Some(ignore_revisions) = self.ignore_revisions {
+        if let Some(ignore_revisions) = self.options.ignore_revisions() {
             params.insert(PARAM_IGNORE_REVISIONS, ignore_revisions);
         }
-        if let Some(return_old) = self.return_old {
+        if let Some(return_old) = self.options.return_old() {
             params.insert(PARAM_RETURN_OLD, return_old);
         }
-        if let Some(return_new) = self.return_new {
+        if let Some(return_new) = self.options.return_new() {
             params.insert(PARAM_RETURN_NEW, return_new);
         }
         params
@@ -823,13 +831,8 @@ pub struct ModifyDocument<Upd, Old, New> {
     update: DocumentUpdate<Upd>,
     old_content: PhantomData<Old>,
     new_content: PhantomData<New>,
-    force_wait_for_sync: Option<bool>,
-    ignore_revisions: Option<bool>,
     if_match: Option<String>,
-    keep_none: Option<bool>,
-    merge_objects: Option<bool>,
-    return_old: Option<bool>,
-    return_new: Option<bool>,
+    options: DocumentModifyOptions,
 }
 
 impl<Upd, Old, New> ModifyDocument<Upd, Old, New> {
@@ -839,62 +842,20 @@ impl<Upd, Old, New> ModifyDocument<Upd, Old, New> {
             update,
             old_content: PhantomData,
             new_content: PhantomData,
-            force_wait_for_sync: None,
-            ignore_revisions: None,
             if_match: None,
-            keep_none: None,
-            merge_objects: None,
-            return_old: None,
-            return_new: None,
+            options: Default::default(),
         }
     }
 
-    pub fn with_force_wait_for_sync<W>(mut self, force_wait_for_sync: W) -> Self
-        where W: Into<Option<bool>>
+    pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
+        where IfMatch: Into<String>
     {
-        self.force_wait_for_sync = force_wait_for_sync.into();
+        self.if_match = Some(if_match.into());
         self
     }
 
-    pub fn with_ignore_revisions<R>(mut self, ignore_revisions: R) -> Self
-        where R: Into<Option<bool>>
-    {
-        self.ignore_revisions = ignore_revisions.into();
-        self
-    }
-
-    pub fn with_if_match<M>(mut self, if_match: M) -> Self
-        where M: Into<Option<String>>
-    {
-        self.if_match = if_match.into();
-        self
-    }
-
-    pub fn with_keep_none<K>(mut self, keep_none: K) -> Self
-        where K: Into<Option<bool>>
-    {
-        self.keep_none = keep_none.into();
-        self
-    }
-
-    pub fn with_merge_objects<M>(mut self, merge_objects: M) -> Self
-        where M: Into<Option<bool>>
-    {
-        self.merge_objects = merge_objects.into();
-        self
-    }
-
-    pub fn with_return_old<O>(mut self, return_old: O) -> Self
-        where O: Into<Option<bool>>
-    {
-        self.return_old = return_old.into();
-        self
-    }
-
-    pub fn with_return_new<N>(mut self, return_new: N) -> Self
-        where N: Into<Option<bool>>
-    {
-        self.return_new = return_new.into();
+    pub fn with_options(mut self, options: DocumentModifyOptions) -> Self {
+        self.options = options;
         self
     }
 
@@ -906,32 +867,12 @@ impl<Upd, Old, New> ModifyDocument<Upd, Old, New> {
         &self.update
     }
 
-    pub fn force_wait_for_sync(&self) -> Option<bool> {
-        self.force_wait_for_sync
-    }
-
-    pub fn ignore_revisions(&self) -> Option<bool> {
-        self.ignore_revisions
-    }
-
     pub fn if_match(&self) -> Option<&String> {
         self.if_match.as_ref()
     }
 
-    pub fn keep_none(&self) -> Option<bool> {
-        self.keep_none
-    }
-
-    pub fn merge_objects(&self) -> Option<bool> {
-        self.merge_objects
-    }
-
-    pub fn return_old(&self) -> Option<bool> {
-        self.return_old
-    }
-
-    pub fn return_new(&self) -> Option<bool> {
-        self.return_new
+    pub fn options(&self) -> &DocumentModifyOptions {
+        &self.options
     }
 }
 
@@ -962,22 +903,22 @@ impl<Upd, Old, New> Prepare for ModifyDocument<Upd, Old, New>
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::new();
-        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+        if let Some(force_wait_for_sync) = self.options.force_wait_for_sync() {
             params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
         }
-        if let Some(ignore_revisions) = self.ignore_revisions {
+        if let Some(ignore_revisions) = self.options.ignore_revisions() {
             params.insert(PARAM_IGNORE_REVISIONS, ignore_revisions);
         }
-        if let Some(keep_none) = self.keep_none {
+        if let Some(keep_none) = self.options.keep_none() {
             params.insert(PARAM_KEEP_NULL, keep_none);
         }
-        if let Some(merge_objects) = self.merge_objects {
+        if let Some(merge_objects) = self.options.merge_objects() {
             params.insert(PARAM_MERGE_OBJECTS, merge_objects);
         }
-        if let Some(return_old) = self.return_old {
+        if let Some(return_old) = self.options.return_old() {
             params.insert(PARAM_RETURN_OLD, return_old);
         }
-        if let Some(return_new) = self.return_new {
+        if let Some(return_new) = self.options.return_new() {
             params.insert(PARAM_RETURN_NEW, return_new);
         }
         params
@@ -1002,12 +943,7 @@ pub struct ModifyDocuments<Upd, Old, New> {
     updates: Vec<DocumentUpdate<Upd>>,
     old_content: PhantomData<Old>,
     new_content: PhantomData<New>,
-    force_wait_for_sync: Option<bool>,
-    ignore_revisions: Option<bool>,
-    keep_none: Option<bool>,
-    merge_objects: Option<bool>,
-    return_old: Option<bool>,
-    return_new: Option<bool>,
+    options: DocumentModifyOptions,
 }
 
 impl<Upd, Old, New> ModifyDocuments<Upd, Old, New> {
@@ -1019,54 +955,12 @@ impl<Upd, Old, New> ModifyDocuments<Upd, Old, New> {
             updates: Vec::from_iter(updates.into_iter()),
             old_content: PhantomData,
             new_content: PhantomData,
-            force_wait_for_sync: None,
-            ignore_revisions: None,
-            keep_none: None,
-            merge_objects: None,
-            return_old: None,
-            return_new: None,
+            options: Default::default(),
         }
     }
 
-    pub fn with_force_wait_for_sync<W>(mut self, force_wait_for_sync: W) -> Self
-        where W: Into<Option<bool>>
-    {
-        self.force_wait_for_sync = force_wait_for_sync.into();
-        self
-    }
-
-    pub fn with_ignore_revisions<R>(mut self, ignore_revisions: R) -> Self
-        where R: Into<Option<bool>>
-    {
-        self.ignore_revisions = ignore_revisions.into();
-        self
-    }
-
-    pub fn with_keep_none<K>(mut self, keep_none: K) -> Self
-        where K: Into<Option<bool>>
-    {
-        self.keep_none = keep_none.into();
-        self
-    }
-
-    pub fn with_merge_objects<M>(mut self, merge_objects: M) -> Self
-        where M: Into<Option<bool>>
-    {
-        self.merge_objects = merge_objects.into();
-        self
-    }
-
-    pub fn with_return_old<O>(mut self, return_old: O) -> Self
-        where O: Into<Option<bool>>
-    {
-        self.return_old = return_old.into();
-        self
-    }
-
-    pub fn with_return_new<N>(mut self, return_new: N) -> Self
-        where N: Into<Option<bool>>
-    {
-        self.return_new = return_new.into();
+    pub fn with_options(mut self, options: DocumentModifyOptions) -> Self {
+        self.options = options;
         self
     }
 
@@ -1078,28 +972,8 @@ impl<Upd, Old, New> ModifyDocuments<Upd, Old, New> {
         &self.updates
     }
 
-    pub fn force_wait_for_sync(&self) -> Option<bool> {
-        self.force_wait_for_sync
-    }
-
-    pub fn ignore_revisions(&self) -> Option<bool> {
-        self.ignore_revisions
-    }
-
-    pub fn keep_none(&self) -> Option<bool> {
-        self.keep_none
-    }
-
-    pub fn merge_objects(&self) -> Option<bool> {
-        self.merge_objects
-    }
-
-    pub fn return_old(&self) -> Option<bool> {
-        self.return_old
-    }
-
-    pub fn return_new(&self) -> Option<bool> {
-        self.return_new
+    pub fn options(&self) -> &DocumentModifyOptions {
+        &self.options
     }
 }
 
@@ -1128,22 +1002,22 @@ impl<Upd, Old, New> Prepare for ModifyDocuments<Upd, Old, New>
 
     fn parameters(&self) -> Parameters {
         let mut params = Parameters::new();
-        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+        if let Some(force_wait_for_sync) = self.options.force_wait_for_sync() {
             params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
         }
-        if let Some(ignore_revisions) = self.ignore_revisions {
+        if let Some(ignore_revisions) = self.options.ignore_revisions() {
             params.insert(PARAM_IGNORE_REVISIONS, ignore_revisions);
         }
-        if let Some(keep_none) = self.keep_none {
+        if let Some(keep_none) = self.options.keep_none() {
             params.insert(PARAM_KEEP_NULL, keep_none);
         }
-        if let Some(merge_objects) = self.merge_objects {
+        if let Some(merge_objects) = self.options.merge_objects() {
             params.insert(PARAM_MERGE_OBJECTS, merge_objects);
         }
-        if let Some(return_old) = self.return_old {
+        if let Some(return_old) = self.options.return_old() {
             params.insert(PARAM_RETURN_OLD, return_old);
         }
-        if let Some(return_new) = self.return_new {
+        if let Some(return_new) = self.options.return_new() {
             params.insert(PARAM_RETURN_NEW, return_new);
         }
         params
@@ -1189,17 +1063,15 @@ impl DeleteDocument {
         }
     }
 
-    pub fn with_force_wait_for_sync<S>(mut self, force_wait_for_sync: S) -> Self
-        where S: Into<Option<bool>>
-    {
-        self.force_wait_for_sync = force_wait_for_sync.into();
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
         self
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<Option<String>>
+        where IfMatch: Into<String>
     {
-        self.if_match = if_match.into();
+        self.if_match = Some(if_match.into());
         self
     }
 
@@ -1295,17 +1167,15 @@ impl<T> DeleteDocumentReturnOld<T> {
         }
     }
 
-    pub fn with_force_wait_for_sync<S>(mut self, force_wait_for_sync: S) -> Self
-        where S: Into<Option<bool>>
-    {
-        self.force_wait_for_sync = force_wait_for_sync.into();
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
         self
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<Option<String>>
+        where IfMatch: Into<String>
     {
-        self.if_match = if_match.into();
+        self.if_match = Some(if_match.into());
         self
     }
 
@@ -1408,10 +1278,8 @@ impl DeleteDocuments {
             .map(DocumentSelector::Header))
     }
 
-    pub fn with_force_wait_for_sync<S>(mut self, force_wait_for_sync: S) -> Self
-        where S: Into<Option<bool>>
-    {
-        self.force_wait_for_sync = force_wait_for_sync.into();
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
         self
     }
 
@@ -1522,10 +1390,8 @@ impl<T> DeleteDocumentsReturnOld<T> {
             .map(DocumentSelector::Header))
     }
 
-    pub fn with_force_wait_for_sync<S>(mut self, force_wait_for_sync: S) -> Self
-        where S: Into<Option<bool>>
-    {
-        self.force_wait_for_sync = force_wait_for_sync.into();
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
         self
     }
 

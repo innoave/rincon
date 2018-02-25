@@ -70,6 +70,42 @@ impl Collection {
     }
 }
 
+impl From<CollectionRevision> for Collection {
+    fn from(properties: CollectionRevision) -> Self {
+        Collection {
+            id: properties.id,
+            name: properties.name,
+            kind: properties.kind,
+            status: properties.status,
+            is_system: properties.is_system,
+        }
+    }
+}
+
+impl From<BasicCollectionProperties> for Collection {
+    fn from(basic_properties: BasicCollectionProperties) -> Self {
+        Collection {
+            id: basic_properties.id,
+            name: basic_properties.name,
+            kind: basic_properties.kind,
+            status: basic_properties.status,
+            is_system: basic_properties.is_system,
+        }
+    }
+}
+
+impl From<CollectionProperties> for Collection {
+    fn from(properties: CollectionProperties) -> Self {
+        Collection {
+            id: properties.id,
+            name: properties.name,
+            kind: properties.kind,
+            status: properties.status,
+            is_system: properties.is_system,
+        }
+    }
+}
+
 /// This struct defines all attributes that may be specified when creating a
 /// new collection.
 ///
@@ -542,6 +578,66 @@ impl NewKeyOptions {
     }
 }
 
+/// This struct holds the revision of a collection together with some basic
+/// attributes.
+///
+/// It is returned by the `GetCollectionRevision` method.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionRevision {
+    /// The id of the collection.
+    id: String,
+
+    /// The name of the collection.
+    name: String,
+
+    /// The type of the collection.
+    #[serde(rename = "type")]
+    kind: CollectionType,
+
+    /// The status of the collection.
+    status: CollectionStatus,
+
+    /// Whether the collection is system collection or regular collection.
+    is_system: bool,
+
+    /// The revision of the collection.
+    revision: String,
+}
+
+impl CollectionRevision {
+    /// Returns the id of the collection.
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    /// Returns the name of the collection.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Returns the type of the collection.
+    pub fn kind(&self) -> CollectionType {
+        self.kind
+    }
+
+    /// Returns the status of the collection.
+    pub fn status(&self) -> CollectionStatus {
+        self.status
+    }
+
+    /// Returns whether the collection is a system or regular
+    /// collection.
+    pub fn is_system(&self) -> bool {
+        self.is_system
+    }
+
+    /// Returns the revision of the collection.
+    pub fn revision(&self) -> &str {
+        &self.revision
+    }
+}
+
 /// This struct holds basic attributes of a collection.
 ///
 /// It is returned by the `CreateCollection` method.
@@ -610,6 +706,21 @@ impl BasicCollectionProperties {
     /// Returns whether this collection is a volatile collection.
     pub fn is_volatile(&self) -> bool {
         self.is_volatile
+    }
+}
+
+impl From<CollectionProperties> for BasicCollectionProperties {
+    fn from(properties: CollectionProperties) -> Self {
+        BasicCollectionProperties {
+            id: properties.id,
+            name: properties.name,
+            kind: properties.kind,
+            status: properties.status,
+            is_system: properties.is_system,
+            wait_for_sync: properties.wait_for_sync,
+            #[cfg(feature = "mmfiles")]
+            is_volatile: properties.is_volatile
+        }
     }
 }
 

@@ -7,6 +7,8 @@ extern crate rincon_connector;
 extern crate rincon_client;
 extern crate rincon_test_helper;
 
+use std::iter::FromIterator;
+
 use rincon_core::api::ErrorCode;
 use rincon_core::api::connector::{Error, Execute};
 use rincon_core::api::types::JsonString;
@@ -758,6 +760,77 @@ fn get_document_for_id_that_does_not_exist() {
     });
 }
 
+#[test]
+fn get_multiple_documents_for_keys() {
+    arango_test_with_document_collection("customers17", |conn, ref mut core| {
+
+        let customer1 = Customer {
+            name: "Jane Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "1-555-234523".to_owned(),
+                    kind: ContactType::Phone,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Female,
+            age: 42,
+            active: true,
+            groups: vec![],
+        };
+
+        let customer2 = Customer {
+            name: "John Doe".to_owned(),
+            contact: vec![
+                Contact {
+                    address: "john.doe@mail.com".to_owned(),
+                    kind: ContactType::Email,
+                    tag: Some(Tag("work".to_owned())),
+                }
+            ],
+            gender: Gender::Male,
+            age: 27,
+            active: true,
+            groups: vec![],
+        };
+
+        let new_document1 = NewDocument::from_content(customer1)
+            .with_key(DocumentKey::new("94711"));
+        let new_document2 = NewDocument::from_content(customer2)
+            .with_key(DocumentKey::new("90815"));
+        let method = InsertDocuments::new("customers17", vec![new_document1, new_document2]);
+        let headers = core.run(conn.execute(method)).unwrap();
+
+        let document_keys = Vec::from_iter(headers.into_iter().map(|h| {
+            let (_, key, _) = h.unwrap().deconstruct();
+            key
+        }));
+
+        let method = GetDocuments::<Customer>::with_keys("customers17", document_keys);
+        let documents = core.run(conn.execute(method)).unwrap();
+
+        if let Ok(header1) = documents.get(0).unwrap() {
+            assert_eq!("customers17/94711", &header1.id().to_string());
+            assert_eq!("customers17", header1.id().collection_name());
+            assert_eq!("94711", header1.id().document_key());
+            assert_eq!("94711", header1.key().as_str());
+            assert!(!header1.revision().as_str().is_empty());
+        } else {
+            panic!("Expected document header 1, but got: {:?}", documents.get(0))
+        }
+
+        if let Ok(header2) = documents.get(1).unwrap() {
+            assert_eq!("customers17/90815", &header2.id().to_string());
+            assert_eq!("customers17", header2.id().collection_name());
+            assert_eq!("90815", header2.id().document_key());
+            assert_eq!("90815", header2.key().as_str());
+            assert!(!header2.revision().as_str().is_empty());
+        } else {
+            panic!("Expected document header 2, but got: {:?}", documents.get(1))
+        }
+    });
+}
+
 #[ignore] //TODO refactor get document header to document exists (with possibly returning the revision)
 #[test] #[cfg_attr(feature = "cargo-clippy", allow(let_unit_value))]
 fn get_document_header() {
@@ -985,7 +1058,7 @@ fn replace_with_struct_document_of_other_type_return_old() {
         let document_update = DocumentUpdate::new(document_key.clone(), replacement.clone())
             .with_revision(revision.clone());
         let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update)
-            .with_return_old(true);
+            .with_options(DocumentReplaceOptions::new().with_return_old(true));
         let updated = core.run(conn.execute(method)).unwrap();
 
         assert_eq!("customers33", updated.id().collection_name());
@@ -1037,7 +1110,7 @@ fn replace_with_struct_document_of_other_type_return_new() {
         let document_update = DocumentUpdate::new(document_key.clone(), replacement.clone())
             .with_revision(revision.clone());
         let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update)
-            .with_return_new(true);
+            .with_options(DocumentReplaceOptions::new().with_return_new(true));
         let updated = core.run(conn.execute(method)).unwrap();
 
         assert_eq!("customers34", updated.id().collection_name());
@@ -1089,8 +1162,10 @@ fn replace_with_struct_document_of_other_type_return_old_and_new() {
         let document_update = DocumentUpdate::new(document_key.clone(), replacement.clone())
             .with_revision(revision.clone());
         let method = ReplaceDocument::new(document_id.clone(), document_update)
-            .with_return_new(true)
-            .with_return_old(true);
+            .with_options(DocumentReplaceOptions::new()
+                .with_return_new(true)
+                .with_return_old(true)
+            );
         let updated = core.run(conn.execute(method)).unwrap();
 
         assert_eq!("customers35", updated.id().collection_name());
@@ -1144,10 +1219,12 @@ fn replace_with_struct_document_with_ignore_revisions_return_old_and_new() {
         let document_update = DocumentUpdate::new(document_key.clone(), replacement.clone())
             .with_revision(Revision::new("wrong_revision"));
         let method = ReplaceDocument::new(document_id.clone(), document_update)
-            .with_ignore_revisions(true)
-            .with_return_old(true)
-            .with_return_new(true)
-            .with_force_wait_for_sync(true);
+            .with_options(DocumentReplaceOptions::new()
+                .with_ignore_revisions(true)
+                .with_return_old(true)
+                .with_return_new(true)
+                .with_force_wait_for_sync(true)
+            );
         let updated = core.run(conn.execute(method)).unwrap();
 
         assert_eq!("customers36", updated.id().collection_name());
@@ -1201,10 +1278,12 @@ fn replace_with_struct_document_with_not_existing_revision() {
         let document_update = DocumentUpdate::new(document_key.clone(), replacement)
             .with_revision(Revision::new("wrong_revision"));
         let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update)
-            .with_ignore_revisions(false)
-            .with_return_old(true)
-            .with_return_new(true)
-            .with_force_wait_for_sync(true);
+            .with_options(DocumentReplaceOptions::new()
+                .with_ignore_revisions(false)
+                .with_return_old(true)
+                .with_return_new(true)
+                .with_force_wait_for_sync(true)
+            );
         let result = core.run(conn.execute(method));
 
         match result {
@@ -1259,8 +1338,10 @@ fn replace_with_struct_document_with_if_match_return_old_and_new() {
         let document_update = DocumentUpdate::new(document_key.clone(), replacement.clone());
         let method = ReplaceDocument::new(document_id.clone(), document_update)
             .with_if_match(revision.as_str().to_owned())
-            .with_return_old(true)
-            .with_return_new(true);
+            .with_options(DocumentReplaceOptions::new()
+                .with_return_old(true)
+                .with_return_new(true)
+            );
         let updated = core.run(conn.execute(method)).unwrap();
 
         assert_eq!("customers38", updated.id().collection_name());
@@ -1314,8 +1395,10 @@ fn replace_with_struct_document_with_if_match_unknown_revision() {
         let document_update = DocumentUpdate::new(document_key.clone(), replacement);
         let method = ReplaceDocument::<Customer, _>::new(document_id.clone(), document_update)
             .with_if_match("wrong_revision".to_owned())
-            .with_return_old(true)
-            .with_return_new(true);
+            .with_options(DocumentReplaceOptions::new()
+                .with_return_old(true)
+                .with_return_new(true)
+            );
         let result = core.run(conn.execute(method));
 
         match result {
@@ -1369,7 +1452,7 @@ fn modify_struct_document() {
 
         let document_update = DocumentUpdate::new(document_key.clone(), update);
         let method = ModifyDocument::<_, Customer, Customer>::new(document_id.clone(), document_update)
-            .with_return_new(true);
+            .with_options(DocumentModifyOptions::new().with_return_new(true));
         let updated = core.run(conn.execute(method)).unwrap();
 
         assert_eq!("customers40", updated.id().collection_name());
@@ -1692,7 +1775,7 @@ fn replace_multiple_struct_documents_with_revision() {
                 .with_revision(original1.revision().clone()),
             DocumentUpdate::new(original2.key().clone(), replacement2)
                 .with_revision(Revision::new("not_existing").to_owned()),
-        ]).with_ignore_revisions(false);
+        ]).with_options(DocumentReplaceOptions::new().with_ignore_revisions(false));
         let updates = core.run(conn.execute(method)).unwrap();
 
         if let Ok(updated1) = updates.get(0).unwrap() {

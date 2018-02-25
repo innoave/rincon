@@ -2390,13 +2390,21 @@ pub struct NewExplainQuery {
 }
 
 impl NewExplainQuery {
-    pub fn new(query: Query) -> Self {
+    pub fn new(query: Query, options: Option<ExplainOptions>) -> Self {
         let (query, bind_vars) = query.deconstruct();
         NewExplainQuery {
             query,
             bind_vars,
-            options: None,
+            options,
         }
+    }
+
+    pub fn with_defaults(query: Query) -> Self {
+        NewExplainQuery::new(query, None)
+    }
+
+    pub fn with_options(query: Query, options: ExplainOptions) -> Self {
+        NewExplainQuery::new(query, Some(options))
     }
 
     pub fn query(&self) -> &str {
@@ -2422,7 +2430,7 @@ impl NewExplainQuery {
 
 impl From<Query> for NewExplainQuery {
     fn from(query: Query) -> Self {
-        NewExplainQuery::new(query)
+        NewExplainQuery::with_defaults(query)
     }
 }
 

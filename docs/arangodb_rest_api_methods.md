@@ -19,7 +19,7 @@ in the `rincon_client` lib. The different entries and their meanings are:
 | Status | Rust method struct | REST API method                     | Description |
 |--------|--------------------|-------------------------------------|-------------|
 | Ready  | GetTargetVersion   | GET /_admin/database/target-version | Return the required version of the database |
-| M.1    |                    | GET /_admin/echo | Return current request |
+| M.2    |                    | GET /_admin/echo | Return current request |
 |        |                    | POST /_admin/execute | Execute program |
 |        |                    | GET /_admin/log | Read global logs from the server |
 |        |                    | GET /_admin/log/level | Return the current server loglevel |
@@ -96,15 +96,15 @@ in the `rincon_client` lib. The different entries and their meanings are:
 | M.2    |                            | GET /_api/collection/{collection-name}/checksum | Return checksum for the collection |
 | M.2    |                            | GET /_api/collection/{collection-name}/count | Return number of documents in a collection |
 | M.2    |                            | GET /_api/collection/{collection-name}/figures | Return statistics for a collection |
-| M.1    |                            | PUT /_api/collection/{collection-name}/load | Load collection |
-| M.1    |                            | PUT /_api/collection/{collection-name}/loadIndexesIntoMemory | Load Indexes into Memory |
+| M.2    |                            | PUT /_api/collection/{collection-name}/load | Load collection |
+| M.2    |                            | PUT /_api/collection/{collection-name}/loadIndexesIntoMemory | Load Indexes into Memory |
 | Ready  | GetCollectionProperties    | GET /_api/collection/{collection-name}/properties | Read properties of a collection |
 | Ready  | ChangeCollectionProperties | PUT /_api/collection/{collection-name}/properties | Change properties of a collection |
 | Ready  | RenameCollection           | PUT /_api/collection/{collection-name}/rename | Rename collection |
-| M.1    |                            | GET /_api/collection/{collection-name}/revision | Return collection revision id |
+| Ready  | GetCollectionRevision      | GET /_api/collection/{collection-name}/revision | Return collection revision id |
 | M.2    |                            | PUT /_api/collection/{collection-name}/rotate | Rotate journal of a collection |
 | M.1    |                            | PUT /_api/collection/{collection-name}/truncate | Truncate collection |
-| M.1    |                            | PUT /_api/collection/{collection-name}/unload | Unload collection |
+| M.2    |                            | PUT /_api/collection/{collection-name}/unload | Unload collection |
 
 ### Cursors [M.1]
 
@@ -280,8 +280,8 @@ in the `rincon_client` lib. The different entries and their meanings are:
 | Status | Rust method struct         | REST API method                     | Description |
 |--------|----------------------------|-------------------------------------|-------------|
 | Ready  | CreateUser                 | POST /_api/user | Create User |
-| Ready  | ListAvailableUsers         | GET /_api/user/ | List available Users |
-| Ready  | RemoveUser                 | DELETE /_api/user/{user} | Remove User |
+| Ready  | ListUsers                  | GET /_api/user/ | List available Users |
+| Ready  | DeleteUser                 | DELETE /_api/user/{user} | Remove User |
 | Ready  | GetUser                    | GET /_api/user/{user} | Fetch User |
 | Ready  | ModifyUser                 | PATCH /_api/user/{user} | Modify User |
 | Ready  | ReplaceUser                | PUT /_api/user/{user} | Replace User |

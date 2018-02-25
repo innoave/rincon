@@ -10,7 +10,7 @@ use rincon_core::api::connector::{Connector, Execute};
 use rincon_core::api::types::Empty;
 use rincon_connector::http::BasicConnector;
 use rincon_client::database::methods::*;
-use rincon_client::user::methods::{CreateUser, RemoveUser};
+use rincon_client::user::methods::{CreateUser, DeleteUser};
 use rincon_client::user::types::NewUser;
 use rincon_client::user_agent::RinconUserAgent;
 
@@ -47,7 +47,7 @@ fn create_database_for_one_new_user() {
 
     }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("test_database_d11"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("test_user_d1"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("test_user_d1"))).unwrap();
     });
 }
 
@@ -67,8 +67,8 @@ fn create_database_for_two_new_users() {
 
     }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("test_database_d22"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("test_user_d2"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("test_user_d3"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("test_user_d2"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("test_user_d3"))).unwrap();
     });
 }
 
@@ -90,7 +90,7 @@ fn create_database_for_one_existing_user() {
 
     }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("test_database_d31"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("test_user_d4"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("test_user_d4"))).unwrap();
     });
 }
 
@@ -117,9 +117,9 @@ fn create_database_for_two_existing_users_and_one_new_user() {
 
     }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("test_database_d43"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("test_user_d5"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("test_user_d6"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("test_user_d7"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("test_user_d5"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("test_user_d6"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("test_user_d7"))).unwrap();
     });
 }
 
@@ -180,7 +180,7 @@ fn get_current_database_specific_for_user() {
 
     }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("test_database_d81"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("test_user_d8"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("test_user_d8"))).unwrap();
     });
 }
 
@@ -247,6 +247,6 @@ fn list_accessible_databases_for_test_user() {
     }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("test_database_d91"))).unwrap();
         let _ = core.run(conn.execute(DropDatabase::with_name("test_database_d92"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("test_user_d9"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("test_user_d9"))).unwrap();
     });
 }

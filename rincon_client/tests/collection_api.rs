@@ -291,3 +291,20 @@ fn rename_collection_to_empty_name() {
         }
     });
 }
+
+#[test]
+fn get_collection_revision_of_new_collection() {
+    arango_test_with_user_db("test_coll_user14", "test_coll_db141", |conn, ref mut core| {
+
+        let original = core.run(conn.execute(CreateCollection::documents_with_name("test_collection1"))).unwrap();
+
+        assert_eq!("test_collection1", original.name());
+
+        let method = GetCollectionRevision::with_name("test_collection1");
+        let work = conn.execute(method);
+        let collection = core.run(work).unwrap();
+
+        assert_eq!("test_collection1", collection.name());
+        assert_eq!("0", collection.revision());
+    });
+}

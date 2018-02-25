@@ -79,25 +79,25 @@ impl<E> Prepare for CreateUser<E>
 /// You need the 'Administrate server' access level in order to execute this
 /// method call. Otherwise, you will only get information about yourself.
 #[derive(Debug, Clone, PartialEq)]
-pub struct ListAvailableUsers<E>
+pub struct ListUsers<E>
     where E: UserExtra
 {
     user_info_type: PhantomData<E>,
 }
 
 #[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
-impl<E> ListAvailableUsers<E>
+impl<E> ListUsers<E>
     where E: UserExtra
 {
-    /// Constructs a new `ListAvailableUsers` method.
+    /// Constructs a new `ListUsers` method.
     pub fn new() -> Self {
-        ListAvailableUsers {
+        ListUsers {
             user_info_type: PhantomData,
         }
     }
 }
 
-impl<E> Method for ListAvailableUsers<E>
+impl<E> Method for ListUsers<E>
     where E: UserExtra + DeserializeOwned
 {
     type Result = Vec<User<E>>;
@@ -107,7 +107,7 @@ impl<E> Method for ListAvailableUsers<E>
     };
 }
 
-impl<E> Prepare for ListAvailableUsers<E>
+impl<E> Prepare for ListUsers<E>
     where E: UserExtra
 {
     type Content = ();
@@ -133,22 +133,22 @@ impl<E> Prepare for ListAvailableUsers<E>
     }
 }
 
-/// Removes an existing user, identified by name.
+/// Delete an existing user, identified by name.
 ///
 /// You need 'Administrate server' access level in order to execute this method
 /// call.
 #[derive(Debug, Clone, PartialEq)]
-pub struct RemoveUser {
+pub struct DeleteUser {
     name: String,
 }
 
-impl RemoveUser {
-    /// Constructs a new `RemoveUser` instance with the given user name of the
+impl DeleteUser {
+    /// Constructs a new `DeleteUser` instance with the given user name of the
     /// user to be removed.
     pub fn with_name<S>(user_name: S) -> Self
         where S: Into<String>
     {
-        RemoveUser {
+        DeleteUser {
             name: user_name.into(),
         }
     }
@@ -159,7 +159,7 @@ impl RemoveUser {
     }
 }
 
-impl Method for RemoveUser {
+impl Method for DeleteUser {
     type Result = Empty;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
         result_field: None,
@@ -167,7 +167,7 @@ impl Method for RemoveUser {
     };
 }
 
-impl Prepare for RemoveUser {
+impl Prepare for DeleteUser {
     type Content = ();
 
     fn operation(&self) -> Operation {

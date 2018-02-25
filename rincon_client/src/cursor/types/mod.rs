@@ -32,7 +32,8 @@ pub struct Cursor<T> {
     /// The id of the cursor created on the server.
     id: Option<String>,
 
-    /// An array of result documents (might be empty if query has no results).
+    /// An array of result documents (might be empty if the query has no
+    /// results).
     result: Vec<T>,
 
     /// A boolean indicator whether there are more results available for the
@@ -63,7 +64,7 @@ impl<T> Cursor<T> {
         self.id.as_ref()
     }
 
-    /// Returns an array of result documents (might be empty if query has no
+    /// Returns a slice of result documents (might be empty if query has no
     /// results).
     pub fn result(&self) -> &[T] {
         &self.result
@@ -95,8 +96,32 @@ impl<T> Cursor<T> {
     /// queries, the `extra.stats` sub-attribute will contain the number of
     /// modified documents and the number of documents that could not be
     /// modified due to an error (if `ignoreErrors` query option is specified).
-    pub fn extra(&self) -> Option<&CursorExtra> {
+    fn extra(&self) -> Option<&CursorExtra> {
         self.extra.as_ref()
+    }
+
+    /// Returns the statistics about the execution of data modification queries.
+    ///
+    /// The stats will be `None` if the query is not a data modification query
+    /// or the result is served from the query cache.
+    pub fn stats(&self) -> Option<&CursorStatistics> {
+        match self.extra {
+            Some(ref extra) => Some(&extra.stats),
+            None => None,
+        }
+    }
+
+    /// Returns warnings that occurred during query execution.
+    pub fn warnings(&self) -> Option<&Vec<Warning>> {
+        match self.extra {
+            Some(ref extra) => Some(&extra.warnings),
+            None => None,
+        }
+    }
+
+    /// Unwraps this cursor into a tuple of id, count and result.
+    pub fn unwrap(self) -> (Option<String>, Option<u64>, Vec<T>) {
+        (self.id, self.count, self.result)
     }
 }
 

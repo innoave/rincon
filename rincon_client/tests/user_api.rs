@@ -24,7 +24,7 @@ use rincon_test_helper::*;
 fn list_available_users_should_return_the_root_user() {
     arango_system_db_test(|conn, ref mut core| {
 
-        let method: ListAvailableUsers<Empty> = ListAvailableUsers::new();
+        let method: ListUsers<Empty> = ListUsers::new();
         let work = conn.execute(method);
         let available_users = core.run(work).unwrap();
 
@@ -65,7 +65,7 @@ fn create_user_with_name_should_return_newly_created_user_as_active() {
         assert_eq!(&EMPTY, user.extra());
 
     }, |conn, ref mut core| {
-        let method = RemoveUser::with_name(user_name.as_ref());
+        let method = DeleteUser::with_name(user_name.as_ref());
         let work = conn.execute(method);
         core.run(work).unwrap();
     });
@@ -98,7 +98,7 @@ fn create_user_with_extra_should_return_newly_created_user_with_extra() {
         assert_eq!(&CustomExtra { email: "testuser2@mail.rs".into(), age: 27 }, user.extra());
 
     }, |conn, ref mut core| {
-        let method = RemoveUser::with_name("testuser2");
+        let method = DeleteUser::with_name("testuser2");
         let work = conn.execute(method);
         core.run(work).unwrap();
     });
@@ -127,7 +127,7 @@ fn list_databases_for_user_testuser3() {
     }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase32"))).unwrap();
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase31"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("testuser3"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("testuser3"))).unwrap();
     });
 }
 
@@ -148,7 +148,7 @@ fn get_database_access_level_for_testuser_and_testdatabase() {
 
     }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase41"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("testuser4"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("testuser4"))).unwrap();
     });
 }
 
@@ -173,7 +173,7 @@ fn set_database_access_level_for_testuser_and_testdatabase() {
 
     }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase51"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("testuser5"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("testuser5"))).unwrap();
     });
 }
 
@@ -198,7 +198,7 @@ fn get_collection_access_level_for_testuser_and_testcollection() {
     }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropCollection::with_name("testcollection611"))).unwrap();
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase61"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("testuser6"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("testuser6"))).unwrap();
     });
 }
 
@@ -226,7 +226,7 @@ fn set_collection_access_level_for_testuser_and_testcollection() {
     }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropCollection::with_name("testcollection711"))).unwrap();
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase71"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("testuser7"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("testuser7"))).unwrap();
     });
 }
 
@@ -260,6 +260,6 @@ fn create_collection_in_database_not_accessible_for_user() {
 
     }, |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("testbase81"))).unwrap();
-        let _ = core.run(conn.execute(RemoveUser::with_name("testuser8"))).unwrap();
+        let _ = core.run(conn.execute(DeleteUser::with_name("testuser8"))).unwrap();
     });
 }

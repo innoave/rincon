@@ -69,8 +69,12 @@ impl ExplainQuery {
         }
     }
 
-    pub fn from_query(query: Query) -> Self {
-        ExplainQuery::new(NewExplainQuery::new(query))
+    pub fn with_defaults(query: Query) -> Self {
+        ExplainQuery::new(NewExplainQuery::with_defaults(query))
+    }
+
+    pub fn with_options(query: Query, options: ExplainOptions) -> Self {
+        ExplainQuery::new(NewExplainQuery::with_options(query, options))
     }
 
     pub fn query_options(&self) -> &NewExplainQuery {

@@ -9,4 +9,5 @@ pub mod types;
 pub mod user_agent;
 
 mod error;
+
 pub use self::error::*;

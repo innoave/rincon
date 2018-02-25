@@ -63,7 +63,7 @@ fn insert_documents_and_return_their_names() {
         assert!(cursor.result().contains(&"No.9".to_owned()));
         assert!(cursor.result().contains(&"No.10".to_owned()));
         assert_eq!(10, cursor.result().len());
-        assert_eq!(10, cursor.extra().unwrap().stats().writes_executed());
+        assert_eq!(10, cursor.stats().unwrap().writes_executed());
         assert_eq!(false, cursor.has_more());
         assert_eq!(None, cursor.id());
     });
@@ -92,8 +92,8 @@ fn query_reads_from_cursor_in_batches_of_5_results() {
         new_cursor.set_batch_size(5);
         let method = CreateCursor::<String>::new(new_cursor);
         let cursor = core.run(conn.execute(method)).unwrap();
-        assert_eq!(21, cursor.extra().unwrap().stats().scanned_full());
-        assert_eq!(5, cursor.extra().unwrap().stats().filtered());
+        assert_eq!(21, cursor.stats().unwrap().scanned_full());
+        assert_eq!(5, cursor.stats().unwrap().filtered());
 
         assert!(cursor.result().contains(&"No.1".to_owned()));
         assert!(cursor.result().contains(&"No.10".to_owned()));
@@ -102,8 +102,8 @@ fn query_reads_from_cursor_in_batches_of_5_results() {
         assert!(cursor.result().contains(&"No.13".to_owned()));
         assert_eq!(5, cursor.result().len());
         assert_eq!(true, cursor.has_more());
-        assert_eq!(21, cursor.extra().unwrap().stats().scanned_full());
-        assert_eq!(5, cursor.extra().unwrap().stats().filtered());
+        assert_eq!(21, cursor.stats().unwrap().scanned_full());
+        assert_eq!(5, cursor.stats().unwrap().filtered());
         let cursor_id = cursor.id().unwrap();
 
         let method = ReadNextBatchFromCursor::with_id_ref(cursor.id().unwrap());
@@ -117,8 +117,8 @@ fn query_reads_from_cursor_in_batches_of_5_results() {
         assert_eq!(5, cursor.result().len());
         assert_eq!(true, cursor.has_more());
         assert_eq!(cursor_id, cursor.id().unwrap());
-        assert_eq!(21, cursor.extra().unwrap().stats().scanned_full());
-        assert_eq!(5, cursor.extra().unwrap().stats().filtered());
+        assert_eq!(21, cursor.stats().unwrap().scanned_full());
+        assert_eq!(5, cursor.stats().unwrap().filtered());
 
         let method = ReadNextBatchFromCursor::with_id_ref(cursor.id().unwrap());
         let cursor = core.run(conn.execute(method)).unwrap();
@@ -131,8 +131,8 @@ fn query_reads_from_cursor_in_batches_of_5_results() {
         assert_eq!(5, cursor.result().len());
         assert_eq!(true, cursor.has_more());
         assert_eq!(cursor_id, cursor.id().unwrap());
-        assert_eq!(21, cursor.extra().unwrap().stats().scanned_full());
-        assert_eq!(5, cursor.extra().unwrap().stats().filtered());
+        assert_eq!(21, cursor.stats().unwrap().scanned_full());
+        assert_eq!(5, cursor.stats().unwrap().filtered());
 
         let method = ReadNextBatchFromCursor::with_id_ref(cursor.id().unwrap());
         let cursor = core.run(conn.execute(method)).unwrap();
@@ -141,8 +141,8 @@ fn query_reads_from_cursor_in_batches_of_5_results() {
         assert_eq!(1, cursor.result().len());
         assert_eq!(false, cursor.has_more());
         assert_eq!(None, cursor.id());
-        assert_eq!(21, cursor.extra().unwrap().stats().scanned_full());
-        assert_eq!(5, cursor.extra().unwrap().stats().filtered());
+        assert_eq!(21, cursor.stats().unwrap().scanned_full());
+        assert_eq!(5, cursor.stats().unwrap().filtered());
     });
 }
 
@@ -169,8 +169,8 @@ fn delete_cursor_before_fetching_all_results() {
         new_cursor.set_batch_size(5);
         let method = CreateCursor::<String>::new(new_cursor);
         let cursor = core.run(conn.execute(method)).unwrap();
-        assert_eq!(21, cursor.extra().unwrap().stats().scanned_full());
-        assert_eq!(5, cursor.extra().unwrap().stats().filtered());
+        assert_eq!(21, cursor.stats().unwrap().scanned_full());
+        assert_eq!(5, cursor.stats().unwrap().filtered());
 
         assert!(cursor.result().contains(&"No.1".to_owned()));
         assert!(cursor.result().contains(&"No.10".to_owned()));
@@ -179,8 +179,8 @@ fn delete_cursor_before_fetching_all_results() {
         assert!(cursor.result().contains(&"No.13".to_owned()));
         assert_eq!(5, cursor.result().len());
         assert_eq!(true, cursor.has_more());
-        assert_eq!(21, cursor.extra().unwrap().stats().scanned_full());
-        assert_eq!(5, cursor.extra().unwrap().stats().filtered());
+        assert_eq!(21, cursor.stats().unwrap().scanned_full());
+        assert_eq!(5, cursor.stats().unwrap().filtered());
         let cursor_id = cursor.id().unwrap();
 
         let method = ReadNextBatchFromCursor::with_id_ref(cursor.id().unwrap());
@@ -194,8 +194,8 @@ fn delete_cursor_before_fetching_all_results() {
         assert_eq!(5, cursor.result().len());
         assert_eq!(true, cursor.has_more());
         assert_eq!(cursor_id, cursor.id().unwrap());
-        assert_eq!(21, cursor.extra().unwrap().stats().scanned_full());
-        assert_eq!(5, cursor.extra().unwrap().stats().filtered());
+        assert_eq!(21, cursor.stats().unwrap().scanned_full());
+        assert_eq!(5, cursor.stats().unwrap().filtered());
 
         let method = DeleteCursor::with_id_ref(cursor.id().unwrap());
         let deleted = core.run(conn.execute(method)).unwrap();

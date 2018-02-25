@@ -38,7 +38,7 @@ use rincon_connector::http::{BasicConnection, BasicConnector};
 use rincon_client::collection::methods::{CreateCollection, DropCollection};
 use rincon_client::database::methods::{CreateDatabase, DropDatabase, ListAccessibleDatabases};
 use rincon_client::database::types::NewDatabase;
-use rincon_client::user::methods::RemoveUser;
+use rincon_client::user::methods::DeleteUser;
 use rincon_client::user::types::NewUser;
 
 pub const ENV_ARANGO_DB_URL: &str = "ARANGO_DB_URL";
@@ -397,7 +397,7 @@ fn teardown_database<User, Db>(
         Db: Into<String>,
 {
     let _ = core.run(sys_conn.execute(DropDatabase::with_name(database))).unwrap();
-    let _ = core.run(sys_conn.execute(RemoveUser::with_name(user))).unwrap();
+    let _ = core.run(sys_conn.execute(DeleteUser::with_name(user))).unwrap();
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

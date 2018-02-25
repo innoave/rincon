@@ -1,7 +1,8 @@
 
 use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use rincon_core::arango::protocol::{FIELD_CODE, FIELD_ID, FIELD_RESULT,
-    PARAM_EXCLUDE_SYSTEM, PATH_API_COLLECTION, PATH_PROPERTIES, PATH_RENAME};
+    PARAM_EXCLUDE_SYSTEM, PATH_API_COLLECTION, PATH_PROPERTIES, PATH_RENAME,
+    PATH_REVISION};
 #[cfg(feature = "cluster")]
 use rincon_core::arango::protocol::PARAM_WAIT_FOR_SYNC_REPLICATION;
 use super::types::*;
@@ -351,6 +352,70 @@ impl Prepare for GetCollection {
     fn path(&self) -> String {
         String::from(PATH_API_COLLECTION)
             + "/" + &self.name
+    }
+
+    fn parameters(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn header(&self) -> Parameters {
+        Parameters::empty()
+    }
+
+    fn content(&self) -> Option<&Self::Content> {
+        None
+    }
+}
+
+/// Fetch the revision of the collection identified by the given name.
+#[derive(Debug, Clone, PartialEq)]
+pub struct GetCollectionRevision {
+    name: String,
+}
+
+impl GetCollectionRevision {
+    /// Constructs a new instance of the `GetCollectionRevision` method.
+    pub fn new(name: String) -> Self {
+        GetCollectionRevision {
+            name,
+        }
+    }
+
+    /// Constructs a new instance of the `GetCollectionRevision` method to
+    /// get the revision of the collection with the given name.
+    pub fn with_name<N>(name: N) -> Self
+        where N: Into<String>
+    {
+        GetCollectionRevision {
+            name: name.into(),
+        }
+    }
+
+    /// Returns the name of the collection for which the revision shall
+    /// be fetched.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+}
+
+impl Method for GetCollectionRevision {
+    type Result = CollectionRevision;
+    const RETURN_TYPE: RpcReturnType = RpcReturnType {
+        result_field: None,
+        code_field: Some(FIELD_CODE),
+    };
+}
+
+impl Prepare for GetCollectionRevision {
+    type Content = ();
+
+    fn operation(&self) -> Operation {
+        Operation::Read
+    }
+
+    fn path(&self) -> String {
+        String::from(PATH_API_COLLECTION)
+            + "/" + &self.name + PATH_REVISION
     }
 
     fn parameters(&self) -> Parameters {

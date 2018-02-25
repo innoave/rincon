@@ -357,6 +357,16 @@ impl DocumentHeader {
     }
 }
 
+impl<T> From<Document<T>> for DocumentHeader {
+    fn from(document: Document<T>) -> Self {
+        DocumentHeader {
+            id: document.id,
+            key: document.key,
+            revision: document.revision,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct UpdatedDocumentHeader {
     #[serde(rename = "_id")]
@@ -780,5 +790,201 @@ impl<Upd> Serialize for DocumentUpdate<Upd>
         };
         let json_value_with_header_fields = json_value;
         json_value_with_header_fields.serialize(serializer)
+    }
+}
+
+#[allow(missing_copy_implementations)]
+#[derive(Debug, Clone, PartialEq)]
+pub struct DocumentReplaceOptions {
+    force_wait_for_sync: Option<bool>,
+    ignore_revisions: Option<bool>,
+    return_old: Option<bool>,
+    return_new: Option<bool>,
+}
+
+impl DocumentReplaceOptions {
+    pub fn new() -> Self {
+        DocumentReplaceOptions::default()
+    }
+
+    pub fn force_wait_for_sync(&self) -> Option<bool> {
+        self.force_wait_for_sync
+    }
+
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
+        self
+    }
+
+    pub fn clear_force_wait_for_sync(mut self) -> Self {
+        self.force_wait_for_sync = None;
+        self
+    }
+
+    pub fn ignore_revisions(&self) -> Option<bool> {
+        self.ignore_revisions
+    }
+
+    pub fn with_ignore_revisions(mut self, ignore_revisions: bool) -> Self {
+        self.ignore_revisions = Some(ignore_revisions);
+        self
+    }
+
+    pub fn clear_ignore_revisions(mut self) -> Self {
+        self.ignore_revisions = None;
+        self
+    }
+
+    pub fn return_old(&self) -> Option<bool> {
+        self.return_old
+    }
+
+    pub fn with_return_old(mut self, return_old: bool) -> Self {
+        self.return_old = Some(return_old);
+        self
+    }
+
+    pub fn clear_return_old(mut self) -> Self {
+        self.return_old = None;
+        self
+    }
+
+    pub fn return_new(&self) -> Option<bool> {
+        self.return_new
+    }
+
+    pub fn with_return_new(mut self, return_new: bool) -> Self {
+        self.return_new = Some(return_new);
+        self
+    }
+
+    pub fn clear_return_new(mut self) -> Self {
+        self.return_new = None;
+        self
+    }
+}
+
+impl Default for DocumentReplaceOptions {
+    fn default() -> Self {
+        DocumentReplaceOptions {
+            force_wait_for_sync: None,
+            ignore_revisions: None,
+            return_old: None,
+            return_new: None,
+        }
+    }
+}
+
+#[allow(missing_copy_implementations)]
+#[derive(Debug, Clone, PartialEq)]
+pub struct DocumentModifyOptions {
+    force_wait_for_sync: Option<bool>,
+    ignore_revisions: Option<bool>,
+    keep_none: Option<bool>,
+    merge_objects: Option<bool>,
+    return_old: Option<bool>,
+    return_new: Option<bool>,
+}
+
+impl DocumentModifyOptions {
+    pub fn new() -> Self {
+        DocumentModifyOptions::default()
+    }
+
+    pub fn force_wait_for_sync(&self) -> Option<bool> {
+        self.force_wait_for_sync
+    }
+
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
+        self
+    }
+
+    pub fn clear_force_wait_for_sync(mut self) -> Self {
+        self.force_wait_for_sync = None;
+        self
+    }
+
+    pub fn ignore_revisions(&self) -> Option<bool> {
+        self.ignore_revisions
+    }
+
+    pub fn with_ignore_revisions(mut self, ignore_revisions: bool) -> Self {
+        self.ignore_revisions = Some(ignore_revisions);
+        self
+    }
+
+    pub fn clear_ignore_revisions(mut self) -> Self {
+        self.ignore_revisions = None;
+        self
+    }
+
+    pub fn keep_none(&self) -> Option<bool> {
+        self.keep_none
+    }
+
+    pub fn with_keep_none(mut self, keep_none: bool) -> Self {
+        self.keep_none = Some(keep_none);
+        self
+    }
+
+    pub fn clear_keep_none(mut self) -> Self {
+        self.keep_none = None;
+        self
+    }
+
+    pub fn merge_objects(&self) -> Option<bool> {
+        self.merge_objects
+    }
+
+    pub fn with_merge_objects(mut self, merge_objects: bool) -> Self {
+        self.merge_objects = Some(merge_objects);
+        self
+    }
+
+    pub fn clear_merge_objects(mut self) -> Self {
+        self.merge_objects = None;
+        self
+    }
+
+    pub fn return_old(&self) -> Option<bool> {
+        self.return_old
+    }
+
+    pub fn with_return_old(mut self, return_old: bool) -> Self {
+        self.return_old = Some(return_old);
+        self
+    }
+
+    pub fn clear_return_old(mut self) -> Self {
+        self.return_old = None;
+        self
+    }
+
+    pub fn return_new(&self) -> Option<bool> {
+        self.return_new
+    }
+
+    pub fn with_return_new(mut self, return_new: bool) -> Self {
+        self.return_new = Some(return_new);
+        self
+    }
+
+    pub fn clear_return_new(mut self) -> Self {
+        self.return_new = None;
+        self
+    }
+}
+
+impl Default for DocumentModifyOptions {
+    fn default() -> Self {
+        DocumentModifyOptions {
+            force_wait_for_sync: None,
+            ignore_revisions: None,
+            keep_none: None,
+            merge_objects: None,
+            return_old: None,
+            return_new: None,
+        }
     }
 }

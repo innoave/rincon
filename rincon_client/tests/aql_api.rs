@@ -268,7 +268,7 @@ fn explain_valid_query() {
               RETURN c"
         );
 
-        let method = ExplainQuery::from_query(query);
+        let method = ExplainQuery::with_defaults(query);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -348,7 +348,7 @@ fn explain_a_plan_with_some_optimizer_rules_applied() {
               RETURN name"
         );
 
-        let method = ExplainQuery::from_query(query);
+        let method = ExplainQuery::with_defaults(query);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -845,7 +845,7 @@ fn explain_query_with_limit_and_offset() {
               RETURN c"
         );
 
-        let method = ExplainQuery::from_query(query);
+        let method = ExplainQuery::with_defaults(query);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -925,7 +925,7 @@ fn explain_query_with_basic_collect() {
               }"
         );
 
-        let method = ExplainQuery::from_query(query);
+        let method = ExplainQuery::with_defaults(query);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -1097,7 +1097,7 @@ fn explain_query_with_collect_into_group_variable() {
               }"
         );
 
-        let method = ExplainQuery::from_query(query);
+        let method = ExplainQuery::with_defaults(query);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -1289,7 +1289,7 @@ fn explain_query_with_collect_multiple_criteria() {
               }"
         );
 
-        let method = ExplainQuery::from_query(query);
+        let method = ExplainQuery::with_defaults(query);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -1540,7 +1540,7 @@ fn explain_query_with_collect_count_aggregation() {
               }"
         );
 
-        let method = ExplainQuery::from_query(query);
+        let method = ExplainQuery::with_defaults(query);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -1734,7 +1734,7 @@ fn explain_query_with_collect_and_aggregation() {
               }"
         );
 
-        let method = ExplainQuery::from_query(query);
+        let method = ExplainQuery::with_defaults(query);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -1920,7 +1920,7 @@ fn explain_insert_into_collection() {
             } IN aql_customers12"
         );
 
-        let method = ExplainQuery::from_query(inserts);
+        let method = ExplainQuery::with_defaults(inserts);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -2078,7 +2078,7 @@ fn explain_remove_document_from_collection() {
               RETURN OLD._key"
         );
 
-        let method = ExplainQuery::from_query(remove);
+        let method = ExplainQuery::with_defaults(remove);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -2205,7 +2205,7 @@ fn explain_update_document() {
         update.set_parameter("name", "Jane Doe");
         let update = update;
 
-        let method = ExplainQuery::from_query(update);
+        let method = ExplainQuery::with_defaults(update);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -2402,7 +2402,7 @@ fn explain_replace_document() {
         replace.set_parameter("name", "Jane Doe");
         let replace = replace;
 
-        let method = ExplainQuery::from_query(replace);
+        let method = ExplainQuery::with_defaults(replace);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -2632,7 +2632,7 @@ fn explain_upsert_when_document_not_existing() {
                IN aql_customers16"
         );
 
-        let method = ExplainQuery::from_query(upsert);
+        let method = ExplainQuery::with_defaults(upsert);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -2991,7 +2991,7 @@ fn explain_upsert_when_document_is_existing() {
                IN aql_customers17"
         );
 
-        let method = ExplainQuery::from_query(upsert);
+        let method = ExplainQuery::with_defaults(upsert);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -3343,7 +3343,7 @@ fn explain_query_with_no_result() {
               RETURN c"
         );
 
-        let method = ExplainQuery::from_query(query);
+        let method = ExplainQuery::with_defaults(query);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(
@@ -3414,7 +3414,7 @@ fn explain_query_with_simple_enumeration() {
               RETURN n"
         );
 
-        let method = ExplainQuery::from_query(query);
+        let method = ExplainQuery::with_defaults(query);
         let explained_query = core.run(conn.execute(method)).unwrap();
 
         let explanation = ExplainedQuery::from_best_plan(

@@ -125,9 +125,7 @@ pub struct GetGraph {
 }
 
 impl GetGraph {
-    pub fn new<Name>(name: Name) -> Self
-        where Name: Into<String>
-    {
+    pub fn new(name: String) -> Self {
         GetGraph {
             name: name.into(),
         }
@@ -136,7 +134,7 @@ impl GetGraph {
     pub fn with_name<Name>(name: Name) -> Self
         where Name: Into<String>
     {
-        GetGraph::new(name)
+        GetGraph::new(name.into())
     }
 
     pub fn name(&self) -> &str {
