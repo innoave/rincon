@@ -1167,87 +1167,124 @@ impl<C> CollectionSession<C>
         )
     }
 
-    pub fn delete_document(&self, document_key: DocumentKey) -> Result<DocumentHeader> {
-        self.execute(DeleteDocument::new(self.name(), document_key))
+    /// Deletes the document with the given key from this collection.
+    pub fn delete_document(&self, key: DocumentKey) -> Result<DocumentHeader> {
+        self.execute(DeleteDocument::new(self.name(), key))
     }
 
+    /// Deletes the document with the given key from this collection if the
+    /// match condition is met.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` : The key of the document to be deleted
+    /// * `if_match` : The match condition that must be met to delete the
+    ///   document
     pub fn delete_document_if_match<IfMatch>(
         &self,
-        document_key: DocumentKey,
+        key: DocumentKey,
         if_match: IfMatch,
     ) -> Result<DocumentHeader>
         where
             IfMatch: Into<String>,
     {
-        self.execute(DeleteDocument::new(self.name(), document_key)
+        self.execute(DeleteDocument::new(self.name(), key)
             .with_if_match(if_match)
         )
     }
 
+    /// Deletes the document with the given key from this collection if the
+    /// match condition is met and waits until the changes are synced to disk.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` : The key of the document to be deleted
+    /// * `if_match` : The match condition that must be met to delete the
+    ///   document
     pub fn delete_document_if_match_synced<IfMatch>(
         &self,
-        document_key: DocumentKey,
+        key: DocumentKey,
         if_match: IfMatch,
     ) -> Result<DocumentHeader>
         where
             IfMatch: Into<String>,
     {
-        self.execute(DeleteDocument::new(self.name(), document_key)
+        self.execute(DeleteDocument::new(self.name(), key)
             .with_if_match(if_match)
             .with_force_wait_for_sync(true)
         )
     }
 
-    pub fn delete_document_synced(&self, document_key: DocumentKey) -> Result<DocumentHeader> {
-        self.execute(DeleteDocument::new(self.name(), document_key)
+    /// Deletes the document with the given key from this collection and waits
+    /// until the changes are synced to disk.
+    pub fn delete_document_synced(&self, key: DocumentKey) -> Result<DocumentHeader> {
+        self.execute(DeleteDocument::new(self.name(), key)
             .with_force_wait_for_sync(true)
         )
     }
 
-    pub fn delete_document_return_old<Old>(&self, document_key: DocumentKey) -> Result<Document<Old>>
+    /// Deletes the document with the given key from this collection and returns
+    /// the deleted document.
+    pub fn delete_document_return_old<Old>(&self, key: DocumentKey) -> Result<Document<Old>>
         where
             Old: 'static + DeserializeOwned,
     {
-        self.execute(DeleteDocumentReturnOld::new(self.name(), document_key))
+        self.execute(DeleteDocumentReturnOld::new(self.name(), key))
     }
 
-    pub fn delete_document_if_match_return_old<IfMatch, T>(
+    /// Deletes the document with the given key from this collection if the
+    /// match condition is met and returns the deleted document.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` : The key of the document to be deleted
+    /// * `if_match` : The match condition that must be met to delete the
+    ///   document
+    pub fn delete_document_if_match_return_old<IfMatch, Old>(
         &self,
-        document_key: DocumentKey,
+        key: DocumentKey,
         if_match: IfMatch,
-    ) -> Result<Document<T>>
+    ) -> Result<Document<Old>>
         where
             IfMatch: Into<String>,
-            T: 'static + DeserializeOwned,
+            Old: 'static + DeserializeOwned,
     {
-        self.execute(DeleteDocumentReturnOld::new(self.name(), document_key)
+        self.execute(DeleteDocumentReturnOld::new(self.name(), key)
             .with_if_match(if_match)
         )
     }
 
-    pub fn delete_document_if_match_return_old_synced<IfMatch, T>(
+    /// Deletes the document with the given key from this collection if the
+    /// match condition is met, waits until the changes are synced to disk and
+    /// returns the deleted document.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` : The key of the document to be deleted
+    /// * `if_match` : The match condition that must be met to delete the
+    ///   document
+    pub fn delete_document_if_match_return_old_synced<IfMatch, Old>(
         &self,
-        document_key: DocumentKey,
+        key: DocumentKey,
         if_match: IfMatch,
-    ) -> Result<Document<T>>
+    ) -> Result<Document<Old>>
         where
             IfMatch: Into<String>,
-            T: 'static + DeserializeOwned,
+            Old: 'static + DeserializeOwned,
     {
-        self.execute(DeleteDocumentReturnOld::new(self.name(), document_key)
+        self.execute(DeleteDocumentReturnOld::new(self.name(), key)
             .with_if_match(if_match)
             .with_force_wait_for_sync(true)
         )
     }
 
-    pub fn delete_document_return_old_synced<T>(
-        &self,
-        document_key: DocumentKey,
-    ) -> Result<Document<T>>
+    /// Deletes the document with the given key from this collection, waits
+    /// until the changes are synced to disk and returns the deleted document.
+    pub fn delete_document_return_old_synced<Old>(&self, key: DocumentKey) -> Result<Document<Old>>
         where
-            T: 'static + DeserializeOwned,
+            Old: 'static + DeserializeOwned,
     {
-        self.execute(DeleteDocumentReturnOld::new(self.name(), document_key)
+        self.execute(DeleteDocumentReturnOld::new(self.name(), key)
             .with_force_wait_for_sync(true))
     }
 }
