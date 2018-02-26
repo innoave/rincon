@@ -78,7 +78,7 @@ impl<C> GraphSession<C>
 
     /// Unwraps the graph entity out of this session which is either the name
     /// of the graph or the `Graph` struct.
-    pub fn unwrap_entity(self) -> Entity<Graph> {
+    pub fn unwrap(self) -> Entity<Graph> {
         self.entity
     }
 

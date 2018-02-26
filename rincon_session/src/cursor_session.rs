@@ -11,6 +11,7 @@ use rincon_client::cursor::methods::*;
 use rincon_client::cursor::types::{Cursor, CursorStatistics, Warning};
 use rincon_core::api::connector::{Connector, Execute};
 use rincon_core::api::method::{Method, Prepare};
+use rincon_core::api::types::{Empty, EMPTY};
 
 use super::Result;
 
@@ -26,6 +27,21 @@ pub struct CursorSession<T, C> {
 impl<T, C> CursorSession<T, C>
     where T: 'static + DeserializeOwned, C: 'static + Connector
 {
+    /// Instantiates a new `CursorSession` for the given cursor.
+    pub(crate) fn new(
+        cursor: Cursor<T>,
+        database_name: String,
+        connector: Rc<C>,
+        core: Rc<RefCell<Core>>,
+    ) -> Self {
+        CursorSession {
+            cursor,
+            database_name,
+            connector,
+            core,
+        }
+    }
+
     /// Executes an API method applied to the database of this session.
     fn execute<M>(&self, method: M) -> Result<<M as Method>::Result>
         where M: 'static + Method + Prepare
@@ -47,7 +63,7 @@ impl<T, C> CursorSession<T, C>
     }
 
     /// Unwraps the `Cursor` entity out of this session.
-    pub fn unwrap_entity(self) -> Cursor<T> {
+    pub fn unwrap(self) -> Cursor<T> {
         self.cursor
     }
 
@@ -70,25 +86,6 @@ impl<T, C> CursorSession<T, C>
     /// the server.
     pub fn has_more(&self) -> bool {
         self.cursor.has_more()
-    }
-
-    /// Checks whether this cursor has more results and if yes fetches a
-    /// cursor with the next batch of results and returns it as a new
-    /// `CursorSession`.
-    ///
-    /// This function returns `None` if there are no more results for this
-    /// cursor. It returns `Some(Error)` if fetching the next batch of results
-    /// fails.
-    pub fn next_cursor(&self) -> Option<Result<CursorSession<T, C>>> {
-        self.cursor.id().map(|v| v.to_owned()).map(|id|
-            self.execute(ReadNextBatchFromCursor::with_id(id))
-                .map(|cursor| CursorSession {
-                    cursor,
-                    database_name: self.database_name.clone(),
-                    connector: self.connector.clone(),
-                    core: self.core.clone(),
-                })
-        )
     }
 
     /// Returns whether the query result was served from the query cache or not.
@@ -116,6 +113,35 @@ impl<T, C> CursorSession<T, C>
     /// Returns warnings that occurred during query execution.
     pub fn warnings(&self) -> Option<&Vec<Warning>> {
         self.cursor.warnings()
+    }
+
+    /// Checks whether this cursor has more results and if yes fetches a
+    /// cursor with the next batch of results and returns it as a new
+    /// `CursorSession`.
+    ///
+    /// This function returns `None` if there are no more results for this
+    /// cursor. It returns `Some(Error)` if fetching the next batch of results
+    /// fails.
+    pub fn next_cursor(&self) -> Option<Result<CursorSession<T, C>>> {
+        self.cursor.id().map(|v| v.to_owned()).map(|id|
+            self.execute(ReadNextBatchFromCursor::with_id(id))
+                .map(|cursor| CursorSession {
+                    cursor,
+                    database_name: self.database_name.clone(),
+                    connector: self.connector.clone(),
+                    core: self.core.clone(),
+                })
+        )
+    }
+
+    /// Deletes the cursor represented by this session on the server if it is
+    /// still existing otherwise those nothing.
+    pub fn delete(self) -> Result<Empty> {
+        if let Some(id) = self.cursor.id() {
+            self.execute(DeleteCursor::with_id_ref(id))
+        } else {
+            Ok(EMPTY)
+        }
     }
 }
 

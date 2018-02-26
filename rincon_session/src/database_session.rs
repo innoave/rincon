@@ -11,7 +11,7 @@ use rincon_client::collection::methods::{CreateCollection, DropCollection,
     ListCollections};
 use rincon_client::collection::types::Collection;
 use rincon_client::cursor::methods::CreateCursor;
-use rincon_client::cursor::types::{Cursor, NewCursor};
+use rincon_client::cursor::types::NewCursor;
 use rincon_client::database::methods::DropDatabase;
 use rincon_client::document::methods::GetDocument;
 use rincon_client::document::types::{Document, DocumentId};
@@ -23,6 +23,7 @@ use rincon_core::api::query::Query;
 use rincon_core::api::types::Entity;
 
 use collection_session::CollectionSession;
+use cursor_session::CursorSession;
 use graph_session::GraphSession;
 use super::Result;
 
@@ -66,6 +67,11 @@ impl<C> DatabaseSession<C>
         &self.database_name
     }
 
+    /// Unwraps the database name out of this session.
+    pub fn unwrap(self) -> String {
+        self.database_name
+    }
+
     /// Drops the database that is used in this session.
     ///
     /// Returns true if the database has been dropped successfully.
@@ -86,10 +92,16 @@ impl<C> DatabaseSession<C>
     ///
     /// To specify cursor options and/or query execution options use the
     /// `query_opt(&self, NewCursor)` function.
-    pub fn query<T>(&self, query: Query) -> Result<Cursor<T>>
+    pub fn query<T>(&self, query: Query) -> Result<CursorSession<T, C>>
         where T: 'static + DeserializeOwned
     {
         self.execute(CreateCursor::from_query(query))
+            .map(|cursor| CursorSession::new(
+                cursor,
+                self.database_name.clone(),
+                self.connector.clone(),
+                self.core.clone(),
+            ))
     }
 
     /// Executes a query and returns a cursor with the first result set.
@@ -99,10 +111,16 @@ impl<C> DatabaseSession<C>
     ///
     /// To execute a query with all options left at their defaults the
     /// `query(&self, Query)` function might be more suitable.
-    pub fn query_opt<T>(&self, new_cursor: NewCursor) -> Result<Cursor<T>>
+    pub fn query_opt<T>(&self, new_cursor: NewCursor) -> Result<CursorSession<T, C>>
         where T: 'static + DeserializeOwned
     {
         self.execute(CreateCursor::new(new_cursor))
+            .map(|cursor| CursorSession::new(
+                cursor,
+                self.database_name.clone(),
+                self.connector.clone(),
+                self.core.clone(),
+            ))
     }
 
     /// Generates an execution plan for a query but does not execute it.

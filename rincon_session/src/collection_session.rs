@@ -88,7 +88,7 @@ impl<C> CollectionSession<C>
 
     /// Unwraps the collection entity out of this session which is either the
     /// name of the collection or the `Collection` struct.
-    pub fn unwrap_entity(self) -> Entity<Collection> {
+    pub fn unwrap(self) -> Entity<Collection> {
         self.entity
     }
 
@@ -116,6 +116,17 @@ impl<C> CollectionSession<C>
                     core: self.core,
                 }
             )
+    }
+
+    /// Drops the collection that is represented by this session.
+    ///
+    /// Returns the identifier of the collection if it has been dropped
+    /// successfully.
+    ///
+    /// After calling this function the associated `CollectionSession` is no
+    /// longer valid.
+    pub fn drop(self) -> Result<String> {
+        self.execute(DropCollection::with_name(self.name()))
     }
 
     /// Renames the collection represented by this session and returns the

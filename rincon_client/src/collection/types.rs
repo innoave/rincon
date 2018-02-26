@@ -68,6 +68,16 @@ impl Collection {
     pub fn is_system(&self) -> bool {
         self.is_system
     }
+
+    /// Unwraps the id of this collection
+    pub fn unwrap_id(self) -> String {
+        self.id
+    }
+
+    /// Unwraps the name of this collection.
+    pub fn unwrap_name(self) -> String {
+        self.name
+    }
 }
 
 impl From<CollectionRevision> for Collection {
