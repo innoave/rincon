@@ -5,16 +5,17 @@ use std::rc::Rc;
 use serde::de::DeserializeOwned;
 use tokio_core::reactor::Core;
 
-use rincon_client::aql::methods::*;
+use rincon_client::aql::methods::{ExplainQuery, ParseQuery};
 use rincon_client::aql::types::{ExplainedQuery, ExplainOptions, ParsedQuery};
-use rincon_client::collection::methods::{CreateCollection, ListCollections};
+use rincon_client::collection::methods::{CreateCollection, DropCollection,
+    ListCollections};
 use rincon_client::collection::types::Collection;
 use rincon_client::cursor::methods::CreateCursor;
 use rincon_client::cursor::types::{Cursor, NewCursor};
-use rincon_client::database::methods::*;
+use rincon_client::database::methods::DropDatabase;
 use rincon_client::document::methods::GetDocument;
 use rincon_client::document::types::{Document, DocumentId};
-use rincon_client::graph::methods::{CreateGraph, ListGraphs};
+use rincon_client::graph::methods::{CreateGraph, DropGraph, ListGraphs};
 use rincon_client::graph::types::{Graph, NewGraph};
 use rincon_core::api::connector::{Connector, Execute};
 use rincon_core::api::method::{Method, Prepare};
@@ -172,6 +173,14 @@ impl<C> DatabaseSession<C>
             )
     }
 
+    /// Drops the collection with the given name from the database of this
+    /// session and returns the identifier of the dropped collection.
+    pub fn drop_collection<N>(&self, collection_name: N) -> Result<String>
+        where N: Into<String>
+    {
+        self.execute(DropCollection::with_name(collection_name))
+    }
+
     /// Fetches a list of all collections in this database.
     ///
     /// System collections are not included in the returned list.
@@ -222,6 +231,16 @@ impl<C> DatabaseSession<C>
                     core,
                 )
             )
+    }
+
+    /// Drops the graph with the given name from the database of this session.
+    ///
+    /// This function returns true if the graph has been deleted and false
+    /// otherwise.
+    pub fn drop_graph<N>(&self, graph_name: N) -> Result<bool>
+        where N: Into<String>
+    {
+        self.execute(DropGraph::with_name(graph_name))
     }
 
     /// Fetches a list of all graphs in this database.
