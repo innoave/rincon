@@ -107,4 +107,14 @@ impl<C> GraphSession<C>
                 }
             )
     }
+
+    /// Drops the graph that is represented by this session.
+    ///
+    /// Returns true if the graph has been dropped successfully.
+    ///
+    /// After calling this function the associated `GraphSession` is no longer
+    /// valid.
+    pub fn drop(self) -> Result<bool> {
+        self.execute(DropGraph::with_name(self.name()))
+    }
 }
