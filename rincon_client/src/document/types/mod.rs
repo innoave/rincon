@@ -183,6 +183,12 @@ impl FromStr for DocumentKey {
     }
 }
 
+impl From<DocumentId> for DocumentKey {
+    fn from(document_id: DocumentId) -> Self {
+        DocumentKey(document_id.document_key)
+    }
+}
+
 impl Serialize for DocumentKey {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer

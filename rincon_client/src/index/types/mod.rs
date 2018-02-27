@@ -189,6 +189,12 @@ impl FromStr for IndexKey {
     }
 }
 
+impl From<IndexId> for IndexKey {
+    fn from(index_id: IndexId) -> Self {
+        IndexKey(index_id.index_key)
+    }
+}
+
 impl From<IndexKey> for IndexIdOption {
     fn from(index_key: IndexKey) -> Self {
         IndexIdOption::Local(index_key)
@@ -937,7 +943,17 @@ pub struct NewFulltextIndex {
 }
 
 impl NewFulltextIndex {
-    pub fn new<F>(field: F, min_length: u32) -> Self
+    pub fn new<F>(fields: F, min_length: u32) -> Self
+        where F: IntoIterator<Item=String>
+    {
+        NewFulltextIndex {
+            kind: IndexType::Fulltext,
+            fields: Vec::from_iter(fields.into_iter()),
+            min_length,
+        }
+    }
+
+    pub fn with_field<F>(field: F, min_length: u32) -> Self
         where F: Into<String>
     {
         NewFulltextIndex {

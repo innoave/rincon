@@ -15,6 +15,10 @@ use rincon_client::document::methods::*;
 use rincon_client::document::types::{Document, DocumentHeader, DocumentId,
     DocumentKey, DocumentModifyOptions, DocumentReplaceOptions, DocumentUpdate,
     NewDocument, UpdatedDocument};
+use rincon_client::index::methods::*;
+use rincon_client::index::types::{Index, IndexId, IndexIdOption, IndexKey,
+    NewFulltextIndex, NewGeoIndex, NewHashIndex, NewPersistentIndex,
+    NewSkipListIndex};
 use rincon_core::api::connector::{Connector, Execute};
 use rincon_core::api::method::{Method, Prepare, ResultList};
 use rincon_core::api::types::Entity;
@@ -615,5 +619,156 @@ impl<C> CollectionSession<C>
     {
         self.execute(DeleteDocumentReturnOld::new(self.name(), key)
             .with_force_wait_for_sync(true))
+    }
+
+    /// Creates a hash index for this collection if it does not exist already.
+    ///
+    /// # Arguments
+    ///
+    /// * `fields` : A list of attribute paths
+    /// * `unique` : Whether a unique index shall be created
+    /// * `sparse` : A sparse index excludes documents from the index if they
+    ///   that do not contain at least one of the specified index attributes
+    ///   (i.e. fields) or that have a value of null in any of the specified
+    ///   index attributes
+    /// * `deduplicate` : Whether to use deduplication of array values
+    pub fn ensure_hash_index<Fields>(
+        &self,
+        fields: Fields,
+        unique: bool,
+        sparse: bool,
+        deduplicate: bool,
+    ) -> Result<Index>
+        where
+            Fields: IntoIterator<Item=String>
+    {
+        self.execute(CreateIndex::new(self.name(), NewHashIndex::new(
+            fields,
+            unique,
+            sparse,
+            deduplicate,
+        )))
+    }
+
+    /// Creates a skip list index for this collection if it does not exist
+    /// already.
+    ///
+    /// # Arguments
+    ///
+    /// * `fields` : A list of attribute paths
+    /// * `unique` : Whether a unique index shall be created
+    /// * `sparse` : A sparse index excludes documents from the index if they
+    ///   that do not contain at least one of the specified index attributes
+    ///   (i.e. fields) or that have a value of null in any of the specified
+    ///   index attributes
+    /// * `deduplicate` : Whether to use deduplication of array values
+    pub fn ensure_skiplist_index<Fields>(
+        &self,
+        fields: Fields,
+        unique: bool,
+        sparse: bool,
+        deduplicate: bool,
+    ) -> Result<Index>
+        where
+            Fields: IntoIterator<Item=String>
+    {
+        self.execute(CreateIndex::new(self.name(), NewSkipListIndex::new(
+            fields,
+            unique,
+            sparse,
+            deduplicate,
+        )))
+    }
+
+    /// Creates a persistent index for this collection if it does not exist
+    /// already.
+    ///
+    /// # Arguments
+    ///
+    /// * `fields` : A list of attribute paths
+    /// * `unique` : Whether a unique index shall be created
+    /// * `sparse` : A sparse index excludes documents from the index if they
+    ///   that do not contain at least one of the specified index attributes
+    ///   (i.e. fields) or that have a value of null in any of the specified
+    ///   index attributes
+    pub fn ensure_persistent_index<Fields>(
+        &self,
+        fields: Fields,
+        unique: bool,
+        sparse: bool,
+    ) -> Result<Index>
+        where
+            Fields: IntoIterator<Item=String>
+    {
+        self.execute(CreateIndex::new(self.name(), NewPersistentIndex::new(
+            fields,
+            unique,
+            sparse,
+        )))
+    }
+
+    /// Creates a geo spatial index for this collection if it does not exist
+    /// already.
+    ///
+    /// # Arguments
+    ///
+    /// * `location_field` : The attribute path of the location field
+    /// * `geo_json` : If a geo-spatial index on a location is constructed and
+    ///   `geo_json` is true, then the order within the array is longitude
+    ///   followed by latitude.
+    pub fn ensure_geo_location_index<Loc>(&self, location_field: Loc, geo_json: bool) -> Result<Index>
+        where Loc: Into<String>
+    {
+        self.execute(CreateIndex::new(self.name(), NewGeoIndex::with_location_field(
+            location_field,
+            geo_json,
+        )))
+    }
+
+    /// Creates a geo spatial index for this collection if it does not exist
+    /// already.
+    ///
+    /// # Arguments
+    ///
+    /// * `latitude_field` : The attribute path of the latitude field
+    /// * `longitude_field` : The attribute path of the longitude field
+    pub fn ensure_geo_lat_lng_index<Lat, Lng>(&self, latitude_field: Lat, longitude_field: Lng) -> Result<Index>
+        where Lat: Into<String>, Lng: Into<String>
+    {
+        self.execute(CreateIndex::new(self.name(), NewGeoIndex::with_lat_lng_fields(
+            latitude_field,
+            longitude_field,
+        )))
+    }
+
+    /// Creates a fulltext index for this collection if it does not exist
+    /// already.
+    ///
+    /// # Arguments
+    ///
+    /// * `field` : An attribute paths
+    /// * `min_length` : Minimum character length of words to index
+    pub fn ensure_fulltext_index<Field>(
+        &self,
+        field: Field,
+        min_length: u32,
+    ) -> Result<Index>
+        where
+            Field: Into<String>
+    {
+        self.execute(CreateIndex::new(self.name(), NewFulltextIndex::with_field(
+            field,
+            min_length,
+        )))
+    }
+
+    /// Fetches the index with the given key from this collection.
+    pub fn get_index(&self, key: IndexKey) -> Result<Index> {
+        self.execute(GetIndex::new(IndexId::new(self.name(), key.deconstruct())))
+    }
+
+    /// Deletes the index with the given key from this collection.
+    pub fn delete_index(&self, key: IndexKey) -> Result<IndexIdOption> {
+        self.execute(DeleteIndex::new(IndexId::new(self.name(), key.deconstruct())))
     }
 }

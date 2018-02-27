@@ -301,7 +301,7 @@ fn create_index_of_type_geo2_for_collection() {
 fn create_index_of_type_fulltext_for_collection() {
     arango_test_with_document_collection("index_customers09", |conn, ref mut core| {
 
-        let method = CreateIndex::new("index_customers09", NewFulltextIndex::new(
+        let method = CreateIndex::new("index_customers09", NewFulltextIndex::with_field(
             "description", 4));
         let index = core.run(conn.execute(method)).unwrap();
         let index_id = match *index.id() {
@@ -327,7 +327,7 @@ fn create_index_of_type_fulltext_for_collection() {
 fn create_index_that_is_already_existing() {
     arango_test_with_document_collection("index_customers10", |conn, ref mut core| {
 
-        let method = CreateIndex::new("index_customers10", NewFulltextIndex::new(
+        let method = CreateIndex::new("index_customers10", NewFulltextIndex::with_field(
             "description", 4));
         let index = core.run(conn.execute(method)).unwrap();
         let index_id = match *index.id() {
@@ -347,7 +347,7 @@ fn create_index_that_is_already_existing() {
             panic!("FulltextIndex expected, but got {:?}", index);
         }
 
-        let method = CreateIndex::new("index_customers10", NewFulltextIndex::new(
+        let method = CreateIndex::new("index_customers10", NewFulltextIndex::with_field(
             "description", 4));
         let index2 = core.run(conn.execute(method)).unwrap();
 
