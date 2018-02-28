@@ -3,7 +3,6 @@
 mod tests;
 
 use std::collections::HashMap;
-use std::mem;
 
 use api::types::{Value, UnwrapValue};
 
@@ -29,11 +28,7 @@ impl Query {
     ///
     /// After calling this function this `Query` instance is invalid.
     pub fn deconstruct(self) -> (String, HashMap<String, Value>) {
-        let mut query = self;
-        (
-            mem::replace(&mut query.string, String::with_capacity(0)),
-            mem::replace(&mut query.params, HashMap::with_capacity(0)),
-        )
+        (self.string, self.params)
     }
 
     /// Returns the query string as a `&str`.
