@@ -27,7 +27,7 @@ impl Query {
     /// without cloning them.
     ///
     /// After calling this function this `Query` instance is invalid.
-    pub fn deconstruct(self) -> (String, HashMap<String, Value>) {
+    pub fn unwrap(self) -> (String, HashMap<String, Value>) {
         (self.string, self.params)
     }
 

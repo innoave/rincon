@@ -34,14 +34,14 @@ impl FromStr for IndexIdOption {
         let handle_option = HandleOption::from_str("index id", value)?;
         Ok(match handle_option {
             HandleOption::Qualified(handle) => {
-                let (collection_name, index_key) = handle.deconstruct();
+                let (collection_name, index_key) = handle.unwrap();
                 IndexIdOption::Qualified(IndexId {
                     collection_name,
                     index_key,
                 })
             },
             HandleOption::Local(handle_key) => {
-                let value = handle_key.deconstruct();
+                let value = handle_key.unwrap();
                 IndexIdOption::Local(IndexKey(value))
             },
         })
@@ -90,7 +90,7 @@ impl IndexId {
         }
     }
 
-    pub fn deconstruct(self) -> (String, String) {
+    pub fn unwrap(self) -> (String, String) {
         (self.collection_name, self.index_key)
     }
 
@@ -116,7 +116,7 @@ impl FromStr for IndexId {
 
     fn from_str(value: &str) -> Result<Self, String> {
         let handle = Handle::from_str("index id", value)?;
-        let (collection_name, index_key) = handle.deconstruct();
+        let (collection_name, index_key) = handle.unwrap();
         Ok(IndexId {
             collection_name,
             index_key,
@@ -168,7 +168,7 @@ impl IndexKey {
         }
     }
 
-    pub fn deconstruct(self) -> String {
+    pub fn unwrap(self) -> String {
         self.0
     }
 

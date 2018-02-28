@@ -26,14 +26,14 @@ impl FromStr for DocumentIdOption {
         let handle_option = HandleOption::from_str("document id", value)?;
         Ok(match handle_option {
             HandleOption::Qualified(handle) => {
-                let (collection_name, document_key) = handle.deconstruct();
+                let (collection_name, document_key) = handle.unwrap();
                 DocumentIdOption::Qualified(DocumentId {
                     collection_name,
                     document_key,
                 })
             },
             HandleOption::Local(handle_key) => {
-                let value = handle_key.deconstruct();
+                let value = handle_key.unwrap();
                 DocumentIdOption::Local(DocumentKey(value))
             },
         })
@@ -94,7 +94,7 @@ impl DocumentId {
         }
     }
 
-    pub fn deconstruct(self) -> (String, String) {
+    pub fn unwrap(self) -> (String, String) {
         (self.collection_name, self.document_key)
     }
 
@@ -120,7 +120,7 @@ impl FromStr for DocumentId {
 
     fn from_str(value: &str) -> Result<Self, String> {
         let handle = Handle::from_str("document id", value)?;
-        let (collection_name, document_key) = handle.deconstruct();
+        let (collection_name, document_key) = handle.unwrap();
         Ok(DocumentId {
             collection_name,
             document_key,
@@ -166,7 +166,7 @@ impl DocumentKey {
         }
     }
 
-    pub fn deconstruct(self) -> String {
+    pub fn unwrap(self) -> String {
         self.0
     }
 
@@ -225,7 +225,7 @@ impl Revision {
         self.0
     }
 
-    pub fn deconstruct(self) -> String {
+    pub fn unwrap(self) -> String {
         self.0
     }
 

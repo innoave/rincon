@@ -459,7 +459,7 @@ impl RemoveVertex {
     {
         RemoveVertex {
             graph_name: graph_name.into(),
-            vertex_id: DocumentId::new(collection_name, vertex_key.deconstruct()),
+            vertex_id: DocumentId::new(collection_name, vertex_key.unwrap()),
         }
     }
 
@@ -468,7 +468,7 @@ impl RemoveVertex {
     {
         RemoveVertex {
             graph_name: graph_name.into(),
-            vertex_id: DocumentId::new(collection_name, vertex_key.deconstruct()),
+            vertex_id: DocumentId::new(collection_name, vertex_key.unwrap()),
         }
     }
 
@@ -537,7 +537,7 @@ impl<T> GetVertex<T> {
     {
         GetVertex {
             graph_name: graph_name.into(),
-            vertex_id: DocumentId::new(collection_name, vertex_key.deconstruct()),
+            vertex_id: DocumentId::new(collection_name, vertex_key.unwrap()),
             content: PhantomData,
         }
     }
@@ -547,7 +547,7 @@ impl<T> GetVertex<T> {
     {
         GetVertex {
             graph_name: graph_name.into(),
-            vertex_id: DocumentId::new(collection_name, vertex_key.deconstruct()),
+            vertex_id: DocumentId::new(collection_name, vertex_key.unwrap()),
             content: PhantomData,
         }
     }
@@ -1027,7 +1027,7 @@ impl RemoveEdge {
     {
         RemoveEdge::with_id(graph_name, DocumentId::new(
             collection_name,
-            edge_key.deconstruct(),
+            edge_key.unwrap(),
         ))
     }
 
@@ -1102,7 +1102,7 @@ impl<T> GetEdge<T> {
     {
         GetEdge {
             graph_name: graph_name.into(),
-            edge_id: DocumentId::new(collection_name, edge_key.deconstruct()),
+            edge_id: DocumentId::new(collection_name, edge_key.unwrap()),
             content: PhantomData,
         }
     }
@@ -1112,7 +1112,7 @@ impl<T> GetEdge<T> {
     {
         GetEdge {
             graph_name: graph_name.into(),
-            edge_id: DocumentId::new(collection_name, edge_key.deconstruct()),
+            edge_id: DocumentId::new(collection_name, edge_key.unwrap()),
             content: PhantomData,
         }
     }

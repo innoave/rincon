@@ -4,7 +4,7 @@ use super::*;
 #[test]
 fn get_handle_key_from_str() {
     let handle_key = HandleKey::from_string("index id", "12341".to_owned()).unwrap();
-    assert_eq!(String::from("12341"), handle_key.deconstruct());
+    assert_eq!(String::from("12341"), handle_key.unwrap());
 }
 
 #[test]
@@ -29,7 +29,7 @@ fn get_handle_key_from_str_with_slash_character_at_the_end() {
 fn get_handle_from_str() {
     let handle = Handle::from_str("index id", "mine/12341").unwrap();
     assert_eq!("mine/12341", &handle.to_string());
-    let (context, key) = handle.deconstruct();
+    let (context, key) = handle.unwrap();
     assert_eq!(String::from("mine"), context);
     assert_eq!(String::from("12341"), key);
 }
@@ -57,7 +57,7 @@ fn get_handle_option_from_str_with_context_and_key() {
     let handle_option = HandleOption::from_str("index id", "mine/12341").unwrap();
     match handle_option {
         HandleOption::Qualified(handle) => {
-            let (context, key) = handle.deconstruct();
+            let (context, key) = handle.unwrap();
             assert_eq!("mine", &context);
             assert_eq!("12341", &key);
         }
@@ -70,7 +70,7 @@ fn get_handle_option_from_str_with_key_only() {
     let handle_option = HandleOption::from_str("index id", "12341").unwrap();
     match handle_option {
         HandleOption::Local(handle_key) => {
-            assert_eq!("12341", &handle_key.deconstruct());
+            assert_eq!("12341", &handle_key.unwrap());
         }
         _ => panic!("Expected HandleOption::Local(_), but got: {:?}", handle_option),
     }

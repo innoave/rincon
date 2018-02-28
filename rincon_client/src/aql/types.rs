@@ -2369,7 +2369,7 @@ impl NewParseQuery {
 
 impl From<Query> for NewParseQuery {
     fn from(query: Query) -> Self {
-        let (query, _) = query.deconstruct();
+        let (query, _) = query.unwrap();
         NewParseQuery::new(query)
     }
 }
@@ -2391,7 +2391,7 @@ pub struct NewExplainQuery {
 
 impl NewExplainQuery {
     pub fn new(query: Query, options: Option<ExplainOptions>) -> Self {
-        let (query, bind_vars) = query.deconstruct();
+        let (query, bind_vars) = query.unwrap();
         NewExplainQuery {
             query,
             bind_vars,

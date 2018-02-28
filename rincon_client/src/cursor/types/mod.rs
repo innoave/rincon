@@ -263,7 +263,7 @@ pub struct NewCursor {
 impl NewCursor {
     /// Constructs a new instance of `NewCursor` from the given `Query`.
     pub fn new(query: Query) -> Self {
-        let (query, bind_vars) = query.deconstruct();
+        let (query, bind_vars) = query.unwrap();
         NewCursor {
             query,
             bind_vars,

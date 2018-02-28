@@ -161,7 +161,7 @@ impl Handle {
         }
     }
 
-    pub fn deconstruct(self) -> (String, String) {
+    pub fn unwrap(self) -> (String, String) {
         (self.context, self.key)
     }
 
@@ -198,7 +198,7 @@ impl<'de> Deserialize<'de> for Handle {
 pub struct HandleKey(String);
 
 impl HandleKey {
-    pub fn deconstruct(self) -> String {
+    pub fn unwrap(self) -> String {
         self.0
     }
 

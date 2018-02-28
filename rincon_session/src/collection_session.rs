@@ -297,7 +297,7 @@ impl<C> CollectionSession<C>
             Old: 'static + DeserializeOwned,
             New: 'static + Serialize + DeserializeOwned + Debug,
     {
-        let id = DocumentId::new(self.name(), key.deconstruct());
+        let id = DocumentId::new(self.name(), key.unwrap());
         self.execute(ReplaceDocument::new(id, new_document))
     }
 
@@ -321,7 +321,7 @@ impl<C> CollectionSession<C>
             Old: 'static + DeserializeOwned,
             New: 'static + Serialize + DeserializeOwned + Debug,
     {
-        let id = DocumentId::new(self.name(), key.deconstruct());
+        let id = DocumentId::new(self.name(), key.unwrap());
         self.execute(ReplaceDocument::new(id, new_document)
             .with_if_match(if_match)
         )
@@ -350,7 +350,7 @@ impl<C> CollectionSession<C>
             Old: 'static + DeserializeOwned,
             New: 'static + Serialize + DeserializeOwned + Debug,
     {
-        let id = DocumentId::new(self.name(), key.deconstruct());
+        let id = DocumentId::new(self.name(), key.unwrap());
         self.execute(ReplaceDocument::new(id, new_document)
             .with_if_match(if_match)
             .with_options(options)
@@ -375,7 +375,7 @@ impl<C> CollectionSession<C>
             Old: 'static + DeserializeOwned,
             New: 'static + Serialize + DeserializeOwned + Debug,
     {
-        let id = DocumentId::new(self.name(), key.deconstruct());
+        let id = DocumentId::new(self.name(), key.unwrap());
         self.execute(ReplaceDocument::new(id, new_document).with_options(options))
     }
 
@@ -400,7 +400,7 @@ impl<C> CollectionSession<C>
             Old: 'static + DeserializeOwned,
             New: 'static + Serialize + DeserializeOwned + Debug,
     {
-        let id = DocumentId::new(self.name(), key.deconstruct());
+        let id = DocumentId::new(self.name(), key.unwrap());
         self.execute(ModifyDocument::new(id, modifications))
     }
 
@@ -429,7 +429,7 @@ impl<C> CollectionSession<C>
             Old: 'static + DeserializeOwned,
             New: 'static + Serialize + DeserializeOwned + Debug,
     {
-        let id = DocumentId::new(self.name(), key.deconstruct());
+        let id = DocumentId::new(self.name(), key.unwrap());
         self.execute(ModifyDocument::new(id, modifications)
             .with_if_match(if_match)
         )
@@ -463,7 +463,7 @@ impl<C> CollectionSession<C>
             Old: 'static + DeserializeOwned,
             New: 'static + Serialize + DeserializeOwned + Debug,
     {
-        let id = DocumentId::new(self.name(), key.deconstruct());
+        let id = DocumentId::new(self.name(), key.unwrap());
         self.execute(ModifyDocument::new(id, modifications)
             .with_if_match(if_match)
             .with_options(options)
@@ -494,7 +494,7 @@ impl<C> CollectionSession<C>
             Old: 'static + DeserializeOwned,
             New: 'static + Serialize + DeserializeOwned + Debug,
     {
-        let id = DocumentId::new(self.name(), key.deconstruct());
+        let id = DocumentId::new(self.name(), key.unwrap());
         self.execute(ModifyDocument::new(id, modifications)
             .with_options(options)
         )
@@ -764,11 +764,11 @@ impl<C> CollectionSession<C>
 
     /// Fetches the index with the given key from this collection.
     pub fn get_index(&self, key: IndexKey) -> Result<Index> {
-        self.execute(GetIndex::new(IndexId::new(self.name(), key.deconstruct())))
+        self.execute(GetIndex::new(IndexId::new(self.name(), key.unwrap())))
     }
 
     /// Deletes the index with the given key from this collection.
     pub fn delete_index(&self, key: IndexKey) -> Result<IndexIdOption> {
-        self.execute(DeleteIndex::new(IndexId::new(self.name(), key.deconstruct())))
+        self.execute(DeleteIndex::new(IndexId::new(self.name(), key.unwrap())))
     }
 }

@@ -27,7 +27,7 @@ impl<T> GetDocument<T> {
         where Coll: Into<String>
     {
         GetDocument {
-            id: DocumentId::new(collection_name, document_key.deconstruct()),
+            id: DocumentId::new(collection_name, document_key.unwrap()),
             if_match: None,
             if_non_match: None,
             content: PhantomData,
@@ -242,7 +242,7 @@ impl GetDocumentHeader {
         where Coll: Into<String>
     {
         GetDocumentHeader {
-            id: DocumentId::new(collection_name, document_key.deconstruct()),
+            id: DocumentId::new(collection_name, document_key.unwrap()),
             if_match: None,
             if_non_match: None,
         }
@@ -252,7 +252,7 @@ impl GetDocumentHeader {
         where Coll: Into<String>
     {
         GetDocumentHeader {
-            id: DocumentId::new(collection_name, document_key.deconstruct()),
+            id: DocumentId::new(collection_name, document_key.unwrap()),
             if_match: None,
             if_non_match: None,
         }
@@ -1053,7 +1053,7 @@ impl DeleteDocument {
     {
         DeleteDocument::with_id(DocumentId::new(
             collection_name,
-            document_key.deconstruct()
+            document_key.unwrap()
         ))
     }
 
@@ -1153,7 +1153,7 @@ impl<T> DeleteDocumentReturnOld<T> {
     {
         DeleteDocumentReturnOld::with_id(DocumentId::new(
             collection_name,
-            document_key.deconstruct()
+            document_key.unwrap()
         ))
     }
 
@@ -1162,7 +1162,7 @@ impl<T> DeleteDocumentReturnOld<T> {
     {
         DeleteDocumentReturnOld::with_id(DocumentId::new(
             collection_name,
-            document_key.deconstruct()
+            document_key.unwrap()
         ))
     }
 
