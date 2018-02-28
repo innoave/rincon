@@ -584,6 +584,25 @@ impl VertexCollection {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct EdgeCollection {
+    collection: String,
+}
+
+impl EdgeCollection {
+    pub fn new<Coll>(collection: Coll) -> Self
+        where Coll: Into<String>
+    {
+        EdgeCollection {
+            collection: collection.into(),
+        }
+    }
+
+    pub fn collection(&self) -> &str {
+        &self.collection
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EdgeDefinition {
     collection: String,
     from: Vec<String>,

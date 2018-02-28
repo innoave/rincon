@@ -91,7 +91,7 @@ impl<C> CollectionSession<C>
     }
 
     /// Unwraps the collection entity out of this session which is either the
-    /// name of the collection or the `Collection` struct.
+    /// name of the collection or a `Collection` instance.
     pub fn unwrap(self) -> Entity<Collection> {
         self.entity
     }

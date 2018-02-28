@@ -36,13 +36,14 @@ pub use rincon_client::admin::types::{ServerVersion, TargetVersion};
 pub use rincon_client::aql::types::{ExplainedQuery, ExplainOptions, ParsedQuery};
 pub use rincon_client::collection::types::{Collection, CollectionProperties,
     CollectionPropertiesUpdate, CollectionRevision, NewCollection, RenameTo};
-pub use rincon_client::document::types::{Document, DocumentHeader, DocumentId,
-    DocumentKey, DocumentModifyOptions, DocumentReplaceOptions, DocumentUpdate,
-    NewDocument, UpdatedDocument};
 pub use rincon_client::cursor::types::{Cursor, CursorStatistics, NewCursor,
     Warning};
 pub use rincon_client::database::types::{Database, NewDatabase};
-pub use rincon_client::graph::types::{EdgeDefinition, Graph, NewGraph};
+pub use rincon_client::document::types::{Document, DocumentHeader, DocumentId,
+    DocumentKey, DocumentModifyOptions, DocumentReplaceOptions, DocumentUpdate,
+    NewDocument, UpdatedDocument};
+pub use rincon_client::graph::types::{EdgeCollection, EdgeDefinition, Graph, NewEdge, NewGraph,
+    VertexCollection};
 pub use rincon_client::user::types::{NewUser, Permission, User, UserExtra,
     UserUpdate};
 pub use rincon_core::api::connector::Error;
