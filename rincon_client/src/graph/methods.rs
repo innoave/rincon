@@ -830,6 +830,11 @@ impl<Upd> ModifyVertex<Upd> {
         self
     }
 
+    pub fn with_keep_none(mut self, keep_none: bool) -> Self {
+        self.keep_none = Some(keep_none);
+        self
+    }
+
     pub fn graph_name(&self) -> &str {
         &self.graph_name
     }
@@ -848,6 +853,10 @@ impl<Upd> ModifyVertex<Upd> {
 
     pub fn if_match(&self) -> Option<&String> {
         self.if_match.as_ref()
+    }
+
+    pub fn is_keep_none(&self) -> Option<bool> {
+        self.keep_none
     }
 }
 
