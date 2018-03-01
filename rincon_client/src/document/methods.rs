@@ -1403,10 +1403,8 @@ impl<T> DeleteDocumentsReturnOld<T> {
         self
     }
 
-    pub fn with_ignore_revisions<R>(mut self, ignore_revisions: R) -> Self
-        where R: Into<Option<bool>>
-    {
-        self.ignore_revisions = ignore_revisions.into();
+    pub fn with_ignore_revisions(mut self, ignore_revisions: bool) -> Self {
+        self.ignore_revisions = Some(ignore_revisions);
         self
     }
 

@@ -6,11 +6,11 @@ use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
 use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use rincon_core::arango::protocol::{FIELD_CODE, FIELD_COLLECTIONS, FIELD_EDGE,
-    FIELD_GRAPH, FIELD_GRAPHS, FIELD_REMOVED, FIELD_VERTEX, PATH_API_GHARIAL,
-    PATH_EDGE, PATH_VERTEX};
-use document::types::{Document, DocumentHeader, DocumentId, DocumentKey, NewDocument,
-    UpdatedDocumentHeader};
+use rincon_core::arango::protocol::{FIELD_CODE, FIELD_COLLECTIONS, FIELD_EDGE, FIELD_GRAPH,
+    FIELD_GRAPHS, FIELD_REMOVED, FIELD_VERTEX, HEADER_IF_MATCH, HEADER_IF_NON_MATCH,
+    PARAM_KEEP_NULL, PARAM_WAIT_FOR_SYNC, PATH_API_GHARIAL, PATH_EDGE, PATH_VERTEX};
+use document::types::{Document, DocumentHeader, DocumentId, DocumentKey, DocumentUpdate,
+    NewDocument, UpdatedDocumentHeader};
 use super::types::*;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -386,6 +386,7 @@ pub struct InsertVertex<T> {
     graph_name: String,
     collection_name: String,
     vertex: NewDocument<T>,
+    force_wait_for_sync: Option<bool>,
 }
 
 impl<T> InsertVertex<T> {
@@ -396,7 +397,13 @@ impl<T> InsertVertex<T> {
             graph_name: graph_name.into(),
             collection_name: collection_name.into(),
             vertex,
+            force_wait_for_sync: None,
         }
+    }
+
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
+        self
     }
 
     pub fn graph_name(&self) -> &str {
@@ -409,6 +416,10 @@ impl<T> InsertVertex<T> {
 
     pub fn vertex(&self) -> &NewDocument<T> {
         &self.vertex
+    }
+
+    pub fn is_force_wait_for_sync(&self) -> Option<bool> {
+        self.force_wait_for_sync
     }
 }
 
@@ -435,7 +446,11 @@ impl<T> Prepare for InsertVertex<T>
     }
 
     fn parameters(&self) -> Parameters {
-        Parameters::empty()
+        let mut params = Parameters::new();
+        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+            params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
+        }
+        params
     }
 
     fn header(&self) -> Parameters {
@@ -451,6 +466,8 @@ impl<T> Prepare for InsertVertex<T>
 pub struct RemoveVertex {
     graph_name: String,
     vertex_id: DocumentId,
+    force_wait_for_sync: Option<bool>,
+    if_match: Option<String>,
 }
 
 impl RemoveVertex {
@@ -460,6 +477,8 @@ impl RemoveVertex {
         RemoveVertex {
             graph_name: graph_name.into(),
             vertex_id: DocumentId::new(collection_name, vertex_key.unwrap()),
+            force_wait_for_sync: None,
+            if_match: None,
         }
     }
 
@@ -469,6 +488,8 @@ impl RemoveVertex {
         RemoveVertex {
             graph_name: graph_name.into(),
             vertex_id: DocumentId::new(collection_name, vertex_key.unwrap()),
+            force_wait_for_sync: None,
+            if_match: None,
         }
     }
 
@@ -478,7 +499,21 @@ impl RemoveVertex {
         RemoveVertex {
             graph_name: graph_name.into(),
             vertex_id,
+            force_wait_for_sync: None,
+            if_match: None,
         }
+    }
+
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
+        self
+    }
+
+    pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
+        where IfMatch: Into<String>
+    {
+        self.if_match = Some(if_match.into());
+        self
     }
 
     pub fn graph_name(&self) -> &str {
@@ -487,6 +522,14 @@ impl RemoveVertex {
 
     pub fn vertex_id(&self) -> &DocumentId {
         &self.vertex_id
+    }
+
+    pub fn is_force_wait_for_sync(&self) -> Option<bool> {
+        self.force_wait_for_sync
+    }
+
+    pub fn if_match(&self) -> Option<&String> {
+        self.if_match.as_ref()
     }
 }
 
@@ -512,11 +555,19 @@ impl Prepare for RemoveVertex {
     }
 
     fn parameters(&self) -> Parameters {
-        Parameters::empty()
+        let mut params = Parameters::new();
+        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+            params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
+        }
+        params
     }
 
     fn header(&self) -> Parameters {
-        Parameters::empty()
+        let mut header = Parameters::new();
+        if let Some(ref if_match) = self.if_match {
+            header.insert(HEADER_IF_MATCH, if_match.to_owned());
+        }
+        header
     }
 
     fn content(&self) -> Option<&Self::Content> {
@@ -528,6 +579,8 @@ impl Prepare for RemoveVertex {
 pub struct GetVertex<T> {
     graph_name: String,
     vertex_id: DocumentId,
+    if_match: Option<String>,
+    if_non_match: Option<String>,
     content: PhantomData<T>,
 }
 
@@ -538,6 +591,8 @@ impl<T> GetVertex<T> {
         GetVertex {
             graph_name: graph_name.into(),
             vertex_id: DocumentId::new(collection_name, vertex_key.unwrap()),
+            if_match: None,
+            if_non_match: None,
             content: PhantomData,
         }
     }
@@ -548,6 +603,8 @@ impl<T> GetVertex<T> {
         GetVertex {
             graph_name: graph_name.into(),
             vertex_id: DocumentId::new(collection_name, vertex_key.unwrap()),
+            if_match: None,
+            if_non_match: None,
             content: PhantomData,
         }
     }
@@ -558,8 +615,24 @@ impl<T> GetVertex<T> {
         GetVertex {
             graph_name: graph_name.into(),
             vertex_id,
+            if_match: None,
+            if_non_match: None,
             content: PhantomData,
         }
+    }
+
+    pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
+        where IfMatch: Into<String>
+    {
+        self.if_match = Some(if_match.into());
+        self
+    }
+
+    pub fn with_if_non_match<IfNonMatch>(mut self, if_non_match: IfNonMatch) -> Self
+        where IfNonMatch: Into<String>
+    {
+        self.if_non_match = Some(if_non_match.into());
+        self
     }
 
     pub fn graph_name(&self) -> &str {
@@ -568,6 +641,14 @@ impl<T> GetVertex<T> {
 
     pub fn vertex_id(&self) -> &DocumentId {
         &self.vertex_id
+    }
+
+    pub fn if_match(&self) -> Option<&String> {
+        self.if_match.as_ref()
+    }
+
+    pub fn if_non_match(&self) -> Option<&String> {
+        self.if_non_match.as_ref()
     }
 }
 
@@ -599,7 +680,14 @@ impl<T> Prepare for GetVertex<T> {
     }
 
     fn header(&self) -> Parameters {
-        Parameters::empty()
+        let mut header = Parameters::new();
+        if let Some(ref if_match) = self.if_match {
+            header.insert(HEADER_IF_MATCH, if_match.to_owned());
+        }
+        if let Some(ref if_non_match) = self.if_non_match {
+            header.insert(HEADER_IF_NON_MATCH, if_non_match.to_owned());
+        }
+        header
     }
 
     fn content(&self) -> Option<&Self::Content> {
@@ -612,6 +700,8 @@ pub struct ReplaceVertex<T> {
     graph_name: String,
     vertex_id: DocumentId,
     new_vertex: NewDocument<T>,
+    force_wait_for_sync: Option<bool>,
+    if_match: Option<String>,
 }
 
 impl<T> ReplaceVertex<T> {
@@ -622,7 +712,21 @@ impl<T> ReplaceVertex<T> {
             graph_name: graph_name.into(),
             vertex_id,
             new_vertex,
+            force_wait_for_sync: None,
+            if_match: None,
         }
+    }
+
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
+        self
+    }
+
+    pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
+        where IfMatch: Into<String>
+    {
+        self.if_match = Some(if_match.into());
+        self
     }
 
     pub fn graph_name(&self) -> &str {
@@ -635,6 +739,14 @@ impl<T> ReplaceVertex<T> {
 
     pub fn new_vertex(&self) -> &NewDocument<T> {
         &self.new_vertex
+    }
+
+    pub fn is_force_wait_for_sync(&self) -> Option<bool> {
+        self.force_wait_for_sync
+    }
+
+    pub fn if_match(&self) -> Option<&String> {
+        self.if_match.as_ref()
     }
 }
 
@@ -662,11 +774,19 @@ impl<T> Prepare for ReplaceVertex<T>
     }
 
     fn parameters(&self) -> Parameters {
-        Parameters::empty()
+        let mut params = Parameters::new();
+        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+            params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
+        }
+        params
     }
 
     fn header(&self) -> Parameters {
-        Parameters::empty()
+        let mut header = Parameters::new();
+        if let Some(ref if_match) = self.if_match {
+            header.insert(HEADER_IF_MATCH, if_match.to_owned());
+        }
+        header
     }
 
     fn content(&self) -> Option<&Self::Content> {
@@ -678,7 +798,57 @@ impl<T> Prepare for ReplaceVertex<T>
 pub struct ModifyVertex<Upd> {
     graph_name: String,
     vertex_id: DocumentId,
-    update: Upd,
+    update: DocumentUpdate<Upd>,
+    force_wait_for_sync: Option<bool>,
+    if_match: Option<String>,
+    keep_none: Option<bool>,
+}
+
+impl<Upd> ModifyVertex<Upd> {
+    pub fn new<G>(graph_name: G, vertex_id: DocumentId, update: DocumentUpdate<Upd>) -> Self
+        where G: Into<String>
+    {
+        ModifyVertex {
+            graph_name: graph_name.into(),
+            vertex_id,
+            update,
+            force_wait_for_sync: None,
+            if_match: None,
+            keep_none: None,
+        }
+    }
+
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
+        self
+    }
+
+    pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
+        where IfMatch: Into<String>
+    {
+        self.if_match = Some(if_match.into());
+        self
+    }
+
+    pub fn graph_name(&self) -> &str {
+        &self.graph_name
+    }
+
+    pub fn vertex_id(&self) -> &DocumentId {
+        &self.vertex_id
+    }
+
+    pub fn update(&self) -> &DocumentUpdate<Upd> {
+        &self.update
+    }
+
+    pub fn is_force_wait_for_sync(&self) -> Option<bool> {
+        self.force_wait_for_sync
+    }
+
+    pub fn if_match(&self) -> Option<&String> {
+        self.if_match.as_ref()
+    }
 }
 
 impl<Upd> Method for ModifyVertex<Upd> {
@@ -690,9 +860,9 @@ impl<Upd> Method for ModifyVertex<Upd> {
 }
 
 impl<Upd> Prepare for ModifyVertex<Upd>
-    where Upd: Serialize
+    where Upd: Serialize + Debug
 {
-    type Content = Upd;
+    type Content = DocumentUpdate<Upd>;
 
     fn operation(&self) -> Operation {
         Operation::Modify
@@ -705,11 +875,22 @@ impl<Upd> Prepare for ModifyVertex<Upd>
     }
 
     fn parameters(&self) -> Parameters {
-        Parameters::empty()
+        let mut params = Parameters::new();
+        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+            params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
+        }
+        if let Some(keep_none) = self.keep_none {
+            params.insert(PARAM_KEEP_NULL, keep_none);
+        }
+        params
     }
 
     fn header(&self) -> Parameters {
-        Parameters::empty()
+        let mut header = Parameters::new();
+        if let Some(ref if_match) = self.if_match {
+            header.insert(HEADER_IF_MATCH, if_match.to_owned());
+        }
+        header
     }
 
     fn content(&self) -> Option<&Self::Content> {

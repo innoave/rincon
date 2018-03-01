@@ -757,9 +757,9 @@ impl<Upd> DocumentUpdate<Upd> {
     }
 
     pub fn with_revision<Rev>(mut self, revision: Rev) -> Self
-        where Rev: Into<Option<Revision>>
+        where Rev: Into<Revision>
     {
-        self.revision = revision.into();
+        self.revision = Some(revision.into());
         self
     }
 
