@@ -380,56 +380,56 @@ impl<C> CollectionSession<C>
 
     /// Partially modifies an existing document.
     ///
-    /// The modifications argument must contain a document with the attributes
+    /// The update argument must contain a document with the attributes
     /// to patch (the patch document). All attributes from the patch document
     /// will be added to the existing document if they do not exist yet or
     /// overwritten in the existing document if they already exist there.
     ///
     /// # Arguments
     ///
-    /// * `key` : The key of the document to be replaced
-    /// * `modifications` : A document with the content to be modified
-    ///   (patch document)
-    pub fn modify_document<Old, New>(
+    /// * `key` : The key of the document to be modified
+    /// * `update` : A document with the content to be modified (patch document)
+    pub fn modify_document<Upd, Old, New>(
         &self,
         key: DocumentKey,
-        modifications: DocumentUpdate<New>,
+        update: DocumentUpdate<Upd>,
     ) -> Result<UpdatedDocument<Old, New>>
         where
+            Upd: 'static + Serialize + Debug,
             Old: 'static + DeserializeOwned,
-            New: 'static + Serialize + DeserializeOwned + Debug,
+            New: 'static + DeserializeOwned,
     {
         let id = DocumentId::new(self.name(), key.unwrap());
-        self.execute(ModifyDocument::new(id, modifications))
+        self.execute(ModifyDocument::new(id, update))
     }
 
     /// Partially modifies an existing document if the match condition is met.
     ///
-    /// The modifications argument must contain a document with the attributes
+    /// The update argument must contain a document with the attributes
     /// to patch (the patch document). All attributes from the patch document
     /// will be added to the existing document if they do not exist yet or
     /// overwritten in the existing document if they already exist there.
     ///
     /// # Arguments
     ///
-    /// * `key` : The key of the document to be replaced
-    /// * `modifications` : A document with the content to be modified
-    ///   (patch document)
-    /// * `if_match` : The match condition that must be met to replace a
+    /// * `key` : The key of the document to be modified
+    /// * `update` : A document with the content to be modified (patch document)
+    /// * `if_match` : The match condition that must be met to modify a
     ///   document
-    pub fn modify_document_if_match<IfMatch, Old, New>(
+    pub fn modify_document_if_match<IfMatch, Upd, Old, New>(
         &self,
         key: DocumentKey,
-        modifications: DocumentUpdate<New>,
+        update: DocumentUpdate<Upd>,
         if_match: IfMatch,
     ) -> Result<UpdatedDocument<Old, New>>
         where
             IfMatch: Into<String>,
+            Upd: 'static + Serialize + Debug,
             Old: 'static + DeserializeOwned,
-            New: 'static + Serialize + DeserializeOwned + Debug,
+            New: 'static + DeserializeOwned,
     {
         let id = DocumentId::new(self.name(), key.unwrap());
-        self.execute(ModifyDocument::new(id, modifications)
+        self.execute(ModifyDocument::new(id, update)
             .with_if_match(if_match)
         )
     }
@@ -437,33 +437,33 @@ impl<C> CollectionSession<C>
     /// Partially modifies an existing document if the match condition is met.
     /// This function allows to specify detailed options for the modify method.
     ///
-    /// The modifications argument must contain a document with the attributes
+    /// The update argument must contain a document with the attributes
     /// to patch (the patch document). All attributes from the patch document
     /// will be added to the existing document if they do not exist yet or
     /// overwritten in the existing document if they already exist there.
     ///
     /// # Arguments
     ///
-    /// * `key` : The key of the document to be replaced
-    /// * `modifications` : A document with the content to be modified
-    ///   (patch document)
-    /// * `if_match` : The match condition that must be met to replace a
+    /// * `key` : The key of the document to be modified
+    /// * `update` : A document with the content to be modified (patch document)
+    /// * `if_match` : The match condition that must be met to modify a
     ///   document
     /// * `options` : Additional options for the modify method
-    pub fn modify_document_if_match_opt<IfMatch, Old, New>(
+    pub fn modify_document_if_match_opt<IfMatch, Upd, Old, New>(
         &self,
         key: DocumentKey,
-        modifications: DocumentUpdate<New>,
+        update: DocumentUpdate<Upd>,
         if_match: IfMatch,
         options: DocumentModifyOptions,
     ) -> Result<UpdatedDocument<Old, New>>
         where
             IfMatch: Into<String>,
+            Upd: 'static + Serialize + Debug,
             Old: 'static + DeserializeOwned,
-            New: 'static + Serialize + DeserializeOwned + Debug,
+            New: 'static + DeserializeOwned,
     {
         let id = DocumentId::new(self.name(), key.unwrap());
-        self.execute(ModifyDocument::new(id, modifications)
+        self.execute(ModifyDocument::new(id, update)
             .with_if_match(if_match)
             .with_options(options)
         )
@@ -472,29 +472,29 @@ impl<C> CollectionSession<C>
     /// Partially modifies an existing document. This function allows to
     /// specify detailed options for the modify method.
     ///
-    /// The modifications argument must contain a document with the attributes
+    /// The update argument must contain a document with the attributes
     /// to patch (the patch document). All attributes from the patch document
     /// will be added to the existing document if they do not exist yet or
     /// overwritten in the existing document if they already exist there.
     ///
     /// # Arguments
     ///
-    /// * `key` : The key of the document to be replaced
-    /// * `modifications` : A document with the content to be modified
-    ///   (patch document)
+    /// * `key` : The key of the document to be modified
+    /// * `update` : A document with the content to be modified (patch document)
     /// * `options` : Additional options for the modify method
-    pub fn modify_document_opt<Old, New>(
+    pub fn modify_document_opt<Upd, Old, New>(
         &self,
         key: DocumentKey,
-        modifications: DocumentUpdate<New>,
+        update: DocumentUpdate<Upd>,
         options: DocumentModifyOptions,
     ) -> Result<UpdatedDocument<Old, New>>
         where
+            Upd: 'static + Serialize + Debug,
             Old: 'static + DeserializeOwned,
-            New: 'static + Serialize + DeserializeOwned + Debug,
+            New: 'static + DeserializeOwned,
     {
         let id = DocumentId::new(self.name(), key.unwrap());
-        self.execute(ModifyDocument::new(id, modifications)
+        self.execute(ModifyDocument::new(id, update)
             .with_options(options)
         )
     }
