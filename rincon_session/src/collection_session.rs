@@ -172,8 +172,8 @@ impl<C> CollectionSession<C>
         self.execute(InsertDocument::new(self.name(), document.into()))
     }
 
-    /// Inserts a new document into this collection with forced waiting for the
-    /// document being synced to disk.
+    /// Inserts a new document into this collection and waits until the changes
+    /// are written to disk.
     pub fn insert_document_synced<D, T>(&self, document: D) -> Result<DocumentHeader>
         where
             D: Into<NewDocument<T>>,
@@ -193,8 +193,8 @@ impl<C> CollectionSession<C>
         self.execute(InsertDocumentReturnNew::new(self.name(), document.into()))
     }
 
-    /// Inserts a new document into this collection with forced waiting for the
-    /// document being synced to disk and returns the newly created document
+    /// Inserts a new document into this collection, waits until the changes are
+    /// written to disk and returns the newly created document
     pub fn insert_document_return_new_synced<D, T>(&self, document: D) -> Result<Document<T>>
         where
             D: Into<NewDocument<T>>,
@@ -213,8 +213,8 @@ impl<C> CollectionSession<C>
         self.execute(InsertDocuments::new(self.name(), documents))
     }
 
-    /// Inserts multiple documents into this collection with forced waiting for
-    /// the documents being synced to disk.
+    /// Inserts multiple documents into this collection and waits until the
+    /// changes are written to disk.
     pub fn insert_documents_synced<D, T>(&self, documents: D) -> Result<ResultList<DocumentHeader>>
         where
             D: IntoIterator<Item=NewDocument<T>>,
@@ -234,9 +234,8 @@ impl<C> CollectionSession<C>
         self.execute(InsertDocumentsReturnNew::new(self.name(), documents))
     }
 
-    /// Inserts multiple documents into this collection with forced waiting for
-    /// the documents being synced to disk and returns the newly created
-    /// documents.
+    /// Inserts multiple documents into this collection, waits until the changes
+    /// are written to disk and returns the newly created documents.
     pub fn insert_documents_return_new_synced<D, T>(&self, documents: D) -> Result<ResultList<Document<T>>>
         where
             D: IntoIterator<Item=NewDocument<T>>,
@@ -527,7 +526,7 @@ impl<C> CollectionSession<C>
     }
 
     /// Deletes the document with the given key from this collection if the
-    /// match condition is met and waits until the changes are synced to disk.
+    /// match condition is met and waits until the changes are written to disk.
     ///
     /// # Arguments
     ///
@@ -549,7 +548,7 @@ impl<C> CollectionSession<C>
     }
 
     /// Deletes the document with the given key from this collection and waits
-    /// until the changes are synced to disk.
+    /// until the changes are written to disk.
     pub fn delete_document_synced(&self, key: DocumentKey) -> Result<DocumentHeader> {
         self.execute(DeleteDocument::new(self.name(), key)
             .with_force_wait_for_sync(true)
@@ -588,7 +587,7 @@ impl<C> CollectionSession<C>
     }
 
     /// Deletes the document with the given key from this collection if the
-    /// match condition is met, waits until the changes are synced to disk and
+    /// match condition is met, waits until the changes are written to disk and
     /// returns the deleted document.
     ///
     /// # Arguments
@@ -612,7 +611,7 @@ impl<C> CollectionSession<C>
     }
 
     /// Deletes the document with the given key from this collection, waits
-    /// until the changes are synced to disk and returns the deleted document.
+    /// until the changes are written to disk and returns the deleted document.
     pub fn delete_document_return_old_synced<Old>(&self, key: DocumentKey) -> Result<Document<Old>>
         where
             Old: 'static + DeserializeOwned,
