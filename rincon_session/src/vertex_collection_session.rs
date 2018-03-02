@@ -8,7 +8,7 @@ use serde::ser::Serialize;
 use tokio_core::reactor::Core;
 
 use rincon_client::document::types::{Document, DocumentHeader, DocumentKey, DocumentId,
-    DocumentUpdate, NewDocument, UpdatedDocumentHeader};
+    NewDocument, UpdatedDocumentHeader};
 use rincon_client::graph::methods::*;
 use rincon_client::graph::types::{Graph, VertexCollection};
 use rincon_core::api::connector::{Connector, Execute};
@@ -251,7 +251,7 @@ impl<C> VertexCollectionSession<C>
     pub fn modify_vertex<Upd>(
         &self,
         key: DocumentKey,
-        update: DocumentUpdate<Upd>,
+        update: Upd,
         keep_none: Option<bool>,
     ) -> Result<UpdatedDocumentHeader>
         where
@@ -284,7 +284,7 @@ impl<C> VertexCollectionSession<C>
     pub fn modify_vertex_if_match<IfMatch, Upd>(
         &self,
         key: DocumentKey,
-        update: DocumentUpdate<Upd>,
+        update: Upd,
         if_match: IfMatch,
         keep_none: Option<bool>,
     ) -> Result<UpdatedDocumentHeader>
@@ -320,7 +320,7 @@ impl<C> VertexCollectionSession<C>
     pub fn modify_vertex_if_match_synced<IfMatch, Upd>(
         &self,
         key: DocumentKey,
-        update: DocumentUpdate<Upd>,
+        update: Upd,
         if_match: IfMatch,
         keep_none: Option<bool>,
     ) -> Result<UpdatedDocumentHeader>
@@ -358,7 +358,7 @@ impl<C> VertexCollectionSession<C>
     pub fn modify_vertex_synced<Upd>(
         &self,
         key: DocumentKey,
-        update: DocumentUpdate<Upd>,
+        update: Upd,
         keep_none: Option<bool>,
     ) -> Result<UpdatedDocumentHeader>
         where

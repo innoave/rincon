@@ -9,8 +9,8 @@ use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturn
 use rincon_core::arango::protocol::{FIELD_CODE, FIELD_COLLECTIONS, FIELD_EDGE, FIELD_GRAPH,
     FIELD_GRAPHS, FIELD_REMOVED, FIELD_VERTEX, HEADER_IF_MATCH, HEADER_IF_NON_MATCH,
     PARAM_KEEP_NULL, PARAM_WAIT_FOR_SYNC, PATH_API_GHARIAL, PATH_EDGE, PATH_VERTEX};
-use document::types::{Document, DocumentHeader, DocumentId, DocumentKey, DocumentUpdate,
-    NewDocument, UpdatedDocumentHeader};
+use document::types::{Document, DocumentHeader, DocumentId, DocumentKey, NewDocument,
+    UpdatedDocumentHeader};
 use super::types::*;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -798,14 +798,14 @@ impl<T> Prepare for ReplaceVertex<T>
 pub struct ModifyVertex<Upd> {
     graph_name: String,
     vertex_id: DocumentId,
-    update: DocumentUpdate<Upd>,
+    update: Upd,
     force_wait_for_sync: Option<bool>,
     if_match: Option<String>,
     keep_none: Option<bool>,
 }
 
 impl<Upd> ModifyVertex<Upd> {
-    pub fn new<G>(graph_name: G, vertex_id: DocumentId, update: DocumentUpdate<Upd>) -> Self
+    pub fn new<G>(graph_name: G, vertex_id: DocumentId, update: Upd) -> Self
         where G: Into<String>
     {
         ModifyVertex {
@@ -843,7 +843,7 @@ impl<Upd> ModifyVertex<Upd> {
         &self.vertex_id
     }
 
-    pub fn update(&self) -> &DocumentUpdate<Upd> {
+    pub fn update(&self) -> &Upd {
         &self.update
     }
 
@@ -871,7 +871,7 @@ impl<Upd> Method for ModifyVertex<Upd> {
 impl<Upd> Prepare for ModifyVertex<Upd>
     where Upd: Serialize + Debug
 {
-    type Content = DocumentUpdate<Upd>;
+    type Content = Upd;
 
     fn operation(&self) -> Operation {
         Operation::Modify
@@ -1144,6 +1144,7 @@ pub struct InsertEdge<T> {
     graph_name: String,
     collection_name: String,
     edge: NewEdge<T>,
+    force_wait_for_sync: Option<bool>,
 }
 
 impl<T> InsertEdge<T> {
@@ -1154,7 +1155,13 @@ impl<T> InsertEdge<T> {
             graph_name: graph_name.into(),
             collection_name: collection_name.into(),
             edge,
+            force_wait_for_sync: None,
         }
+    }
+
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
+        self
     }
 
     pub fn graph_name(&self) -> &str {
@@ -1167,6 +1174,10 @@ impl<T> InsertEdge<T> {
 
     pub fn edge(&self) -> &NewEdge<T> {
         &self.edge
+    }
+
+    pub fn is_force_wait_for_sync(&self) -> Option<bool> {
+        self.force_wait_for_sync
     }
 }
 
@@ -1193,7 +1204,11 @@ impl<T> Prepare for InsertEdge<T>
     }
 
     fn parameters(&self) -> Parameters {
-        Parameters::empty()
+        let mut params = Parameters::new();
+        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+            params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
+        }
+        params
     }
 
     fn header(&self) -> Parameters {
@@ -1209,6 +1224,8 @@ impl<T> Prepare for InsertEdge<T>
 pub struct RemoveEdge {
     graph_name: String,
     edge_id: DocumentId,
+    force_wait_for_sync: Option<bool>,
+    if_match: Option<String>,
 }
 
 impl RemoveEdge {
@@ -1233,7 +1250,21 @@ impl RemoveEdge {
         RemoveEdge {
             graph_name: graph_name.into(),
             edge_id,
+            force_wait_for_sync: None,
+            if_match: None
         }
+    }
+
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
+        self
+    }
+
+    pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
+        where IfMatch: Into<String>
+    {
+        self.if_match = Some(if_match.into());
+        self
     }
 
     pub fn graph_name(&self) -> &str {
@@ -1242,6 +1273,14 @@ impl RemoveEdge {
 
     pub fn edge_id(&self) -> &DocumentId {
         &self.edge_id
+    }
+
+    pub fn is_force_wait_for_sync(&self) -> Option<bool> {
+        self.force_wait_for_sync
+    }
+
+    pub fn if_match(&self) -> Option<&String> {
+        self.if_match.as_ref()
     }
 }
 
@@ -1267,11 +1306,19 @@ impl Prepare for RemoveEdge {
     }
 
     fn parameters(&self) -> Parameters {
-        Parameters::empty()
+        let mut params = Parameters::new();
+        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+            params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
+        }
+        params
     }
 
     fn header(&self) -> Parameters {
-        Parameters::empty()
+        let mut header = Parameters::new();
+        if let Some(ref if_match) = self.if_match {
+            header.insert(HEADER_IF_MATCH, if_match.to_owned());
+        }
+        header
     }
 
     fn content(&self) -> Option<&Self::Content> {
@@ -1284,6 +1331,8 @@ pub struct GetEdge<T> {
     graph_name: String,
     edge_id: DocumentId,
     content: PhantomData<T>,
+    if_match: Option<String>,
+    if_non_match: Option<String>,
 }
 
 impl<T> GetEdge<T> {
@@ -1294,17 +1343,15 @@ impl<T> GetEdge<T> {
             graph_name: graph_name.into(),
             edge_id: DocumentId::new(collection_name, edge_key.unwrap()),
             content: PhantomData,
+            if_match: None,
+            if_non_match: None,
         }
     }
 
     pub fn with_key<G, Coll>(graph_name: G, collection_name: Coll, edge_key: DocumentKey) -> Self
         where G: Into<String>, Coll: Into<String>
     {
-        GetEdge {
-            graph_name: graph_name.into(),
-            edge_id: DocumentId::new(collection_name, edge_key.unwrap()),
-            content: PhantomData,
-        }
+        GetEdge::new(graph_name, collection_name, edge_key)
     }
 
     pub fn with_id<G>(graph_name: G, edge_id: DocumentId) -> Self
@@ -1314,7 +1361,23 @@ impl<T> GetEdge<T> {
             graph_name: graph_name.into(),
             edge_id,
             content: PhantomData,
+            if_match: None,
+            if_non_match: None,
         }
+    }
+
+    pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
+        where IfMatch: Into<String>
+    {
+        self.if_match = Some(if_match.into());
+        self
+    }
+
+    pub fn with_if_non_match<IfNonMatch>(mut self, if_non_match: IfNonMatch) -> Self
+        where IfNonMatch: Into<String>
+    {
+        self.if_non_match = Some(if_non_match.into());
+        self
     }
 
     pub fn graph_name(&self) -> &str {
@@ -1323,6 +1386,14 @@ impl<T> GetEdge<T> {
 
     pub fn edge_id(&self) -> &DocumentId {
         &self.edge_id
+    }
+
+    pub fn if_match(&self) -> Option<&String> {
+        self.if_match.as_ref()
+    }
+
+    pub fn if_non_match(&self) -> Option<&String> {
+        self.if_non_match.as_ref()
     }
 }
 
@@ -1354,7 +1425,14 @@ impl<T> Prepare for GetEdge<T> {
     }
 
     fn header(&self) -> Parameters {
-        Parameters::empty()
+        let mut header = Parameters::new();
+        if let Some(ref if_match) = self.if_match {
+            header.insert(HEADER_IF_MATCH, if_match.to_owned());
+        }
+        if let Some(ref if_non_match) = self.if_non_match {
+            header.insert(HEADER_IF_NON_MATCH, if_non_match.to_owned());
+        }
+        header
     }
 
     fn content(&self) -> Option<&Self::Content> {
@@ -1367,17 +1445,33 @@ pub struct ReplaceEdge<T> {
     graph_name: String,
     edge_id: DocumentId,
     new_edge: NewEdge<T>,
+    force_wait_for_sync: Option<bool>,
+    if_match: Option<String>,
 }
 
 impl<T> ReplaceEdge<T> {
-    pub fn new<G, Coll>(graph_name: G, edge_id: DocumentId, new_edge: NewEdge<T>) -> Self
+    pub fn new<G>(graph_name: G, edge_id: DocumentId, new_edge: NewEdge<T>) -> Self
         where G: Into<String>
     {
         ReplaceEdge {
             graph_name: graph_name.into(),
             edge_id,
             new_edge,
+            force_wait_for_sync: None,
+            if_match: None,
         }
+    }
+
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
+        self
+    }
+
+    pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
+        where IfMatch: Into<String>
+    {
+        self.if_match = Some(if_match.into());
+        self
     }
 
     pub fn graph_name(&self) -> &str {
@@ -1390,6 +1484,14 @@ impl<T> ReplaceEdge<T> {
 
     pub fn new_edge(&self) -> &NewEdge<T> {
         &self.new_edge
+    }
+
+    pub fn is_force_wait_for_sync(&self) -> Option<bool> {
+        self.force_wait_for_sync
+    }
+
+    pub fn if_match(&self) -> Option<&String> {
+        self.if_match.as_ref()
     }
 }
 
@@ -1417,11 +1519,19 @@ impl<T> Prepare for ReplaceEdge<T>
     }
 
     fn parameters(&self) -> Parameters {
-        Parameters::empty()
+        let mut params = Parameters::new();
+        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+            params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
+        }
+        params
     }
 
     fn header(&self) -> Parameters {
-        Parameters::empty()
+        let mut header = Parameters::new();
+        if let Some(ref if_match) = self.if_match {
+            header.insert(HEADER_IF_MATCH, if_match.to_owned());
+        }
+        header
     }
 
     fn content(&self) -> Option<&Self::Content> {
@@ -1434,6 +1544,9 @@ pub struct ModifyEdge<Upd> {
     graph_name: String,
     edge_id: DocumentId,
     update: Upd,
+    force_wait_for_sync: Option<bool>,
+    if_match: Option<String>,
+    keep_none: Option<bool>,
 }
 
 impl<Upd> ModifyEdge<Upd> {
@@ -1444,7 +1557,27 @@ impl<Upd> ModifyEdge<Upd> {
             graph_name: graph_name.into(),
             edge_id,
             update,
+            force_wait_for_sync: None,
+            if_match: None,
+            keep_none: None,
         }
+    }
+
+    pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
+        self.force_wait_for_sync = Some(force_wait_for_sync);
+        self
+    }
+
+    pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
+        where IfMatch: Into<String>
+    {
+        self.if_match = Some(if_match.into());
+        self
+    }
+
+    pub fn with_keep_none(mut self, keep_none: bool) -> Self {
+        self.keep_none = Some(keep_none);
+        self
     }
 
     pub fn graph_name(&self) -> &str {
@@ -1457,6 +1590,18 @@ impl<Upd> ModifyEdge<Upd> {
 
     pub fn update(&self) -> &Upd {
         &self.update
+    }
+
+    pub fn is_force_wait_for_sync(&self) -> Option<bool> {
+        self.force_wait_for_sync
+    }
+
+    pub fn if_match(&self) -> Option<&String> {
+        self.if_match.as_ref()
+    }
+
+    pub fn is_keep_none(&self) -> Option<bool> {
+        self.keep_none
     }
 }
 
@@ -1484,11 +1629,22 @@ impl<Upd> Prepare for ModifyEdge<Upd>
     }
 
     fn parameters(&self) -> Parameters {
-        Parameters::empty()
+        let mut params = Parameters::new();
+        if let Some(force_wait_for_sync) = self.force_wait_for_sync {
+            params.insert(PARAM_WAIT_FOR_SYNC, force_wait_for_sync);
+        }
+        if let Some(keep_none) = self.keep_none {
+            params.insert(PARAM_KEEP_NULL, keep_none);
+        }
+        params
     }
 
     fn header(&self) -> Parameters {
-        Parameters::empty()
+        let mut header = Parameters::new();
+        if let Some(ref if_match) = self.if_match {
+            header.insert(HEADER_IF_MATCH, if_match.to_owned());
+        }
+        header
     }
 
     fn content(&self) -> Option<&Self::Content> {
