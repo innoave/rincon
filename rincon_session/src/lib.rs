@@ -24,13 +24,17 @@ mod arango_session;
 mod collection_session;
 mod cursor_session;
 mod database_session;
+mod edge_collection_session;
 mod graph_session;
+mod vertex_collection_session;
 
 pub use self::arango_session::*;
 pub use self::collection_session::*;
 pub use self::cursor_session::*;
 pub use self::database_session::*;
+pub use self::edge_collection_session::*;
 pub use self::graph_session::*;
+pub use self::vertex_collection_session::*;
 
 pub use rincon_client::admin::types::{ServerVersion, TargetVersion};
 pub use rincon_client::aql::types::{ExplainedQuery, ExplainOptions, ParsedQuery};
@@ -41,7 +45,7 @@ pub use rincon_client::cursor::types::{Cursor, CursorStatistics, NewCursor,
 pub use rincon_client::database::types::{Database, NewDatabase};
 pub use rincon_client::document::types::{Document, DocumentHeader, DocumentId,
     DocumentKey, DocumentModifyOptions, DocumentReplaceOptions, DocumentUpdate,
-    NewDocument, UpdatedDocument};
+    NewDocument, UpdatedDocument, UpdatedDocumentHeader};
 pub use rincon_client::graph::types::{EdgeCollection, EdgeDefinition, Graph, NewEdge, NewGraph,
     VertexCollection};
 pub use rincon_client::user::types::{NewUser, Permission, User, UserExtra,
