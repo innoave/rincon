@@ -2,13 +2,14 @@
 name = "rincon_session_async"
 version = "0.1.0"  # remember to update html_root_url
 description = "An asynchronous session managed client API for the ArangoDB driver"
-authors = ["Harald Maida"]
+authors = ["haraldmaida"]
 repository = "https://github.com/innoave/rincon"
 documentation = "https://docs.rs/rincon_session_async"
 readme = "README.md"
 keywords = ["arangodb", "aql", "nosql", "database", "client", "driver", "typesafe"]
 categories = ["database"]
 license = "Apache-2.0"
+publish = false
 
 [badges]
 maintenance = { status = "experimental" }
@@ -24,14 +25,14 @@ mmfiles = []
 rocksdb = []
 
 [dependencies]
-rincon_core = { path = "../rincon_core" }
-rincon_client = { path = "../rincon_client" }
+rincon_core = { version = "0.1", path = "../rincon_core" }
+rincon_client = { version = "0.1", path = "../rincon_client" }
 futures = "0.1"
 serde = "1.0"
 
 [dev-dependencies]
-rincon_connector = { path = "../rincon_connector" }
-rincon_test_helper = { path = "../rincon_test_helper" }
+rincon_connector = { version = "0.1", path = "../rincon_connector" }
+rincon_test_helper = { version = "0.1", path = "../rincon_test_helper" }
 hamcrest = "0.1"
 tokio-core = "0.1"
 version-sync = "0.5"

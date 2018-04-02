@@ -2,7 +2,7 @@
 name = "rincon_test_helper"
 version = "0.1.0"  # remember to update html_root_url
 description = "Helper crate for integration tests with an ArangoDB server"
-authors = ["Harald Maida"]
+authors = ["haraldmaida"]
 repository = "https://github.com/innoave/rincon"
 readme = "README.md"
 keywords = ["arangodb", "aql", "nosql", "database", "client", "driver", "typesafe"]
@@ -16,9 +16,9 @@ appveyor = { repository = "innoave/rincon" }
 codecov = { repository = "innoave/rincon" }
 
 [dependencies]
-rincon_core = { path = "../rincon_core" }
-rincon_connector = { path = "../rincon_connector" }
-rincon_client = { path = "../rincon_client" }
+rincon_core = { version = "0.1", path = "../rincon_core" }
+rincon_connector = { version = "0.1", path = "../rincon_connector" }
+rincon_client = { version = "0.1", path = "../rincon_client" }
 dotenv = "0.11"
 log4rs = "0.8"
 tokio-core = "0.1"

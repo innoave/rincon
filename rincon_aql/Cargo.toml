@@ -2,13 +2,14 @@
 name = "rincon_aql"
 version = "0.1.0"  # remember to update html_root_url
 description = "A typesafe AQL builder for ArangoDB"
-authors = ["Harald Maida"]
+authors = ["haraldmaida"]
 repository = "https://github.com/innoave/rincon"
 documentation = "https://docs.rs/rincon_aql"
 readme = "README.md"
 keywords = ["arangodb", "aql", "nosql", "database", "client", "driver", "typesafe"]
 categories = ["database"]
 license = "Apache-2.0"
+publish = false
 
 [badges]
 maintenance = { status = "experimental" }
@@ -17,7 +18,7 @@ appveyor = { repository = "innoave/rincon" }
 codecov = { repository = "innoave/rincon" }
 
 [dependencies]
-rincon_core = { path = "../rincon_core" }
+rincon_core = { version = "0.1", path = "../rincon_core" }
 
 [dev-dependencies]
 version-sync = "0.5"

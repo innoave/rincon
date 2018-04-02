@@ -2,7 +2,7 @@
 name = "rincon_client"
 version = "0.1.0"  # remember to update html_root_url
 description = "A typesafe client for the ArangoDB Rest API"
-authors = ["Harald Maida"]
+authors = ["haraldmaida"]
 homepage = "https://github.com/innoave/rincon"
 repository = "https://github.com/innoave/rincon"
 documentation = "https://docs.rs/rincon_client"
@@ -25,14 +25,14 @@ mmfiles = []
 rocksdb = []
 
 [dependencies]
-rincon_core = { path = "../rincon_core" }
+rincon_core = { version = "0.1", path = "../rincon_core" }
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 
 [dev-dependencies]
-rincon_connector = { path = "../rincon_connector" }
-rincon_test_helper = { path = "../rincon_test_helper" }
+rincon_connector = { version = "0.1", path = "../rincon_connector" }
+rincon_test_helper = { version = "0.1", path = "../rincon_test_helper" }
 tokio-core = "0.1"
 version-sync = "0.5"
 
