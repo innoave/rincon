@@ -2,7 +2,7 @@
 name = "rincon"
 version = "0.1.0"  # remember to update html_root_url
 description = "An ArangoDB driver for Rust"
-authors = ["Harald Maida"]
+authors = ["haraldmaida"]
 repository = "https://github.com/innoave/rincon"
 documentation = "https://docs.rs/rincon"
 readme = "../README.md"
@@ -19,4 +19,11 @@ codecov = { repository = "innoave/rincon" }
 [dependencies]
 
 [dev-dependencies]
+rincon_connector = { version ="0.1", path = "../rincon_connector" }
+rincon_core = { version = "0.1", path = "../rincon_core" }
+rincon_session = { version = "0.1", path = "../rincon_session" }
+rincon_test_helper = { version ="0.1", path = "../rincon_test_helper" }
+serde = "1.0"
+serde_derive = "1.0"
+tokio-core = "0.1"
 version-sync = "0.5"

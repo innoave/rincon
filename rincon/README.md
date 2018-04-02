@@ -28,10 +28,10 @@
 
 [rincon_core API]: https://docs.rs/rincon_core
 [rincon_client API]: https://docs.rs/rincon_client
-[rincon_aql API]: https://docs.rs/rincon_aql
 [rincon_connector API]: https://docs.rs/rincon_connector
 [rincon_session API]: https://docs.rs/rincon_session
 [rincon_session_async API]: https://docs.rs/rincon_session_async
+[rincon_aql API]: https://docs.rs/rincon_aql
 [rincon_test_helper API]: https://docs.rs/rincon_test_helper
 
 The [rincon] [crate] itself does not provide any functionality. It is just meant as an entry point
@@ -45,17 +45,34 @@ The provided crates are:
 
 * [rincon_core] : Defines the common API for the driver and is used by the other crates.
 * [rincon_client] : Implements the methods of the REST API provided by [ArangoDB].
-* [rincon_aql] : Provides a DSL to build [AQL] queries in a typesafe manner. 
 * [rincon_connector] : Implements the communication layer of the driver.
 * [rincon_session] : Provides a synchronous higher level API on top of [rincon_client].
 * [rincon_session_async] : Provides an asynchronous higher level API on top of [rincon_client].
+* [rincon_aql] : Provides a DSL to build [AQL] queries in a typesafe manner. 
 * [rincon_test_helper] : Provides utilities used in integration tests with an [ArangoDB] server.
 
 Here is diagram that depicts the dependencies between the crates:
 
 ![Crate dependency structure](../docs/crate_structure.png)
 
-## How to use the crates provided by the Rincon project
+## Important: Status of the project
+
+**Currently not all crates listed above are released yet**
+
+The ready and released crates are:
+
+* [rincon_core] : Defines the common API for the driver and is used by the other crates.
+* [rincon_client] : Implements the methods of the REST API provided by [ArangoDB].
+* [rincon_connector] : Implements the communication layer of the driver.
+* [rincon_session] : Provides a synchronous higher level API on top of [rincon_client].
+* [rincon_test_helper] : Provides utilities used in integration tests with an [ArangoDB] server.
+
+Crates which are planned but are not ready yet:
+
+* [rincon_session_async] : Provides an asynchronous higher level API on top of [rincon_client].
+* [rincon_aql] : Provides a DSL to build [AQL] queries in a typesafe manner. 
+
+## Which crates should I add as dependencies to my project? 
 
 First choose whether you want to use the lower level [rincon_client API] or higher level 
 [rincon_session_async API]. Both of these APIs are asynchronous. That is the methods return futures 
