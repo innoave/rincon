@@ -42,7 +42,7 @@ fn use_database() {
     let core = Core::new().unwrap();
 
     let datasource = system_datasource();
-    let connector = BasicConnector::new(&MyUserAgent, datasource, &core.handle()).unwrap();
+    let connector = BasicConnector::new(datasource, &core.handle()).unwrap();
 
     let arango = ArangoSession::new(connector);
 

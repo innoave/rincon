@@ -23,3 +23,10 @@ extern crate url;
 
 pub mod api;
 pub mod arango;
+
+const LIB_NAME: &str = "rincon";
+const LIB_VERSION_MAJOR: &str = env!("CARGO_PKG_VERSION_MAJOR");
+const LIB_VERSION_MINOR: &str = env!("CARGO_PKG_VERSION_MINOR");
+const LIB_VERSION_PATCH: &str = env!("CARGO_PKG_VERSION_PATCH");
+const LIB_VERSION_PRE: &str = env!("CARGO_PKG_VERSION_PRE");
+const LIB_HOMEPAGE: &str = env!("CARGO_PKG_HOMEPAGE");

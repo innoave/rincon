@@ -24,7 +24,7 @@ fn authenticate_root_user() {
     let (username, password) = root_user();
 
     let mut core = Core::new().unwrap();
-    let connector = BasicConnector::new(&MyUserAgent, system_ds, &core.handle()).unwrap();
+    let connector = BasicConnector::new(system_ds, &core.handle()).unwrap();
     let conn = connector.system_connection();
 
     let method = Authenticate::with_user(username, password);
@@ -40,7 +40,7 @@ fn authenticate_with_invalid_credentials() {
     let credentials = Credentials::new("not existing", "user");
 
     let mut core = Core::new().unwrap();
-    let connector = BasicConnector::new(&MyUserAgent, system_ds, &core.handle()).unwrap();
+    let connector = BasicConnector::new(system_ds, &core.handle()).unwrap();
     let conn = connector.system_connection();
 
     let method = Authenticate::with_credentials(&credentials);

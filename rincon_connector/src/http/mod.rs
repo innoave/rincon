@@ -22,7 +22,7 @@ use rincon_core::api::auth::{Authentication, Jwt};
 use rincon_core::api::connector::{Connector, Error, Execute, FutureResult};
 use rincon_core::api::datasource::DataSource;
 use rincon_core::api::method::{Method, Operation, Prepare, RpcReturnType};
-use rincon_core::api::user_agent::UserAgent;
+use rincon_core::api::user_agent::{RinconUserAgent, UserAgent};
 use rincon_core::arango::protocol::{PATH_DB, SYSTEM_DATABASE};
 
 type HttpClient = Client<TimeoutConnector<HttpsConnector<HttpConnector>>>;
@@ -38,6 +38,26 @@ pub struct BasicConnector {
 
 impl BasicConnector {
     pub fn new(
+        datasource: DataSource,
+        reactor: &reactor::Handle
+    ) -> Result<Self, Error> {
+        let https_connector = HttpsConnector::new(4, reactor)
+            .map_err(|cause| Error::Communication(cause.to_string()))?;
+        let mut timeout_connector = TimeoutConnector::new(https_connector, reactor);
+        timeout_connector.set_connect_timeout(Some(*datasource.timeout()));
+        let client = Client::configure()
+            .connector(timeout_connector)
+            .build(reactor);
+        debug!("Creating new basic connector for {:?}", &datasource);
+        Ok(BasicConnector {
+            user_agent: &RinconUserAgent,
+            datasource: Arc::new(datasource),
+            token: Arc::new(None),
+            client: Arc::new(client),
+        })
+    }
+
+    pub fn with_user_agent(
         user_agent: &'static UserAgent,
         datasource: DataSource,
         reactor: &reactor::Handle

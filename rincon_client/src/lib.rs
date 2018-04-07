@@ -39,7 +39,4 @@ pub mod graph;
 pub mod index;
 pub mod user;
 
-pub mod build;
-pub mod user_agent;
-
 pub mod prelude;

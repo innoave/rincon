@@ -9,4 +9,3 @@ pub use super::document::*;
 pub use super::graph::*;
 pub use super::index::*;
 pub use super::user::*;
-pub use super::user_agent::*;

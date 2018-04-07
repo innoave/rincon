@@ -152,6 +152,16 @@ fn build_request_uri_for_given_database_with_three_params() {
 }
 
 #[test]
+fn header_user_agent_for_default_rincon_user_agent() {
+
+    let agent = header_user_agent_for(&RinconUserAgent);
+
+    assert_eq!(agent,
+        header::UserAgent::new("Mozilla/5.0 (compatible; rincon/0.1; +https://github.com/innoave/rincon)"));
+
+}
+
+#[test]
 fn header_user_agent_for_my_user_agent() {
     #[derive(Debug)]
     struct MyUserAgent;
@@ -160,7 +170,7 @@ fn header_user_agent_for_my_user_agent() {
 
     impl UserAgent for MyUserAgent {
         fn name(&self) -> &str {
-            "rincon"
+            "MyRinconApp"
         }
 
         fn version(&self) -> &Version {
@@ -168,7 +178,7 @@ fn header_user_agent_for_my_user_agent() {
         }
 
         fn homepage(&self) -> &str {
-            "https://github.com/innoave/rincon"
+            "https://myrinconapp.com"
         }
     }
 
@@ -192,8 +202,6 @@ fn header_user_agent_for_my_user_agent() {
 
     let agent = header_user_agent_for(&MyUserAgent);
 
-    assert_eq!(
-        header::UserAgent::new("Mozilla/5.0 (compatible; rincon/2.5; +https://github.com/innoave/rincon)"),
-        agent
-    );
+    assert_eq!(agent,
+        header::UserAgent::new("Mozilla/5.0 (compatible; MyRinconApp/2.5; +https://myrinconapp.com)"));
 }

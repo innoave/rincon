@@ -33,7 +33,6 @@
 //! # extern crate rincon_test_helper;
 //! # #[macro_use] extern crate serde_derive;
 //! # extern crate tokio_core;
-//! # use rincon_test_helper::MyUserAgent;
 //! # use rincon_core::api::connector::Connector;
 //! # use rincon_core::api::datasource::DataSource;
 //! # use rincon_connector::http::BasicConnector;
@@ -46,7 +45,7 @@
 //! #
 //! #    let mut core = Core::new().unwrap();
 //! #
-//! #    let connector = BasicConnector::new(&MyUserAgent, datasource, &core.handle()).unwrap();
+//! #    let connector = BasicConnector::new(datasource, &core.handle()).unwrap();
 //! #
 //! #    let session = ArangoSession::new(connector, core);
 //! #
@@ -126,7 +125,6 @@
 //! # extern crate rincon_connector;
 //! # extern crate rincon_test_helper;
 //! # extern crate tokio_core;
-//! # use rincon_test_helper::MyUserAgent;
 //! use rincon_core::api::datasource::DataSource;
 //! use rincon_connector::http::BasicConnector;
 //! use tokio_core::reactor::Core;
@@ -137,14 +135,13 @@
 //!
 //!     let mut core = Core::new().unwrap();
 //!
-//!     let connector = BasicConnector::new(&MyUserAgent, datasource, &core.handle()).unwrap();
+//!     let connector = BasicConnector::new(datasource, &core.handle()).unwrap();
 //! }
 //! ```
 //!
-//! The `new()` method of the `BasicConnector` takes 3 arguments. The first
-//! argument is a struct that implements the `UserAgent` trait of `rincon_core`.
-//! The second argument is the datasource we have just created before and a
-//! handle to `reactor::Core` from the `tokio_core` crate.
+//! The `new()` method of the `BasicConnector` takes 2 arguments. The first
+//! argument is the datasource we have just created before. The second argument
+//! is a handle to `reactor::Core` from the `tokio_core` crate.
 //!
 //! And finally we create an `ArangoSession`:
 //!
@@ -154,7 +151,6 @@
 //! # extern crate rincon_session;
 //! # extern crate rincon_test_helper;
 //! # extern crate tokio_core;
-//! # use rincon_test_helper::MyUserAgent;
 //! use rincon_core::api::datasource::DataSource;
 //! use rincon_connector::http::BasicConnector;
 //! use rincon_session::ArangoSession;
@@ -166,7 +162,7 @@
 //!
 //!     let mut core = Core::new().unwrap();
 //!
-//!     let connector = BasicConnector::new(&MyUserAgent, datasource, &core.handle()).unwrap();
+//!     let connector = BasicConnector::new(datasource, &core.handle()).unwrap();
 //!
 //!     let session = ArangoSession::new(connector, core);
 //! }

@@ -12,7 +12,6 @@ use rincon_connector::http::BasicConnector;
 use rincon_client::database::methods::*;
 use rincon_client::user::methods::{CreateUser, DeleteUser};
 use rincon_client::user::types::NewUser;
-use rincon_client::user_agent::RinconUserAgent;
 
 use rincon_test_helper::*;
 
@@ -144,7 +143,7 @@ fn get_current_database_specific_for_root_user() {
         let _ = core.run(conn.execute(CreateDatabase::<Empty>::with_name("test_database_d05"))).unwrap();
 
         let user_ds = conn.datasource().clone();
-        let connector = BasicConnector::new(&RinconUserAgent, user_ds, &core.handle()).unwrap();
+        let connector = BasicConnector::new(user_ds, &core.handle()).unwrap();
         let user_conn = connector.connection("test_database_d05");
 
         let method = GetCurrentDatabase::new();
@@ -169,7 +168,7 @@ fn get_current_database_specific_for_user() {
 
         let user_ds = conn.datasource().clone()
             .with_basic_authentication("test_user_d8", "");
-        let connector = BasicConnector::new(&RinconUserAgent, user_ds, &core.handle()).unwrap();
+        let connector = BasicConnector::new(user_ds, &core.handle()).unwrap();
         let user_conn = connector.connection("test_database_d81");
 
         let method = GetCurrentDatabase::new();
@@ -233,7 +232,7 @@ fn list_accessible_databases_for_test_user() {
 
         let user_ds = conn.datasource().clone()
             .with_basic_authentication("test_user_d9", "");
-        let connector = BasicConnector::new(&RinconUserAgent, user_ds, &core.handle()).unwrap();
+        let connector = BasicConnector::new(user_ds, &core.handle()).unwrap();
         let user_conn = connector.connection("test_database_d91");
 
         let method = ListAccessibleDatabases::new();

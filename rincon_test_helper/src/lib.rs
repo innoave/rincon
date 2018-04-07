@@ -33,7 +33,6 @@ use tokio_core::reactor::Core;
 use rincon_core::api::connector::{Connector, Execute};
 use rincon_core::api::datasource::DataSource;
 use rincon_core::api::types::Empty;
-use rincon_core::api::user_agent::{UserAgent, Version};
 use rincon_connector::http::{BasicConnection, BasicConnector};
 use rincon_client::collection::methods::{CreateCollection, DropCollection};
 use rincon_client::database::methods::{CreateDatabase, DropDatabase, ListAccessibleDatabases};
@@ -102,12 +101,12 @@ pub fn arango_session_test<Test, CleanUp>(test: Test, clean_up: CleanUp) -> ()
 
     let result = panic::catch_unwind(|| {
         let core = Core::new().unwrap();
-        let connector = BasicConnector::new(&MyUserAgent, system_ds.clone(), &core.handle()).unwrap();
+        let connector = BasicConnector::new(system_ds.clone(), &core.handle()).unwrap();
         test(connector, core);
     });
 
     let mut core = Core::new().unwrap();
-    let connector = BasicConnector::new(&MyUserAgent, system_ds.clone(), &core.handle()).unwrap();
+    let connector = BasicConnector::new(system_ds.clone(), &core.handle()).unwrap();
     let sys_conn = connector.system_connection();
     clean_up(sys_conn, &mut core);
 
@@ -125,7 +124,7 @@ pub fn arango_session_test_with_user_db<Test>(user: &str, database: &str, test: 
     let mut core = Core::new().unwrap();
 
     let system_ds = DataSource::from_url(&db_url).unwrap();
-    let connector = BasicConnector::new(&MyUserAgent, system_ds.clone(), &core.handle()).unwrap();
+    let connector = BasicConnector::new(system_ds.clone(), &core.handle()).unwrap();
     let sys_conn = connector.system_connection();
 
     setup_database(user, "", database, &sys_conn, &mut core);
@@ -134,7 +133,7 @@ pub fn arango_session_test_with_user_db<Test>(user: &str, database: &str, test: 
         let core = Core::new().unwrap();
         let user_ds = DataSource::from_url(&db_url).unwrap()
             .with_basic_authentication(user, "");
-        let connector = BasicConnector::new(&MyUserAgent, user_ds.clone(), &core.handle()).unwrap();
+        let connector = BasicConnector::new(user_ds.clone(), &core.handle()).unwrap();
         test(connector, core);
     });
 
@@ -156,13 +155,13 @@ pub fn arango_system_db_test<Test, CleanUp>(test: Test, clean_up: CleanUp) -> ()
 
     let result = panic::catch_unwind(|| {
         let mut core = Core::new().unwrap();
-        let connector = BasicConnector::new(&MyUserAgent, system_ds.clone(), &core.handle()).unwrap();
+        let connector = BasicConnector::new(system_ds.clone(), &core.handle()).unwrap();
         let conn = connector.system_connection();
         test(conn, &mut core);
     });
 
     let mut core = Core::new().unwrap();
-    let connector = BasicConnector::new(&MyUserAgent, system_ds.clone(), &core.handle()).unwrap();
+    let connector = BasicConnector::new(system_ds.clone(), &core.handle()).unwrap();
     let sys_conn = connector.system_connection();
     clean_up(sys_conn, &mut core);
 
@@ -190,12 +189,12 @@ pub fn arango_user_db_test<Test, CleanUp>(test: Test, clean_up: CleanUp) -> ()
 
     let result = panic::catch_unwind(|| {
         let mut core = Core::new().unwrap();
-        let connector = BasicConnector::new(&MyUserAgent, user_ds.clone(), &core.handle()).unwrap();
+        let connector = BasicConnector::new(user_ds.clone(), &core.handle()).unwrap();
         let user_conn = connector.connection(&database);
         test(user_conn, &mut core);
     });
 
-    let connector = BasicConnector::new(&MyUserAgent, user_ds.clone(), &core.handle()).unwrap();
+    let connector = BasicConnector::new(user_ds.clone(), &core.handle()).unwrap();
     let user_conn = connector.connection(&database);
     clean_up(user_conn, &mut core);
 
@@ -213,7 +212,7 @@ pub fn arango_test_with_user_db<Test>(user: &str, database: &str, test: Test) ->
     let mut core = Core::new().unwrap();
 
     let system_ds = DataSource::from_url(&db_url).unwrap();
-    let connector = BasicConnector::new(&MyUserAgent, system_ds.clone(), &core.handle()).unwrap();
+    let connector = BasicConnector::new(system_ds.clone(), &core.handle()).unwrap();
     let sys_conn = connector.system_connection();
 
     setup_database(user, "", database, &sys_conn, &mut core);
@@ -222,7 +221,7 @@ pub fn arango_test_with_user_db<Test>(user: &str, database: &str, test: Test) ->
         let mut core = Core::new().unwrap();
         let user_ds = DataSource::from_url(&db_url).unwrap()
             .with_basic_authentication(user, "");
-        let connector = BasicConnector::new(&MyUserAgent, user_ds.clone(), &core.handle()).unwrap();
+        let connector = BasicConnector::new(user_ds.clone(), &core.handle()).unwrap();
         let conn = connector.connection(database);
         test(conn, &mut core);
     });
@@ -249,7 +248,7 @@ pub fn arango_test_with_document_collection<Test>(collection: &str, test: Test) 
 
     let user_ds = DataSource::from_url(&db_url).unwrap()
         .with_basic_authentication(&username, &password);
-    let connector = BasicConnector::new(&MyUserAgent, user_ds.clone(), &core.handle()).unwrap();
+    let connector = BasicConnector::new(user_ds.clone(), &core.handle()).unwrap();
     let user_conn = connector.connection(&database);
 
     core.run(user_conn.execute(CreateCollection::documents_with_name(collection)))
@@ -257,7 +256,7 @@ pub fn arango_test_with_document_collection<Test>(collection: &str, test: Test) 
 
     let result = panic::catch_unwind(|| {
         let mut core = Core::new().unwrap();
-        let connector = BasicConnector::new(&MyUserAgent, user_ds.clone(), &core.handle()).unwrap();
+        let connector = BasicConnector::new(user_ds.clone(), &core.handle()).unwrap();
         let conn = connector.connection(&database);
         test(conn, &mut core);
     });
@@ -286,7 +285,7 @@ pub fn arango_test_with_edge_collection<Test>(collection: &str, test: Test) -> (
 
     let user_ds = DataSource::from_url(&db_url).unwrap()
         .with_basic_authentication(&username, &password);
-    let connector = BasicConnector::new(&MyUserAgent, user_ds.clone(), &core.handle()).unwrap();
+    let connector = BasicConnector::new(user_ds.clone(), &core.handle()).unwrap();
     let user_conn = connector.connection(&database);
 
     core.run(user_conn.execute(CreateCollection::edges_with_name(collection)))
@@ -294,7 +293,7 @@ pub fn arango_test_with_edge_collection<Test>(collection: &str, test: Test) -> (
 
     let result = panic::catch_unwind(|| {
         let mut core = Core::new().unwrap();
-        let connector = BasicConnector::new(&MyUserAgent, user_ds.clone(), &core.handle()).unwrap();
+        let connector = BasicConnector::new(user_ds.clone(), &core.handle()).unwrap();
         let conn = connector.connection(&database);
         test(conn, &mut core);
     });
@@ -340,7 +339,7 @@ fn setup_database_if_not_existing(
     core: &mut Core,
 ) {
     let system_ds = DataSource::from_url(db_url).unwrap();
-    let connector = BasicConnector::new(&MyUserAgent, system_ds.clone(), &core.handle()).unwrap();
+    let connector = BasicConnector::new(system_ds.clone(), &core.handle()).unwrap();
     let sys_conn = connector.system_connection();
 
     let timeout = Duration::from_secs(15);
@@ -398,41 +397,4 @@ fn teardown_database<User, Db>(
 {
     let _ = core.run(sys_conn.execute(DropDatabase::with_name(database))).unwrap();
     let _ = core.run(sys_conn.execute(DeleteUser::with_name(user))).unwrap();
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct MyUserAgent;
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct MyVersion;
-
-impl UserAgent for MyUserAgent {
-    fn name(&self) -> &str {
-        "rincon"
-    }
-
-    fn version(&self) -> &Version {
-        &MyVersion
-    }
-
-    fn homepage(&self) -> &str {
-        "https://github.com/innoave/rincon"
-    }
-}
-
-impl Version for MyVersion {
-    fn major(&self) -> &str {
-        "2"
-    }
-
-    fn minor(&self) -> &str {
-        "5"
-    }
-
-    fn patch(&self) -> &str {
-        "9"
-    }
-
-    fn pre(&self) -> &str {
-        ""
-    }
 }
