@@ -13,6 +13,7 @@ use galvanic_assert::matchers::*;
 
 use tokio_core::reactor::Core;
 
+use rincon_core::api::types::Empty;
 use rincon_core::api::connector::Execute;
 use rincon_connector::http::BasicConnector;
 use rincon_client::database::methods::DropDatabase;

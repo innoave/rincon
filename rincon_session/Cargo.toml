@@ -1,7 +1,7 @@
 [package]
 name = "rincon_session"
 version = "0.1.0"  # remember to update html_root_url
-description = "A session managed client API for the ArangoDB driver"
+description = "A synchronous session managed client API for the ArangoDB driver"
 authors = ["haraldmaida"]
 repository = "https://github.com/innoave/rincon"
 documentation = "https://docs.rs/rincon_session"
@@ -33,6 +33,7 @@ tokio-core = "0.1"
 [dev-dependencies]
 rincon_connector = { version = "0.1", path = "../rincon_connector" }
 rincon_test_helper = { version = "0.1", path = "../rincon_test_helper" }
+serde_derive = "1.0"
 galvanic-assert = "0.8"
 version-sync = "0.5"
 

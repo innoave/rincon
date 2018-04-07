@@ -19,10 +19,9 @@ codecov = { repository = "innoave/rincon" }
 [dependencies]
 
 [dev-dependencies]
-rincon_connector = { version ="0.1", path = "../rincon_connector" }
 rincon_core = { version = "0.1", path = "../rincon_core" }
+rincon_connector = { version = "0.1", path = "../rincon_connector" }
 rincon_session = { version = "0.1", path = "../rincon_session" }
-rincon_test_helper = { version ="0.1", path = "../rincon_test_helper" }
 serde = "1.0"
 serde_derive = "1.0"
 tokio-core = "0.1"
