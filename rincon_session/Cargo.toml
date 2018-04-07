@@ -16,13 +16,6 @@ travis-ci = { repository = "innoave/rincon" }
 appveyor = { repository = "innoave/rincon" }
 codecov = { repository = "innoave/rincon" }
 
-[features]
-default = ["mmfiles"]
-cluster = []
-enterprise = []
-mmfiles = []
-rocksdb = []
-
 [dependencies]
 rincon_core = { version = "0.1", path = "../rincon_core" }
 rincon_client = { version = "0.1", path = "../rincon_client" }
@@ -36,12 +29,3 @@ rincon_test_helper = { version = "0.1", path = "../rincon_test_helper" }
 serde_derive = "1.0"
 galvanic-assert = "0.8"
 version-sync = "0.5"
-
-[package.metadata.docs.rs]
-no-default-features = true
-features = [
-    "mmfiles",
-    "rocksdb",
-    "cluster",
-    "enterprise",
-]
