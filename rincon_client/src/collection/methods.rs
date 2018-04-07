@@ -9,13 +9,13 @@ use super::types::*;
 
 /// Retrieves a list of existing collections.
 #[allow(missing_copy_implementations)]
-#[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct ListCollections {
     /// Whether or not to exclude system collections from the response.
     exclude_system: bool
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
 impl ListCollections {
     /// Constructs a new instance of the `ListCollections` method with
     /// the `exclude_system` parameter set to `true`.

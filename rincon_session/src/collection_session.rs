@@ -111,7 +111,7 @@ impl<C> CollectionSession<C>
     /// Fetches the entity of the collection represented by this session and
     /// returns a new `CollectionSession` with the entity set in the session.
     pub fn fetch(self) -> Result<CollectionSession<C>> {
-        self.execute(GetCollection::with_name(self.name().clone()))
+        self.execute(GetCollection::with_name(self.name()))
             .map(|collection|
                 CollectionSession {
                     entity: Entity::Object(collection),
@@ -154,7 +154,7 @@ impl<C> CollectionSession<C>
 
     /// Gets the properties of the collection represented by this session.
     pub fn get_properties(&self) -> Result<CollectionProperties> {
-        self.execute(GetCollectionProperties::with_name(self.name().clone()))
+        self.execute(GetCollectionProperties::with_name(self.name()))
     }
 
     /// Changes the properties of the collection represented by this session

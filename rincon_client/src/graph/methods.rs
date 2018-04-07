@@ -127,7 +127,7 @@ pub struct GetGraph {
 impl GetGraph {
     pub fn new(name: String) -> Self {
         GetGraph {
-            name: name.into(),
+            name,
         }
     }
 

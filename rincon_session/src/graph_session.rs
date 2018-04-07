@@ -99,7 +99,7 @@ impl<C> GraphSession<C>
     /// Fetches the entity of the graph represented by this session and returns
     /// a new `GraphSession` with the entity set in the session.
     pub fn fetch(self) -> Result<GraphSession<C>> {
-        self.execute(GetGraph::with_name(self.name().clone()))
+        self.execute(GetGraph::with_name(self.name()))
             .map(|graph|
                 GraphSession::new(
                     Entity::Object(graph),

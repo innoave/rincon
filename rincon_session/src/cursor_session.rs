@@ -210,7 +210,7 @@ impl<T, C> Iterator for CursorSessionIntoIter<T, C>
                         self.cursor_id = id;
                         self.count = count;
                         self.batch = result.into_iter();
-                        self.batch.next().map(|v| Ok(v))
+                        self.batch.next().map(Ok)
                     },
                     Err(error) => Some(Err(error)),
                 }
