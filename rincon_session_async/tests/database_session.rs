@@ -1,5 +1,5 @@
 
-#[macro_use] extern crate hamcrest;
+#[macro_use] extern crate galvanic_assert;
 
 extern crate tokio_core;
 
@@ -8,7 +8,7 @@ extern crate rincon_connector;
 extern crate rincon_session_async;
 extern crate rincon_test_helper;
 
-use hamcrest::prelude::*;
+use galvanic_assert::matchers::*;
 
 use rincon_session_async::*;
 
@@ -28,6 +28,6 @@ fn create_graph() {
                 EdgeDefinition::new("friend", vec!["male".to_owned()], vec!["female".to_owned()]),
             ]))).unwrap();
 
-        assert_that!(graph_session.graph().name(), is(equal_to("social")));
+        assert_that!(&graph_session.graph().name(), eq("social"));
     });
 }

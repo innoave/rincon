@@ -1,5 +1,5 @@
 
-#[macro_use] extern crate hamcrest;
+#[macro_use] extern crate galvanic_assert;
 
 extern crate tokio_core;
 
@@ -9,7 +9,7 @@ extern crate rincon_connector;
 extern crate rincon_session;
 extern crate rincon_test_helper;
 
-use hamcrest::prelude::*;
+use galvanic_assert::matchers::*;
 
 use tokio_core::reactor::Core;
 
@@ -30,7 +30,7 @@ fn create_database() {
         let database = arango.create_database::<_, Empty>("the_social_network",
             vec![NewUser::with_name("an_user", "a_pass")]).unwrap();
 
-        assert_that!(database.name(), is(equal_to("the_social_network")));
+        assert_that!(&database.name(), eq("the_social_network"));
     },
     |conn, ref mut core| {
         let _ = core.run(conn.execute(DropDatabase::with_name("the_social_network")));
@@ -48,5 +48,5 @@ fn use_database() {
 
     let database = arango.use_database_with_name("the_social_network");
 
-    assert_that!(database.name(), is(equal_to("the_social_network")));
+    assert_that!(&database.name(), eq("the_social_network"));
 }

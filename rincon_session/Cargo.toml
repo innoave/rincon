@@ -33,7 +33,7 @@ tokio-core = "0.1"
 [dev-dependencies]
 rincon_connector = { version = "0.1", path = "../rincon_connector" }
 rincon_test_helper = { version = "0.1", path = "../rincon_test_helper" }
-hamcrest = "0.1"
+galvanic-assert = "0.8"
 version-sync = "0.5"
 
 [package.metadata.docs.rs]

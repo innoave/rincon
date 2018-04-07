@@ -33,7 +33,7 @@ serde = "1.0"
 [dev-dependencies]
 rincon_connector = { version = "0.1", path = "../rincon_connector" }
 rincon_test_helper = { version = "0.1", path = "../rincon_test_helper" }
-hamcrest = "0.1"
+galvanic-assert = "0.8"
 tokio-core = "0.1"
 version-sync = "0.5"
 
