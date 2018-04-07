@@ -8,7 +8,6 @@ readme = "README.md"
 keywords = ["arangodb", "aql", "nosql", "database", "client", "driver", "typesafe"]
 categories = ["database"]
 license = "Apache-2.0"
-publish = false
 
 [badges]
 maintenance = { status = "experimental" }

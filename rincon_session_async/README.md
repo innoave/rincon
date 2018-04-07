@@ -18,10 +18,11 @@
 [Rincon project]: https://github.com/innoave/rincon
 [license]: ../LICENSE
 [rincon]: ../rincon
+[rincon_client]: ../rincon_client
+[rincon_session]: ../rincon_session
 [rincon_session_async]: ../rincon_session_async
 [rincon_session_async API]: https://docs.rs/rincon_session_async
 [rincon_client API]: https://docs.rs/rincon_api
-[rincon_session]: ../rincon_session
 
 The [rincon_session_async] [crate] provides a convenient API for __asynchronous__ communication with an
 [ArangoDB] server.
@@ -29,12 +30,11 @@ The [rincon_session_async] [crate] provides a convenient API for __asynchronous_
 The [rincon_session_async API] is a higher level API on top of the [rincon_client API] and provides
 additional features:
 
-* Convenient API for applications to communicate to an [ArangoDB] server. (WIP)
+* Convenient API for applications to communicate to an [ArangoDB] server. (PLANNED)
 <br/>E.g. no need to manually specify the database and collection on each and every request.
 * Efficient handling of connections to the [ArangoDB] server (PLANNED)
 * Efficient execution of batch operations (PLANNED)
 * Convenient API for transaction handling (PLANNED)
-
 
 The [rincon_session_async] [crate] is part of the [Rincon ArangoDB Rust driver project][Rincon project].
 
@@ -47,14 +47,23 @@ To use the asynchronous session API of this crate add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
+rincon_core = "0.1"
+rincon_connection = "0.1"
 rincon_session_async = "0.1"
 ```
 
 And this to your crate root:
 
 ```rust
+extern crate rincon_core;
+extern crate rincon_connection;
 extern crate rincon_session_async;
 ```
+
+__Important__: As [rincon_session_async] depends on [rincon_client] it re-exports the crate features
+of [rincon_client]. Therefore please make sure that you specify the features for
+[rincon_session_async] that are suitable for the setup of your [ArangoDB] server the same way as 
+specified for the [rincon_client] crate. 
 
 ## License
 

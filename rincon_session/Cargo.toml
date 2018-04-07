@@ -2,12 +2,12 @@
 name = "rincon_session"
 version = "0.1.0"  # remember to update html_root_url
 description = "A synchronous session managed client API for the ArangoDB driver"
-authors = ["haraldmaida"]
+authors = [ "haraldmaida" ]
 repository = "https://github.com/innoave/rincon"
 documentation = "https://docs.rs/rincon_session"
 readme = "README.md"
-keywords = ["arangodb", "aql", "nosql", "database", "client", "driver", "typesafe"]
-categories = ["database"]
+keywords = [ "arangodb", "aql", "nosql", "database", "client", "driver", "typesafe" ]
+categories = [ "database" ]
 license = "Apache-2.0"
 
 [badges]
@@ -16,9 +16,16 @@ travis-ci = { repository = "innoave/rincon" }
 appveyor = { repository = "innoave/rincon" }
 codecov = { repository = "innoave/rincon" }
 
+[features]
+default = [ "mmfiles" ]
+cluster = [ "rincon_client/cluster" ]
+enterprise = [ "rincon_client/enterprise" ]
+mmfiles = [ "rincon_client/mmfiles" ]
+rocksdb = [ "rincon_client/rocksdb" ]
+
 [dependencies]
 rincon_core = { version = "0.1", path = "../rincon_core" }
-rincon_client = { version = "0.1", path = "../rincon_client" }
+rincon_client = { version = "0.1", path = "../rincon_client", default-features = false }
 futures = "0.1"
 serde = "1.0"
 tokio-core = "0.1"

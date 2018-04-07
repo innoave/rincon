@@ -26,8 +26,8 @@
 //! [ArangoDB]: https://www.arangodb.org
 //! [AQL]: https://docs.arangodb.com/3.2/AQL/index.html
 //! [rincon_core]: https://docs.rs/rincon_core
-//! [rincon_client]: https://docs.rs/rincon_client
 //! [rincon_connector]: https://docs.rs/rincon_connector
+//! [rincon_client]: https://docs.rs/rincon_client
 //! [rincon_session]: https://docs.rs/rincon_session
 //! [rincon_session_async]: https://docs.rs/rincon_session_async
 //! [rincon_aql]: https://docs.rs/rincon_aql

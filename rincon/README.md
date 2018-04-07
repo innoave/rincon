@@ -19,16 +19,16 @@
 [Rincon project]: https://github.com/innoave/rincon
 [rincon]: ../rincon
 [rincon_core]: ../rincon_core
-[rincon_client]: ../rincon_client
-[rincon_aql]: ../rincon_aql
 [rincon_connector]: ../rincon_connector
+[rincon_client]: ../rincon_client
 [rincon_session]: ../rincon_session
 [rincon_session_async]: ../rincon_session_async
+[rincon_aql]: ../rincon_aql
 [rincon_test_helper]: ../rincon_test_helper
 
 [rincon_core API]: https://docs.rs/rincon_core
-[rincon_client API]: https://docs.rs/rincon_client
 [rincon_connector API]: https://docs.rs/rincon_connector
+[rincon_client API]: https://docs.rs/rincon_client
 [rincon_session API]: https://docs.rs/rincon_session
 [rincon_session_async API]: https://docs.rs/rincon_session_async
 [rincon_aql API]: https://docs.rs/rincon_aql
@@ -44,8 +44,8 @@ import those crates that are needed for your project.
 The provided crates are:
 
 * [rincon_core] : Defines the common API for the driver and is used by the other crates.
-* [rincon_client] : Implements the methods of the REST API provided by [ArangoDB].
 * [rincon_connector] : Implements the communication layer of the driver.
+* [rincon_client] : Implements the methods of the REST API provided by [ArangoDB].
 * [rincon_session] : Provides a synchronous higher level API on top of [rincon_client].
 * [rincon_session_async] : Provides an asynchronous higher level API on top of [rincon_client].
 * [rincon_aql] : Provides a DSL to build [AQL] queries in a typesafe manner. 
@@ -62,8 +62,8 @@ Here is diagram that depicts the dependencies between the crates:
 The ready and released crates are:
 
 * [rincon_core] : Defines the common API for the driver and is used by the other crates.
-* [rincon_client] : Implements the methods of the REST API provided by [ArangoDB].
 * [rincon_connector] : Implements the communication layer of the driver.
+* [rincon_client] : Implements the methods of the REST API provided by [ArangoDB].
 * [rincon_session] : Provides a synchronous higher level API on top of [rincon_client].
 * [rincon_test_helper] : Provides utilities used in integration tests with an [ArangoDB] server.
 
@@ -85,8 +85,9 @@ To use the low level client API with a provided connector add this to your `Carg
 
 ```toml
 [dependencies]
-rincon_client = "0.1"
+rincon_core = "0.1"
 rincon_connector = "0.1"
+rincon_client = "0.1"
 ```
 
 __Note__: The [rincon_client] crate provides several crate features.
@@ -97,16 +98,18 @@ To use the synchronous session API with a provided connector add this to your `C
 
 ```toml
 [dependencies]
-rincon_session = "0.1"
+rincon_core = "0.1"
 rincon_connector = "0.1"
+rincon_session = "0.1"
 ```
 
 To use the asynchronous session API with a provided connector add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rincon_session_async = "0.1"
+rincon_core = "0.1"
 rincon_connector = "0.1"
+rincon_session_async = "0.1"
 ```
 
 With the minimal dependencies described above you can write AQL queries as strings. To make use of

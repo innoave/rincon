@@ -193,7 +193,8 @@ pub use self::vertex_collection_session::*;
 pub use rincon_client::admin::types::{ServerVersion, TargetVersion};
 pub use rincon_client::aql::types::{ExplainedQuery, ExplainOptions, ParsedQuery};
 pub use rincon_client::collection::types::{Collection, CollectionProperties,
-    CollectionPropertiesUpdate, CollectionRevision, NewCollection, RenameTo};
+    CollectionPropertiesUpdate, CollectionRevision, CollectionStatus,
+    CollectionType, NewCollection, RenameTo};
 pub use rincon_client::cursor::types::{Cursor, CursorStatistics, NewCursor,
     Warning};
 pub use rincon_client::database::types::{Database, NewDatabase};
@@ -204,7 +205,8 @@ pub use rincon_client::graph::types::{EdgeCollection, EdgeDefinition, Graph, New
     VertexCollection};
 pub use rincon_client::user::types::{NewUser, Permission, User, UserExtra,
     UserUpdate};
-pub use rincon_core::api::connector::Error;
+
+use rincon_core::api::connector::Error;
 
 /// The `Result` type returned by methods of this crate.
 pub type Result<T> = ::std::result::Result<T, Error>;
