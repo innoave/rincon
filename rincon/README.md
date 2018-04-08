@@ -34,7 +34,7 @@
 [rincon_aql API]: https://docs.rs/rincon_aql
 [rincon_test_helper API]: https://docs.rs/rincon_test_helper
 
-The [rincon] [crate] itself does not provide any functionality. It is just meant as an entry point
+The [rincon] [crate] itself does not provide any functionality. It is meant as an entry point
 for the [Rincon project] which aims to provide a complete [ArangoDB] driver for [Rust].
 
 The [Rincon project] provides several crates. You can choose which functionality you want for your
@@ -75,8 +75,9 @@ Crates which are planned but are not ready yet:
 ## Which crates should I add as dependencies to my project? 
 
 First choose whether you want to use the lower level [rincon_client API] or higher level 
-[rincon_session_async API]. Both of these APIs are asynchronous. That is the methods return futures 
-(of the Tokio project). If you prefer a synchronous API you should use [rincon_session API].
+[rincon_session_async API]. Both of these APIs are asynchronous. That is the methods return
+`Future`s (of the Tokio project). If you prefer a synchronous API you might want to use the
+[rincon_session API].
 
 Additionally you need a so called connector to communicate with the [ArangoDB] server. Connectors
 are provided by the [rincon_connector] crate.
@@ -90,7 +91,7 @@ rincon_connector = "0.1"
 rincon_client = "0.1"
 ```
 
-__Note__: The [rincon_client] crate provides several crate features.
+__Note__: The [rincon_client] crate provides several optional crate features.
 See the [README](../rincon_client/README.md) of this crate for a list of its crate features and
 how to use them.
 
@@ -103,6 +104,12 @@ rincon_connector = "0.1"
 rincon_session = "0.1"
 ```
 
+__Note__: As [rincon_session] builds on top of [rincon_client] it re-exports the optional crate
+features of [rincon_client]. Thus the same features of [rincon_client] may be applied to the
+dependency definition of the [rincon_session] crate as well.
+See the [README](../rincon_client/README.md) of the [rincon_client] crate for a list of features and
+how to use them.
+
 To use the asynchronous session API with a provided connector add this to your `Cargo.toml`:
 
 ```toml
@@ -111,6 +118,12 @@ rincon_core = "0.1"
 rincon_connector = "0.1"
 rincon_session_async = "0.1"
 ```
+
+__Note__: As [rincon_session_async] builds on top of [rincon_client] it re-exports the optional crate
+features of [rincon_client]. Thus the same features of [rincon_client] may be applied to the
+dependency definition of the [rincon_session_async] crate as well.
+See the [README](../rincon_client/README.md) of the [rincon_client] crate for a list of features and
+how to use them.
 
 With the minimal dependencies described above you can write AQL queries as strings. To make use of
 the typesafe AQL query builder add this dependency to your `Cargo.toml`: 

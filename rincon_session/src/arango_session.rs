@@ -254,48 +254,140 @@ impl<C> ArangoSession<C>
         self.execute(SetCollectionAccessLevel::new(username.into(), "*".into(), "*".into(), permission))
     }
 
+    /// Gets the effective access level to the specified database for the given
+    /// user.
+    ///
+    /// The user set in the `Connector` must have permission to read from the
+    /// system database in order to execute this method.
+    ///
+    /// # Arguments
+    ///
+    /// * `username` : the name of the user for which the permissions are queried
+    /// * `database` : the name of the database for which the permissions are queried
     pub fn get_database_access_level<N, Db>(&self, username: N, database: Db) -> Result<Permission>
         where N: Into<String>, Db: Into<String>
     {
         self.execute(GetDatabaseAccessLevel::new(username.into(), database.into()))
     }
 
+    /// Grants access to the specified database for the given user.
+    ///
+    /// The user set in the `Connector` must have permission to write to the
+    /// system database in order to execute this method.
+    ///
+    /// # Arguments
+    ///
+    /// * `username` : the name of the user for which access shall be granted
+    /// * `database` : the name of the database to which access shall be granted
+    /// * `permission` : the access level that shall be granted
     pub fn grant_database_access<N, Db>(&self, username: N, database: Db, permission: Permission) -> Result<Empty>
         where N: Into<String>, Db: Into<String>
     {
         self.execute(SetDatabaseAccessLevel::new(username.into(), database.into(), permission))
     }
 
+    /// Revokes the access to the specified database for the given user.
+    ///
+    /// After this call the given user has no access to the specified database.
+    ///
+    /// The user set in the `Connector` must have permission to write to the
+    /// system database in order to execute this method.
+    ///
+    /// # Arguments
+    ///
+    /// * `username` : the name of the user for which access shall be revoked
+    /// * `database` : the name of the database from which access shall be revoked
     pub fn revoke_database_access<N, Db>(&self, username: N, database: Db) -> Result<Empty>
         where N: Into<String>, Db: Into<String>
     {
         self.execute(SetDatabaseAccessLevel::new(username.into(), database.into(), Permission::None))
     }
 
+    /// Resets the access to the specified database for the given user to the
+    /// default access level.
+    ///
+    /// After this call the default access level to the database is applied for
+    /// the given user.
+    ///
+    /// The user set in the `Connector` must have permission to write to the
+    /// system database in order to execute this method.
+    ///
+    /// # Arguments
+    ///
+    /// * `username` : the name of the user for which access shall be reset to the default
+    /// * `database` : the name of the database for which access shall be reset to the default
     pub fn reset_database_access<N, Db>(&self, username: N, database: Db) -> Result<Empty>
         where N: Into<String>, Db: Into<String>
     {
         self.execute(ResetDatabaseAccessLevel::new(username.into(), database.into()))
     }
 
+    /// Gets the effective access level to the specified collection for the given
+    /// user.
+    ///
+    /// The user set in the `Connector` must have permission to read from the
+    /// system database in order to execute this method.
+    ///
+    /// # Arguments
+    ///
+    /// * `username` : the name of the user for which the permissions are queried
+    /// * `database` : the name of the database where the collection is located in
+    /// * `collection` : the name of the collection for which the permissions are queried
     pub fn get_collection_access_level<N, Db, Coll>(&self, username: N, database: Db, collection: Coll) -> Result<Permission>
         where N: Into<String>, Db: Into<String>, Coll: Into<String>
     {
         self.execute(GetCollectionAccessLevel::new(username.into(), database.into(), collection.into()))
     }
 
+    /// Grants access to the specified collection for the given user.
+    ///
+    /// The user set in the `Connector` must have permission to write to the
+    /// system database in order to execute this method.
+    ///
+    /// # Arguments
+    ///
+    /// * `username` : the name of the user for which access shall be granted
+    /// * `database` : the name of the database where the collection is located
+    /// * `collection` : the name of the collection to which access shall be granted
+    /// * `permission` : the access level that shall be granted
     pub fn grant_collection_access<N, Db, Coll>(&self, username: N, database: Db, collection: Coll, permission: Permission) -> Result<Empty>
         where N: Into<String>, Db: Into<String>, Coll: Into<String>
     {
         self.execute(SetCollectionAccessLevel::new(username.into(), database.into(), collection.into(), permission))
     }
 
+    /// Revokes the access to the specified collection for the given user.
+    ///
+    /// After this call the given user has no access to the specified collection.
+    ///
+    /// The user set in the `Connector` must have permission to write to the
+    /// system database in order to execute this method.
+    ///
+    /// # Arguments
+    ///
+    /// * `username` : the name of the user for which access shall be revoked
+    /// * `database` : the name of the database where the collection is located
+    /// * `collection` : the name of the collection from which access shall be revoked
     pub fn revoke_collection_access<N, Db, Coll>(&self, username: N, database: Db, collection: Coll) -> Result<Empty>
         where N: Into<String>, Db: Into<String>, Coll: Into<String>
     {
         self.execute(SetCollectionAccessLevel::new(username.into(), database.into(), collection.into(), Permission::None))
     }
 
+    /// Resets the access to the specified collection for the given user to the
+    /// default access level.
+    ///
+    /// After this call the default access level to the collection is applied
+    /// for the given user.
+    ///
+    /// The user set in the `Connector` must have permission to write to the
+    /// system database in order to execute this method.
+    ///
+    /// # Arguments
+    ///
+    /// * `username` : the name of the user for which access shall be reset to the default
+    /// * `database` : the name of the database where the collection is located
+    /// * `collection` : the name of the collection for which access shall be reset to the default
     pub fn reset_collection_access<N, Db, Coll>(&self, username: N, database: Db, collection: Coll) -> Result<Empty>
         where N: Into<String>, Db: Into<String>, Coll: Into<String>
     {

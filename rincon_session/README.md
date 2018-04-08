@@ -35,6 +35,27 @@ additional features:
 * Efficient execution of batch operations (PLANNED)
 * Convenient API for transaction handling (PLANNED)
 
+Here is an example on how inserting a new document into an existing collection looks like:
+
+```rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct Customer {
+    name: String,
+    age: u8,
+}
+
+// obtain a session reference for the existing collection named `customers`
+let collection = database.use_collection_with_name("customers");
+
+let customer = Customer {
+    name: "Jane Doe".to_owned(),
+    age: 42,
+};
+
+// insert the document and get the document header with document id, key and revision
+let document_header = collection.insert_document(customer).unwrap();
+```
+
 The [rincon_session] [crate] is part of the [Rincon ArangoDB Rust driver project][Rincon project].
 
 __Note__: A similar but asynchronous API is provided by the [rincon_session_async] crate which is
