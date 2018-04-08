@@ -18,10 +18,41 @@
 [Rincon project]: https://github.com/innoave/rincon
 [license]: ../LICENSE
 [rincon]: ../rincon
+[rincon_core]: ../rincon_core
+[rincon_connector]: ../rincon_connector
 [rincon_client]: ../rincon_client
 
 The [rincon_client] [crate] provides types and functions to interact with the REST API of the
 [ArangoDB] server.
+
+In [rincon_client] the REST methods are represented by structs. A method is instantiated with the 
+desired parameters and data to get a method call. The method call is executed against an [ArangoDB] 
+server on a connection of a connector. This concept allows applications to queue, distribute or 
+batch process method calls.
+
+For example, inserting a new document into an existing collection looks like:
+
+```rust
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct Customer {
+    name: String,
+    age: u8,
+}
+
+let customer = Customer {
+    name: "Jane Doe".to_owned(),
+    age: 42,
+};
+
+// create a new document with the customer struct as content
+let new_document = NewDocument::from_content(customer);
+
+// create the method call to insert new_document into the 'customers' collection.
+let method = InsertDocument::new("customers", new_document);
+
+// execute the method call
+let document = core.run(connection.execute(method)).unwrap();
+```
 
 The REST API of [ArangoDB] comprises a lot of methods. An overview of the currently implemented
 methods can be found [here](../docs/arangodb_rest_api_methods.md).
@@ -33,18 +64,19 @@ The [rincon_client] [crate] is part of the [Rincon ArangoDB Rust driver project]
 ### Crate Features
 
 The [rincon_client] [crate] can be compiled with optional features to adapt to the configuration
-of the [ArangoDB] server to be used.
+of the [ArangoDB] server to be used. These optional features support attributes on the method calls
+and their results that are specific to the related [ArangoDB] configuration.
 
 The provided crate features are:
 
-* `mmfiles` : support for MMFiles storage engine specific features (default)
+* `mmfiles` : support for MMFiles storage engine specific features (optional)
 * `rocksdb` : support for RocksDB storage engine specific features (optional)
 * `cluster` : support for cluster specific features (optional)
 * `enterprise` : support for [ArangoDB] enterprise specific features (optional)
 
 Note1: A deployed [ArangoDB] server uses either MMFiles or RocksDB storage
-       engine. Therefore this crate must be compiled either with the
-       `mmfiles` feature enabled or the `rocksdb` feature, but not both.
+       engine. Therefore only one of the features `mmfiles` and `rocksdb`
+       features may be activated, but not both.
          
 Note2: If [rincon_client] is compiled with the `cluster` feature some API
        methods which return cluster specific fields do not work with an
@@ -54,34 +86,27 @@ Note2: If [rincon_client] is compiled with the `cluster` feature some API
 
 ### Examples
 
-**Single server with MMFiles storage engine**
+**Using MMFiles storage engine**
 
-By default [rincon_client] is compiled with support for single server
-configurations using the MMFiles storage engine.
-
-To use this crate with the default features add this to your `Cargo.toml`:
-
-```toml
-[dependencies]
-rincon_client = "0.1"
-```
-
-This is equivalent to:
+If you want to make use of the MMFiles features and the [ArangoDB] server is
+configured to use the MMFiles storage engine, [rincon_client] can be
+compiled with the `mmfiles` feature to support MMFiles specific attributes
+and fields within the API methods.
 
 ```toml
 [dependencies]
-rincon_client = { version = "0.1", default-features = false, features = ["mmfiles"] }
+rincon_client = { version = "0.1", features = ["mmfiles"] }
 ```
 
 **Using RocksDB storage engine**
 
 If the [ArangoDB] server is configured to use the RocksDB storage engine,
-[rincon_client] should be compiled with the `rocksdb` feature to support
+[rincon_client] can be compiled with the `rocksdb` feature to support
 RocksDB specific attributes and fields within the API methods.
 
 ```toml
 [dependencies]
-rincon_client = { version = "0.1", default-features = false, features = ["rocksdb"] }
+rincon_client = { version = "0.1", features = ["rocksdb"] }
 ```
 
 **Using an [ArangoDB] Cluster**
@@ -89,20 +114,9 @@ rincon_client = { version = "0.1", default-features = false, features = ["rocksd
 To use the [ArangoDB] cluster specific features of the API, [rincon_client]
 must be compiled with the `cluster` feature enabled.
 
-To use a clustered server with MMFiles storage engine and enterprise features
-add this to your dependencies:
-
 ```toml
 [dependencies]
 rincon_client = { version = "0.1", features = ["cluster"] }
-```
-
-To use a clustered server with RocksDB storage engine add this to your
-dependencies:
-
-```toml
-[dependencies]
-rincon_client = { version = "0.1", default-features = false, features = ["rocksdb", "cluster"] }
 ```
 
 **Using [ArangoDB] Enterprise features**
@@ -115,11 +129,38 @@ your dependencies:
 rincon_client = { version = "0.1", features = ["enterprise"] }
 ```
 
-And with RocksDB storage engine instead of MMFiles:
+**Using an [ArangoDB] Cluster with Enterprise features**
+
+The optional features may be combined, but only one storage engine feature may
+be enabled at a time.
+
+To use enterprise, cluster and MMFiles specific features add this to your
+dependencies:
 
 ```toml
 [dependencies]
-rincon_client = { version = "0.1", default-features = false, features = ["rocksdb", "enterprise"] }
+rincon_client = { version = "0.1", features = ["mmfiles", "enterprise", "cluster"] }
+```
+
+To use enterprise, cluster and RocksDB specific features add this to your
+dependencies:
+
+```toml
+[dependencies]
+rincon_client = { version = "0.1", features = ["rocksdb", "enterprise", "cluster"] }
+```
+
+### Connector and core types
+
+In any case we also need a connector like one provided by the [rincon_connector] crate and some
+types defined in the [rincon_core] crate. This means we need to add additional dependencies:
+
+```toml
+[dependencies]
+rincon_core = "0.1"
+rincon_connector = "0.1"
+# plus dependency as explained above
+rincon_client = "0.1" 
 ```
 
 ## License

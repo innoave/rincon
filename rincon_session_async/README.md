@@ -20,7 +20,6 @@
 [rincon]: ../rincon
 [rincon_client]: ../rincon_client
 [rincon_session]: ../rincon_session
-[rincon_session_async]: ../rincon_session_async
 [rincon_session_async API]: https://docs.rs/rincon_session_async
 [rincon_client API]: https://docs.rs/rincon_api
 

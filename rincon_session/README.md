@@ -19,7 +19,6 @@
 [license]: ../LICENSE
 [rincon]: ../rincon
 [rincon_client]: ../rincon_client
-[rincon_session]: ../rincon_session
 [rincon_session_async]: ../rincon_session_async
 [rincon_session API]: https://docs.rs/rincon_session
 [rincon_client API]: https://docs.rs/rincon_api
@@ -64,6 +63,14 @@ __Important__: As [rincon_session] depends on [rincon_client] it re-exports the 
 [rincon_client]. Therefore please make sure that you specify the features for [rincon_session] that
 are suitable for the setup of your [ArangoDB] server the same way as specified for the
 [rincon_client] crate. 
+
+For example to use [rincon_session] with an [ArangoDB] server configured to use RocksDB in a cluster
+specify the dependency with features like so:
+
+```toml
+[dependencies]
+rincon_session = { version = "0.1", default-features = false, features = ["rocksdb", "cluster"] }
+```
 
 ## License
 
