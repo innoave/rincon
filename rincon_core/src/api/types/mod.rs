@@ -1,8 +1,9 @@
+//! Miscellaneous types defined for the rincon core API.
 
 #[cfg(test)]
 mod tests;
 
-use std::fmt::{self, Display};
+use std::fmt;
 
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer, SerializeSeq};
@@ -11,9 +12,16 @@ use serde_json;
 /// The `Url` type used by this crate.
 pub type Url = ::url::Url;
 
+/// An entity represented either by its name only or the whole object.
+///
+/// This type is used mainly in the session API to represent an entity that is
+/// either known by its name or the whole object is loaded from the database
+/// into the session.
 #[derive(Debug)]
 pub enum Entity<T> {
+    /// An entity where currently only the name is known
     Name(String),
+    /// An entity with the whole content loaded
     Object(T),
 }
 
@@ -39,26 +47,47 @@ pub type JsonValue = serde_json::Value;
 pub struct JsonString(String);
 
 impl JsonString {
+    /// Creates a new `JsonString` from the given string.
+    ///
+    /// The given value should convert into a valid JSON string.
     pub fn new<J>(value: J) -> Self
         where J: Into<String>
     {
         JsonString(value.into())
     }
 
+    /// Creates a new `JsonString` from the given string value.
+    ///
+    /// The given value should convert into a valid JSON string.
+    ///
+    /// It is not checked whether the given string is a valid JSON string.
     pub fn from_string_unchecked(value: String) -> Self {
         JsonString(value)
     }
 
+    /// Creates a new `JsonString` from the given string slice.
+    ///
+    /// The given value should convert into a valid JSON string.
+    ///
+    /// It is not checked whether the given string slice is a valid JSON string.
     pub fn from_str_unchecked(value: &str) -> Self {
         JsonString(value.to_owned())
     }
 
+    /// Converts this `JsonString` into a std string.
     pub fn into_string(self) -> String {
         self.0
     }
 
+    /// Returns this `JsonString` as a reference to a std str.
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+}
+
+impl fmt::Display for JsonString {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", &self.0)
     }
 }
 
@@ -86,41 +115,106 @@ impl<'de> Deserialize<'de> for JsonString {
 /// Defines the type of the value of a parameter for methods and queries.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
+    /// A string value
     String(String),
+
+    /// A bool value
     Bool(bool),
+
+    /// A 64bit float value
     F64(f64),
+
+    /// A 32bit float value
     F32(f32),
+
+    /// A isize signed integer value
     ISize(isize),
+
+    /// A 64bit signed integer value
     I64(i64),
+
+    /// A 32bit signed integer value
     I32(i32),
+
+    /// A 16bit signed integer value
     I16(i16),
+
+    /// A 8bit signed integer value
     I8(i8),
+
+    /// A usize unsigned integer value
     USize(usize),
+
+    /// A 64bit unsigned integer value
     U64(u64),
+
+    /// A 32bit unsigned integer value
     U32(u32),
+
+    /// A 16bit unsigned integer value
     U16(u16),
+
+    /// A 8bit unsigned integer value
     U8(u8),
+
+    /// A vec of string values
     VecString(Vec<String>),
+
+    /// A vec of bool values
     VecBool(Vec<bool>),
+
+    /// A vec of 64bit float values
     VecF64(Vec<f64>),
+
+    /// A vec of 32bit float values
     VecF32(Vec<f32>),
+
+    /// A vec of isize signed integer values
     VecISize(Vec<isize>),
+
+    /// A vec of 64bit signed integer values
     VecI64(Vec<i64>),
+
+    /// A vec of 32bit signed integer values
     VecI32(Vec<i32>),
+
+    /// A vec of 16bit signed integer values
     VecI16(Vec<i16>),
+
+    /// A vec of 8bit signed integer values
     VecI8(Vec<i8>),
+
+    /// A vec of usize unsigned integer values
     VecUSize(Vec<usize>),
+
+    /// A vec of 64bit unsigned integer values
     VecU64(Vec<u64>),
+
+    /// A vec of 32bit unsigned integer values
     VecU32(Vec<u32>),
+
+    /// A vec of 16bit unsigned integer values
     VecU16(Vec<u16>),
+
+    /// A vec of 8bit unsigned integer values
     VecU8(Vec<u8>),
 }
 
 impl Value {
+    /// Unwraps the value of the underlying type out of this `Value`.
     pub fn unwrap<T>(&self) -> &T
         where T: UnwrapValue
     {
         UnwrapValue::unwrap(self)
+    }
+}
+
+impl AsRef<str> for Value {
+    fn as_ref(&self) -> &str {
+        match *self {
+            Value::String(ref value) => value,
+            _ => unreachable!(),
+        }
     }
 }
 
@@ -129,6 +223,7 @@ impl Value {
 /// This trait should be implemented for all types that can be wrapped inside
 /// the `Value` enum.
 pub trait UnwrapValue {
+    /// Returns the value of the underlying type of this `Value`.
     fn unwrap(value: &Value) -> &Self;
 }
 
@@ -563,7 +658,7 @@ impl From<Vec<u8>> for Value {
     }
 }
 
-impl Display for Value {
+impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Value::*;
         match *self {

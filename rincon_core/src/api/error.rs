@@ -3,6 +3,8 @@ use std::fmt;
 
 pub use arango::ErrorCode;
 
+/// The `api::Error` is returned by functions of the rincon driver whenever an
+/// error is returned by the ArangoDB server.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Fail)]
 pub struct Error {
     #[serde(rename = "code")]
@@ -14,6 +16,8 @@ pub struct Error {
 }
 
 impl Error {
+    /// Creates a new `Error` with the given status code, error code and
+    /// message.
     pub fn new<M>(status_code: u16, error_code: ErrorCode, message: M) -> Self
         where M: Into<String>
     {
@@ -24,14 +28,17 @@ impl Error {
         }
     }
 
+    /// Returns the status code of this error.
     pub fn status_code(&self) -> u16 {
         self.status_code
     }
 
+    /// Returns the error code of this error.
     pub fn error_code(&self) -> ErrorCode {
         self.error_code
     }
 
+    /// Returns the message of this error.
     pub fn message(&self) -> &str {
         &self.message
     }

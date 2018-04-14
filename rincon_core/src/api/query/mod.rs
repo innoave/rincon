@@ -1,11 +1,20 @@
+//! Representation of database queries in the rincon driver.
+//!
+//! This module defines a driver specific `Query` struct that holds the
+//! necessary data to execute a query.
 
 #[cfg(test)]
 mod tests;
 
 use std::collections::HashMap;
+use std::fmt;
 
 use api::types::{Value, UnwrapValue};
 
+/// Represents a database query within the rincon driver.
+///
+/// This struct holds the AQL query string and the query parameters needed to
+/// call the ArangoDB server to execute the database query.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Query {
     string: String,
@@ -48,5 +57,27 @@ impl Query {
         where T: UnwrapValue
     {
         self.params.get(name).map(UnwrapValue::unwrap)
+    }
+}
+
+impl fmt::Display for Query {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::fmt::Write;
+        f.write_str(&self.string)?;
+        if !self.params.is_empty() {
+            f.write_str("\n with: ")?;
+            let mut first = true;
+            for (ref name, ref value) in &self.params {
+                if first {
+                    first = false;
+                } else {
+                    f.write_str(", ")?;
+                }
+                f.write_str(name)?;
+                f.write_char('=')?;
+                f.write_str(&value.to_string())?;
+            }
+        }
+        Ok(())
     }
 }

@@ -1,3 +1,9 @@
+//! This module defines constants and types that are very specific to the
+//! ArangoDB REST API.
+//!
+//! These constants and types are used by implementations of the `rincon_core`
+//! API. **The average application will not need to use anything from this
+//! module directly**.
 
 #[cfg(test)]
 mod tests;
@@ -11,87 +17,101 @@ use serde::ser::{Serialize, Serializer};
 
 use api::{self, method};
 
-pub const FIELD_CODE: &str = "code";
-pub const FIELD_COLLECTIONS: &str = "collections";
-pub const FIELD_EDGE: &str = "edge";
-pub const FIELD_EDGE_DEFINITIONS: &str = "edgeDefinitions";
-pub const FIELD_ENTITY_FROM: &str = "_from";
-pub const FIELD_ENTITY_ID: &str = "_id";
-pub const FIELD_ENTITY_KEY: &str = "_key";
-pub const FIELD_ENTITY_REVISION: &str = "_rev";
-pub const FIELD_ENTITY_NEW: &str = "new";
-pub const FIELD_ENTITY_OLD: &str = "old";
-pub const FIELD_ENTITY_OLD_REVISION: &str = "_oldRev";
-pub const FIELD_ENTITY_TO: &str = "_to";
-pub const FIELD_ERROR: &str = "error";
-pub const FIELD_ERROR_MESSAGE: &str = "errorMessage";
-pub const FIELD_ERROR_NUMBER: &str = "errorNum";
-pub const FIELD_GRAPH: &str = "graph";
-pub const FIELD_GRAPHS: &str = "graphs";
-pub const FIELD_ID: &str = "id";
-pub const FIELD_IS_SMART: &str = "isSmart";
-pub const FIELD_NAME: &str = "name";
-pub const FIELD_NUMBER_OF_SHARDS: &str = "numberOfShards";
-pub const FIELD_ORPHAN_COLLECTIONS: &str = "orphanCollections";
-pub const FIELD_REMOVED: &str = "removed";
-pub const FIELD_REPLICATION_FACTOR: &str = "replicationFactor";
-pub const FIELD_RESULT: &str = "result";
-pub const FIELD_SMART_GRAPH_ATTRIBUTE: &str = "smartGraphAttribute";
-pub const FIELD_VERTEX: &str = "vertex";
+#[allow(missing_docs)] pub const FIELD_CODE: &str = "code";
+#[allow(missing_docs)] pub const FIELD_COLLECTIONS: &str = "collections";
+#[allow(missing_docs)] pub const FIELD_EDGE: &str = "edge";
+#[allow(missing_docs)] pub const FIELD_EDGE_DEFINITIONS: &str = "edgeDefinitions";
+#[allow(missing_docs)] pub const FIELD_ENTITY_FROM: &str = "_from";
+#[allow(missing_docs)] pub const FIELD_ENTITY_ID: &str = "_id";
+#[allow(missing_docs)] pub const FIELD_ENTITY_KEY: &str = "_key";
+#[allow(missing_docs)] pub const FIELD_ENTITY_REVISION: &str = "_rev";
+#[allow(missing_docs)] pub const FIELD_ENTITY_NEW: &str = "new";
+#[allow(missing_docs)] pub const FIELD_ENTITY_OLD: &str = "old";
+#[allow(missing_docs)] pub const FIELD_ENTITY_OLD_REVISION: &str = "_oldRev";
+#[allow(missing_docs)] pub const FIELD_ENTITY_TO: &str = "_to";
+#[allow(missing_docs)] pub const FIELD_ERROR: &str = "error";
+#[allow(missing_docs)] pub const FIELD_ERROR_MESSAGE: &str = "errorMessage";
+#[allow(missing_docs)] pub const FIELD_ERROR_NUMBER: &str = "errorNum";
+#[allow(missing_docs)] pub const FIELD_GRAPH: &str = "graph";
+#[allow(missing_docs)] pub const FIELD_GRAPHS: &str = "graphs";
+#[allow(missing_docs)] pub const FIELD_ID: &str = "id";
+#[allow(missing_docs)] pub const FIELD_IS_SMART: &str = "isSmart";
+#[allow(missing_docs)] pub const FIELD_NAME: &str = "name";
+#[allow(missing_docs)] pub const FIELD_NUMBER_OF_SHARDS: &str = "numberOfShards";
+#[allow(missing_docs)] pub const FIELD_ORPHAN_COLLECTIONS: &str = "orphanCollections";
+#[allow(missing_docs)] pub const FIELD_REMOVED: &str = "removed";
+#[allow(missing_docs)] pub const FIELD_REPLICATION_FACTOR: &str = "replicationFactor";
+#[allow(missing_docs)] pub const FIELD_RESULT: &str = "result";
+#[allow(missing_docs)] pub const FIELD_SMART_GRAPH_ATTRIBUTE: &str = "smartGraphAttribute";
+#[allow(missing_docs)] pub const FIELD_VERTEX: &str = "vertex";
 
-pub const HEADER_IF_MATCH: &str = "If-Match";
-pub const HEADER_IF_NON_MATCH: &str = "If-None-Match";
+#[allow(missing_docs)] pub const HEADER_IF_MATCH: &str = "If-Match";
+#[allow(missing_docs)] pub const HEADER_IF_NON_MATCH: &str = "If-None-Match";
 
-pub const PARAM_COLLECTION: &str = "collection";
-pub const PARAM_DETAILS: &str = "details";
-pub const PARAM_EXCLUDE_SYSTEM: &str = "excludeSystem";
-pub const PARAM_IGNORE_REVISIONS: &str = "ignoreRevs";
-pub const PARAM_KEEP_NULL: &str = "keepNull";
-pub const PARAM_MERGE_OBJECTS: &str = "mergeObjects";
-pub const PARAM_ONLY_GET: &str = "onlyget";
-pub const PARAM_RETURN_NEW: &str = "returnNew";
-pub const PARAM_RETURN_OLD: &str = "returnOld";
-pub const PARAM_WAIT_FOR_SYNC: &str = "waitForSync";
-pub const PARAM_WAIT_FOR_SYNC_REPLICATION: &str = "waitForSyncReplication";
+#[allow(missing_docs)] pub const PARAM_COLLECTION: &str = "collection";
+#[allow(missing_docs)] pub const PARAM_DETAILS: &str = "details";
+#[allow(missing_docs)] pub const PARAM_EXCLUDE_SYSTEM: &str = "excludeSystem";
+#[allow(missing_docs)] pub const PARAM_IGNORE_REVISIONS: &str = "ignoreRevs";
+#[allow(missing_docs)] pub const PARAM_KEEP_NULL: &str = "keepNull";
+#[allow(missing_docs)] pub const PARAM_MERGE_OBJECTS: &str = "mergeObjects";
+#[allow(missing_docs)] pub const PARAM_ONLY_GET: &str = "onlyget";
+#[allow(missing_docs)] pub const PARAM_RETURN_NEW: &str = "returnNew";
+#[allow(missing_docs)] pub const PARAM_RETURN_OLD: &str = "returnOld";
+#[allow(missing_docs)] pub const PARAM_WAIT_FOR_SYNC: &str = "waitForSync";
+#[allow(missing_docs)] pub const PARAM_WAIT_FOR_SYNC_REPLICATION: &str = "waitForSyncReplication";
 
-pub const PATH_ADMIN: &str = "/_admin";
-pub const PATH_API_COLLECTION: &str = "/_api/collection";
-pub const PATH_API_CURSOR: &str = "/_api/cursor";
-pub const PATH_API_DATABASE: &str = "/_api/database";
-pub const PATH_API_DOCUMENT: &str = "/_api/document";
-pub const PATH_API_EXPLAIN: &str = "/_api/explain";
-pub const PATH_API_GHARIAL: &str = "/_api/gharial";
-pub const PATH_API_INDEX: &str = "/_api/index";
-pub const PATH_API_QUERY: &str = "/_api/query";
-pub const PATH_API_USER: &str = "/_api/user";
-pub const PATH_API_VERSION: &str = "/_api/version";
-pub const PATH_OPEN_AUTH: &str = "/_open/auth";
+#[allow(missing_docs)] pub const PATH_ADMIN: &str = "/_admin";
+#[allow(missing_docs)] pub const PATH_API_COLLECTION: &str = "/_api/collection";
+#[allow(missing_docs)] pub const PATH_API_CURSOR: &str = "/_api/cursor";
+#[allow(missing_docs)] pub const PATH_API_DATABASE: &str = "/_api/database";
+#[allow(missing_docs)] pub const PATH_API_DOCUMENT: &str = "/_api/document";
+#[allow(missing_docs)] pub const PATH_API_EXPLAIN: &str = "/_api/explain";
+#[allow(missing_docs)] pub const PATH_API_GHARIAL: &str = "/_api/gharial";
+#[allow(missing_docs)] pub const PATH_API_INDEX: &str = "/_api/index";
+#[allow(missing_docs)] pub const PATH_API_QUERY: &str = "/_api/query";
+#[allow(missing_docs)] pub const PATH_API_USER: &str = "/_api/user";
+#[allow(missing_docs)] pub const PATH_API_VERSION: &str = "/_api/version";
+#[allow(missing_docs)] pub const PATH_OPEN_AUTH: &str = "/_open/auth";
 
-pub const PATH_CURRENT: &str = "/current";
-pub const PATH_DATABASE: &str = "/database";
-pub const PATH_DB: &str = "/_db/";
-pub const PATH_EDGE: &str = "/edge";
-pub const PATH_PROPERTIES: &str = "/properties";
-pub const PATH_RENAME: &str = "/rename";
-pub const PATH_REVISION: &str = "/revision";
-pub const PATH_TARGET_VERSION: &str = "/target-version";
-pub const PATH_USER: &str = "/user";
-pub const PATH_VERTEX: &str = "/vertex";
+#[allow(missing_docs)] pub const PATH_CURRENT: &str = "/current";
+#[allow(missing_docs)] pub const PATH_DATABASE: &str = "/database";
+#[allow(missing_docs)] pub const PATH_DB: &str = "/_db/";
+#[allow(missing_docs)] pub const PATH_EDGE: &str = "/edge";
+#[allow(missing_docs)] pub const PATH_PROPERTIES: &str = "/properties";
+#[allow(missing_docs)] pub const PATH_RENAME: &str = "/rename";
+#[allow(missing_docs)] pub const PATH_REVISION: &str = "/revision";
+#[allow(missing_docs)] pub const PATH_TARGET_VERSION: &str = "/target-version";
+#[allow(missing_docs)] pub const PATH_USER: &str = "/user";
+#[allow(missing_docs)] pub const PATH_VERTEX: &str = "/vertex";
 
-pub const SYSTEM_DATABASE: &str = "_system";
+#[allow(missing_docs)] pub const SYSTEM_DATABASE: &str = "_system";
 
 const CAPTURE_CONTEXT_NAME: &str = "ctx";
 const CAPTURE_ELEMENT_KEY: &str = "key";
 const REGEX_ID_CAPTURE: &str = "^((?P<ctx>[^/]+)/)?(?P<key>[^/]+)$";
 
 
+/// A handle as used by the ArangoDB REST API for identifying entities like
+/// documents, indexes and cursors.
+///
+/// A handle can be either `Qualified` which means it consists of a context and
+/// an key or context `Local` which holds the key only. For example a
+/// `DocumentId` is qualified and consists of the key of a document and the
+/// name of the collection where this document is located in.
+///
+/// This is the common implementation of such a handle. The methods use
+/// specialized types for each entity, like `DocumentIdOption` and
+/// `IndexIdOption`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum HandleOption {
+    /// A fully qualified handle with context and key information.
     Qualified(Handle),
+    /// A handle key that is local to a context that is specified elsewhere.
     Local(HandleKey),
 }
 
 impl HandleOption {
+    /// Tries to create `HandleOption` from a handle name and value.
     pub fn from_str(handle_name: &str, value: &str) -> Result<HandleOption, String> {
         let re = Regex::new(REGEX_ID_CAPTURE).unwrap();
         if let Some(caps) = re.captures(value) {
@@ -135,6 +155,9 @@ impl<'de> Deserialize<'de> for HandleOption {
     }
 }
 
+/// A qualified handle with defined context and key.
+///
+/// see the documentation of `HandleOption` for more details.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Handle {
     context: String,
@@ -142,6 +165,7 @@ pub struct Handle {
 }
 
 impl Handle {
+    /// Tries to create a `Handle` from a handle name and value.
     pub fn from_str(handle_name: &str, value: &str) -> Result<Self, String> {
         let re = Regex::new(REGEX_ID_CAPTURE).unwrap();
         if let Some(caps) = re.captures(value) {
@@ -161,10 +185,12 @@ impl Handle {
         }
     }
 
+    /// Unwraps this `Handle` into its context and key.
     pub fn unwrap(self) -> (String, String) {
         (self.context, self.key)
     }
 
+    /// Formats this `Handle` as its string representation.
     pub fn to_string(&self) -> String {
         self.context.to_owned() + "/" + &self.key
     }
@@ -194,14 +220,17 @@ impl<'de> Deserialize<'de> for Handle {
     }
 }
 
+/// A local handle specifying the key only. The context must be specified by
+/// other means, like for example another parameter of a method.
+///
+/// This is basically a new type for key strings.
+///
+/// see also the documentation of `HandleOption` for more details.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct HandleKey(String);
 
 impl HandleKey {
-    pub fn unwrap(self) -> String {
-        self.0
-    }
-
+    /// Tries to create a `HandleKey` from a handle name and value.
     pub fn from_string(handle_name: &str, value: String) -> Result<Self, String> {
         if value.contains('/') {
             Err(format!("A {} key must not contain any '/' character, but got: {:?}",
@@ -209,6 +238,11 @@ impl HandleKey {
         } else {
             Ok(HandleKey(value))
         }
+    }
+
+    /// Unwraps this `HandleKey` into its key string.
+    pub fn unwrap(self) -> String {
+        self.0
     }
 }
 

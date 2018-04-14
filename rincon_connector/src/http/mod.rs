@@ -144,7 +144,7 @@ impl Connector for JsonHttpConnector {
         self.connection(SYSTEM_DATABASE)
     }
 
-    fn accept_auth_token(&mut self, token: Jwt) {
+    fn use_auth_token(&mut self, token: Jwt) {
         self.token = Arc::new(Some(token));
     }
 

@@ -196,9 +196,10 @@ pub use self::edge_collection_session::*;
 pub use self::graph_session::*;
 pub use self::vertex_collection_session::*;
 
-/// Re-export of types from `rincon_client` crate that are used in the public
-/// API of this crate.
 pub mod client {
+    //! Re-export of types from `rincon_client` crate that are used in the public
+    //! API of this crate.
+
     pub use rincon_client::admin::types::{ServerVersion, TargetVersion};
     pub use rincon_client::aql::types::{ExplainedQuery, ExplainOptions, ParsedQuery};
     pub use rincon_client::collection::types::{Collection, CollectionProperties,

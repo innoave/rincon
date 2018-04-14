@@ -1,3 +1,4 @@
+//! Constants definitions of values that are defined by the ArangoDB REST API.
 
 pub mod protocol;
 

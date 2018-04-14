@@ -1,3 +1,4 @@
+//! A datasource defines parameters for establishing a connection to a server.
 
 use std::env;
 use std::str::FromStr;
@@ -6,22 +7,35 @@ use std::time::Duration;
 use api::auth::{Authentication, Credentials};
 use api::types::Url;
 
+/// The default transport protocol to be used
 pub const DEFAULT_PROTOCOL: &str = "http";
+/// The default host name to be used
 pub const DEFAULT_HOST: &str = "localhost";
+/// The default port number to be used
 pub const DEFAULT_PORT: u16 = 8529;
+/// The default username to be used
 pub const DEFAULT_USERNAME: &str = "root";
+/// The default password to be used
 pub const DEFAULT_PASSWORD: &str = "";
+/// The default system database to be used
 pub const DEFAULT_DATABASE_NAME: &str = "_system";
+/// The default timeout to be used during method call execution
 pub const DEFAULT_TIMEOUT: u64 = 30;
 
+/// The name of the system environment variable that contains the root password
 pub const ENV_ROOT_PASSWORD: &str = "ARANGO_ROOT_PASSWORD";
 
+/// An error that may occur when dealing with datasources.
+///
+/// Currently this error is returned when an URL string can not be parsed.
 #[derive(Clone, PartialEq, Eq, Debug, Fail)]
 pub enum Error {
+    /// The given URL is not valid
     #[fail(display = "Invalid URL: {}", _0)]
     InvalidUrl(String),
 }
 
+/// Holds the parameters for establishing connections to a server.
 #[derive(Debug, Clone)]
 pub struct DataSource {
     protocol: String,
@@ -33,6 +47,7 @@ pub struct DataSource {
 }
 
 impl DataSource {
+    /// Creates a new `DataSource` with the parameters taken from the given URL.
     pub fn from_url(url: Url) -> Self {
         let protocol = url.scheme();
         let host = url.host_str().unwrap_or(DEFAULT_HOST);
@@ -63,6 +78,8 @@ impl DataSource {
         }
     }
 
+    /// Returns a new copy of this `DataSource` with the database parameter set
+    /// to the given database name.
     pub fn use_database<DbName>(&self, database_name: DbName) -> Self
         where DbName: Into<String>
     {
@@ -82,6 +99,9 @@ impl DataSource {
         }
     }
 
+    /// Returns a new copy of this `DataSource` with the database parameter set
+    /// to `None` which means that the default database of the authenticated
+    /// user will be used.
     pub fn use_default_database(&self) -> Self {
         DataSource {
             protocol: self.protocol.clone(),
@@ -93,6 +113,8 @@ impl DataSource {
         }
     }
 
+    /// Returns a new copy of this `DataSource` which uses basic authentication
+    /// with the given username and password.
     pub fn with_basic_authentication(&self, username: &str, password: &str) -> Self {
         let authentication = Authentication::Basic(
             Credentials::new(username.to_owned(), password.to_owned())
@@ -107,6 +129,8 @@ impl DataSource {
         }
     }
 
+    /// Returns a new copy of this `DataSource` with the authentication
+    /// parameter set to the given authentication method.
     pub fn with_authentication(&self, authentication: Authentication) -> Self {
         DataSource {
             protocol: self.protocol.clone(),
@@ -118,6 +142,8 @@ impl DataSource {
         }
     }
 
+    /// Returns a new copy of this `DataSource` that does not use any
+    /// authentication at all.
     pub fn without_authentication(&self) -> Self {
         DataSource {
             protocol: self.protocol.clone(),
@@ -129,6 +155,8 @@ impl DataSource {
         }
     }
 
+    /// Returns a new copy of this `DataSource` but with the timeout for method
+    /// calls set to the given value.
     pub fn with_timeout<D>(&self, timeout: D) -> Self
         where D: Into<Duration>
     {
@@ -142,26 +170,32 @@ impl DataSource {
         }
     }
 
+    /// Returns the protocol defined for this `DataSource`.
     pub fn protocol(&self) -> &str {
         &self.protocol
     }
 
+    /// Returns the host name defined for this `DataSource`.
     pub fn host(&self) -> &str {
         &self.host
     }
 
+    /// Returns the port number defined for this `DataSource`.
     pub fn port(&self) -> u16 {
         self.port
     }
 
+    /// Returns the name of the database defined for this `DataSource`.
     pub fn database_name(&self) -> Option<&String> {
         self.database_name.as_ref()
     }
 
+    /// Returns the authentication method defined for this `DataSource`.
     pub fn authentication(&self) -> &Authentication {
         &self.authentication
     }
 
+    /// Returns the timeout for method calls defined for this `DataSource`.
     pub fn timeout(&self) -> &Duration {
         &self.timeout
     }
@@ -182,6 +216,7 @@ impl Default for DataSource {
     }
 }
 
+/// Parses an URL string for the parameters needed to create a `DataSource`.
 impl FromStr for DataSource {
     type Err = Error;
 

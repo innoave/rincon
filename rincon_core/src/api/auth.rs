@@ -1,3 +1,5 @@
+//! Type definitions for various authentication methods used by the rincon
+//! driver.
 
 /// This enum defines the supported authentication methods.
 #[derive(Debug, Clone)]
