@@ -13,7 +13,7 @@
 //! # extern crate tokio_core;
 //! # use rincon_core::api::connector::Connector;
 //! # use rincon_core::api::datasource::DataSource;
-//! # use rincon_connector::http::BasicConnector;
+//! # use rincon_connector::http::JsonHttpConnector;
 //! # use rincon_session::{ArangoSession, Document, Result};
 //! # use tokio_core::reactor::Core;
 //! #
@@ -24,7 +24,7 @@
 //! #
 //! #    let mut core = Core::new().unwrap();
 //! #
-//! #    let connector = BasicConnector::new(datasource, &core.handle()).unwrap();
+//! #    let connector = JsonHttpConnector::new(datasource, &core.handle()).unwrap();
 //! #
 //! #    let session = ArangoSession::new(connector, core);
 //! #
@@ -97,15 +97,16 @@
 //!
 //! Next we create a `Connector` which will be used to communicate with the
 //! [ArangoDB] server. The `Connector` defines which transport protocol is used
-//! and how the payload is serialized. We choose the provided `BasicConnector`
-//! which support HTTP and HTTPS and serializes the payload as JSON.
+//! and how the payload is serialized. We choose the provided
+//! `JsonHttpConnector` which support HTTP and HTTPS and serializes the payload
+//! as JSON.
 //!
 //! ```rust
 //! # extern crate rincon_core;
 //! # extern crate rincon_connector;
 //! # extern crate tokio_core;
 //! use rincon_core::api::datasource::DataSource;
-//! use rincon_connector::http::BasicConnector;
+//! use rincon_connector::http::JsonHttpConnector;
 //! use tokio_core::reactor::Core;
 //!
 //! fn main() {
@@ -115,11 +116,11 @@
 //!
 //!     let mut core = Core::new().unwrap();
 //!
-//!     let connector = BasicConnector::new(datasource, &core.handle()).unwrap();
+//!     let connector = JsonHttpConnector::new(datasource, &core.handle()).unwrap();
 //! }
 //! ```
 //!
-//! The `new()` method of the `BasicConnector` takes 2 arguments. The first
+//! The `new()` method of the `JsonHttpConnector` takes 2 arguments. The first
 //! argument is the datasource we have just created before. The second argument
 //! is a handle to `reactor::Core` from the `tokio_core` crate.
 //!
@@ -131,7 +132,7 @@
 //! # extern crate rincon_session;
 //! # extern crate tokio_core;
 //! use rincon_core::api::datasource::DataSource;
-//! use rincon_connector::http::BasicConnector;
+//! use rincon_connector::http::JsonHttpConnector;
 //! use rincon_session::ArangoSession;
 //! use tokio_core::reactor::Core;
 //!
@@ -142,7 +143,7 @@
 //!
 //!     let mut core = Core::new().unwrap();
 //!
-//!     let connector = BasicConnector::new(datasource, &core.handle()).unwrap();
+//!     let connector = JsonHttpConnector::new(datasource, &core.handle()).unwrap();
 //!
 //!     let session = ArangoSession::new(connector, core);
 //! }

@@ -9,14 +9,14 @@
 //!
 //! Currently there is only one `Connector` implementation provided:
 //!
-//! * `BasicConnector` : using [JSON] over HTTP/HTTPS
+//! * `JsonHttpConnector` : using [JSON] over HTTP/HTTPS
 //!
 //! but more are planned to be added in the future.
 //!
 //! # Example
 //!
 //! Using a `Connector` is straight forward. Here is an example of how to use
-//! the `BasicConnector`. Other `Connector`s are used in a similar way.
+//! the `JsonHttpConnector`. Other `Connector`s are used in a similar way.
 //!
 //! First we create an instance by calling the `new()` function. The `new()`
 //! function takes a `DataSource` and a handle of a `reactor::Core` as
@@ -32,14 +32,14 @@
 //! # extern crate tokio_core;
 //! use rincon_core::api::connector::Error;
 //! use rincon_core::api::datasource::DataSource;
-//! use rincon_connector::http::BasicConnector;
+//! use rincon_connector::http::JsonHttpConnector;
 //! use tokio_core::reactor::Core;
 //!
 //! # fn main() {
 //! #     let connector = create_connector().unwrap();
 //! # }
 //!
-//! fn create_connector() -> Result<BasicConnector, Error> {
+//! fn create_connector() -> Result<JsonHttpConnector, Error> {
 //!
 //!     let datasource = DataSource::from_url("http://localhost:8529")
 //!         .expect("invalid URL for datasource")
@@ -47,7 +47,7 @@
 //!
 //!     let mut core = Core::new()?;
 //!
-//!     let connector = BasicConnector::new(datasource, &core.handle());
+//!     let connector = JsonHttpConnector::new(datasource, &core.handle());
 //!     connector
 //! }
 //! ```
@@ -56,6 +56,8 @@
 //! [`rincon_client`] API or is passed to the [`rincon_session`] API dependant
 //! on what API you want to use. For more details see the documentation of
 //! those crates.
+//!
+//! TODO: add example on how to use connectors with JWT authentication.
 //!
 //! [ArangoDB]: https://www.arangodb.org
 //! [JSON]: https://json.org

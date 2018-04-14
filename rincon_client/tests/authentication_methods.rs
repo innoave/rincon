@@ -11,7 +11,7 @@ use tokio_core::reactor::Core;
 use rincon_core::api::auth::Credentials;
 use rincon_core::api::ErrorCode;
 use rincon_core::api::connector::{Connector, Error, Execute};
-use rincon_connector::http::BasicConnector;
+use rincon_connector::http::JsonHttpConnector;
 use rincon_client::auth::methods::*;
 
 use rincon_test_helper::*;
@@ -24,7 +24,7 @@ fn authenticate_root_user() {
     let (username, password) = root_user();
 
     let mut core = Core::new().unwrap();
-    let connector = BasicConnector::new(system_ds, &core.handle()).unwrap();
+    let connector = JsonHttpConnector::new(system_ds, &core.handle()).unwrap();
     let conn = connector.system_connection();
 
     let method = Authenticate::with_user(username, password);
@@ -40,7 +40,7 @@ fn authenticate_with_invalid_credentials() {
     let credentials = Credentials::new("not existing", "user");
 
     let mut core = Core::new().unwrap();
-    let connector = BasicConnector::new(system_ds, &core.handle()).unwrap();
+    let connector = JsonHttpConnector::new(system_ds, &core.handle()).unwrap();
     let conn = connector.system_connection();
 
     let method = Authenticate::with_credentials(&credentials);

@@ -74,7 +74,7 @@ Crates which are planned but are not ready yet:
 
 ## Which crates should I add as dependencies to my project? 
 
-First choose whether you want to use the lower level [rincon_client API] or higher level 
+First choose whether you want to use the lower level [rincon_client API] or the higher level 
 [rincon_session_async API]. Both of these APIs are asynchronous. That is the methods return
 `Future`s (of the Tokio project). If you prefer a synchronous API you might want to use the
 [rincon_session API].

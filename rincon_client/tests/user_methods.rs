@@ -10,7 +10,7 @@ extern crate rincon_test_helper;
 use rincon_core::api::ErrorCode;
 use rincon_core::api::connector::{Connector, Error, Execute};
 use rincon_core::api::types::{Empty, EMPTY};
-use rincon_connector::http::BasicConnector;
+use rincon_connector::http::JsonHttpConnector;
 use rincon_client::collection::methods::{CreateCollection, DropCollection};
 use rincon_client::database::methods::{CreateDatabase, DropDatabase};
 use rincon_client::database::types::NewDatabase;
@@ -242,7 +242,7 @@ fn create_collection_in_database_not_accessible_for_user() {
 
         let user_ds = conn.datasource()
             .with_basic_authentication("testuser8", "");
-        let connector = BasicConnector::new(user_ds, &core.handle()).unwrap();
+        let connector = JsonHttpConnector::new(user_ds, &core.handle()).unwrap();
         let user_conn = connector.connection("testbase81");
 
         let method = CreateCollection::with_name("testcollection811");

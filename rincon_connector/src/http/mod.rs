@@ -5,9 +5,9 @@
 //!
 //! The currently provided `Connector`s are:
 //!
-//! * `BasicConnector` : uses JSON over HTTP/HTTPS
+//! * `JsonHttpConnector` : uses JSON over HTTP/HTTPS
 //!
-//! For an example on how to use a connector see the crate level documenation.
+//! For an example on how to use a connector see the crate level documentation.
 
 #[cfg(test)]
 mod tests;
@@ -37,16 +37,40 @@ use rincon_core::arango::protocol::{PATH_DB, SYSTEM_DATABASE};
 
 type HttpClient = Client<TimeoutConnector<HttpsConnector<HttpConnector>>>;
 
-//TODO find better name for BasicConnector
+/// A connector that uses JSON over HTTP/HTTPS.
+///
+/// This `Connector` implementation uses JSON for serializing the payload and
+/// HTTP or HTTPS as the transport protocol.
+///
+/// This connector supports both authentication methods of the [ArangoDB] REST
+/// API: Json Web Token (JWT) and basic authentication. The authentication
+/// method to be used is specified in the `DataSource`. If `Authentication:Jwt`
+/// is specified but not JWT is set in this connection method calls will return
+/// an `Error::NotAuthenticated` error.
+///
+/// For an example on how to use it see the crate level documentation.
 #[derive(Debug)]
-pub struct BasicConnector {
+pub struct JsonHttpConnector {
     user_agent: &'static UserAgent,
     datasource: Arc<DataSource>,
     token: Arc<Option<Jwt>>,
     client: Arc<HttpClient>,
 }
 
-impl BasicConnector {
+impl JsonHttpConnector {
+    /// Creates a new instance of the `JsonHttpConnector`.
+    ///
+    /// The returned `JsonHttpConnector` sets the User-Agent header field of the
+    /// HTTP protocol to information about the rincon driver. If you want to use
+    /// information about your application as the User-Agent use the alternative
+    /// `with_user_agent()` method to create the `JsonHttpConnector` instance.
+    ///
+    /// # Arguments
+    ///
+    /// * `datasource` : a `DataSource` that holds the connection parameters
+    ///   used to connect to the database server.
+    /// * `reactor` : a handle of a `reactor::Core` instance of the `tokio-core`
+    ///   crate.
     pub fn new(
         datasource: DataSource,
         reactor: &reactor::Handle
@@ -58,8 +82,8 @@ impl BasicConnector {
         let client = Client::configure()
             .connector(timeout_connector)
             .build(reactor);
-        debug!("Creating new basic connector for {:?}", &datasource);
-        Ok(BasicConnector {
+        debug!("Creating new JSON/HTTP connector for {:?}", &datasource);
+        Ok(JsonHttpConnector {
             user_agent: &RinconUserAgent,
             datasource: Arc::new(datasource),
             token: Arc::new(None),
@@ -67,6 +91,20 @@ impl BasicConnector {
         })
     }
 
+    /// Creates a new instance of the `JsonHttpConnector` that uses the given
+    /// user agent.
+    ///
+    /// The `user_agent` is used to set the User-Agent header field of the HTTP
+    /// protocol on each request sent by this connector.
+    ///
+    /// # Arguments
+    ///
+    /// * `user_agent` : a `UserAgent` used to set the User-Agent header field
+    ///   of the HTTP protocol
+    /// * `datasource` : a `DataSource` that holds the connection parameters
+    ///   used to connect to the database server.
+    /// * `reactor` : a handle of a `reactor::Core` instance of the `tokio-core`
+    ///   crate.
     pub fn with_user_agent(
         user_agent: &'static UserAgent,
         datasource: DataSource,
@@ -79,8 +117,8 @@ impl BasicConnector {
         let client = Client::configure()
             .connector(timeout_connector)
             .build(reactor);
-        debug!("Creating new basic connector for {:?}", &datasource);
-        Ok(BasicConnector {
+        debug!("Creating new JSON/HTTP connector for {:?}", &datasource);
+        Ok(JsonHttpConnector {
             user_agent,
             datasource: Arc::new(datasource),
             token: Arc::new(None),
@@ -89,11 +127,11 @@ impl BasicConnector {
     }
 }
 
-impl Connector for BasicConnector {
-    type Connection = BasicConnection;
+impl Connector for JsonHttpConnector {
+    type Connection = JsonHttpConnection;
 
-    fn connection(&self, database_name: &str) -> BasicConnection {
-        BasicConnection {
+    fn connection(&self, database_name: &str) -> JsonHttpConnection {
+        JsonHttpConnection {
             user_agent: self.user_agent,
             datasource: self.datasource.clone(),
             database: Some(database_name.to_owned()),
@@ -102,7 +140,7 @@ impl Connector for BasicConnector {
         }
     }
 
-    fn system_connection(&self) -> BasicConnection {
+    fn system_connection(&self) -> JsonHttpConnection {
         self.connection(SYSTEM_DATABASE)
     }
 
@@ -115,9 +153,10 @@ impl Connector for BasicConnector {
     }
 }
 
-//TODO find better name for BasicConnection
+/// A connection to a server that actually executes method calls using JSON
+/// over HTTP/HTTPS.
 #[derive(Debug)]
-pub struct BasicConnection {
+pub struct JsonHttpConnection {
     user_agent: &'static UserAgent,
     datasource: Arc<DataSource>,
     database: Option<String>,
@@ -125,29 +164,39 @@ pub struct BasicConnection {
     client: Arc<HttpClient>,
 }
 
-impl BasicConnection {
+impl JsonHttpConnection {
+    /// Returns the `UserAgent` used for the HTTP User-Agent header field.
     pub fn user_agent(&self) -> &UserAgent {
         self.user_agent
     }
 
+    /// Returns the `DataSource` used by the connection.
     pub fn datasource(&self) -> &DataSource {
         &self.datasource
     }
 
+    /// Returns the name of the default database addressed by method calls
+    /// if none is specified by the actual method.
+    ///
+    /// If no default database is set this method returns `None`. In this case
+    /// calls are executed against the system database if the actual method call
+    /// does not specify a database.
     pub fn database(&self) -> Option<&String> {
         self.database.as_ref().or_else(|| self.datasource.database_name())
     }
 
+    /// Returns the authentication token used by this connection.
     pub fn token(&self) -> Option<&Jwt> {
         self.token.as_ref().as_ref()
     }
 
-    pub fn prepare_request<'p, P>(&self, prepare: &'p P) -> Result<Request, Error>
+    /// Builds a HTTP-request for a concrete method call and returns it.
+    pub fn prepare_request<'p, P>(&self, method: &'p P) -> Result<Request, Error>
         where P: 'p + Prepare
     {
-        let operation = prepare.operation();
+        let operation = method.operation();
         let http_method = http_method_for_operation(&operation);
-        let uri = build_request_uri(&self.datasource, self.database(), prepare);
+        let uri = build_request_uri(&self.datasource, self.database(), method);
         let mut request = Request::new(http_method, uri);
         request.set_version(HttpVersion::Http11);
         {
@@ -177,11 +226,11 @@ impl BasicConnection {
                 },
                 Authentication::None => {},
             }
-            for &(ref name, ref value) in prepare.header().iter() {
+            for &(ref name, ref value) in method.header().iter() {
                 headers.set_raw(name.to_string(), value.to_string());
             }
         }
-        if let Some(content) = prepare.content() {
+        if let Some(content) = method.content() {
             let json = serialize_payload(content)?;
             trace!("| request body: {:?}", String::from_utf8(json.clone()));
             request.headers_mut().set(ContentType::json());
@@ -192,7 +241,7 @@ impl BasicConnection {
     }
 }
 
-impl Execute for BasicConnection {
+impl Execute for JsonHttpConnection {
     fn execute<M>(&self, method: M) -> FutureResult<M>
         where M: Method + Prepare + 'static
     {

@@ -16,7 +16,7 @@ use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturn
 use rincon_core::api::types::JsonValue;
 use rincon_core::api::datasource::DataSource;
 use rincon_core::arango::protocol::{PARAM_DETAILS, PATH_API_VERSION};
-use rincon_connector::http::BasicConnector;
+use rincon_connector::http::JsonHttpConnector;
 
 #[allow(missing_copy_implementations)]
 #[derive(Debug, Clone, PartialEq)]
@@ -68,7 +68,7 @@ fn establish_connection_timeout() {
     // 10.255.255.1 is a not a routable IP address
     let datasource = DataSource::from_url("http://10.255.255.1:8529").unwrap()
         .with_timeout(Duration::from_millis(500));
-    let connector = BasicConnector::new(datasource, &core.handle()).unwrap();
+    let connector = JsonHttpConnector::new(datasource, &core.handle()).unwrap();
     let conn = connector.system_connection();
 
     let method = GetServerVersion { details: true };

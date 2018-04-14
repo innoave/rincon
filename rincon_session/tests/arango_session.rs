@@ -15,7 +15,7 @@ use tokio_core::reactor::Core;
 
 use rincon_core::api::types::Empty;
 use rincon_core::api::connector::Execute;
-use rincon_connector::http::BasicConnector;
+use rincon_connector::http::JsonHttpConnector;
 use rincon_client::database::methods::DropDatabase;
 use rincon_session::*;
 
@@ -43,7 +43,7 @@ fn use_database() {
     let core = Core::new().unwrap();
 
     let datasource = system_datasource();
-    let connector = BasicConnector::new(datasource, &core.handle()).unwrap();
+    let connector = JsonHttpConnector::new(datasource, &core.handle()).unwrap();
 
     let arango = ArangoSession::new(connector, core);
 

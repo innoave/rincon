@@ -1,9 +1,23 @@
 
+use std::io;
+
 use futures::Future;
 
 use api;
 use api::auth::Jwt;
 use api::method::{Method, Prepare};
+
+pub trait Connector {
+    type Connection: 'static + Execute;
+
+    fn connection(&self, database_name: &str) -> Self::Connection;
+
+    fn system_connection(&self) -> Self::Connection;
+
+    fn accept_auth_token(&mut self, token: Jwt);
+
+    fn invalidate_auth_token(&mut self);
+}
 
 pub trait Execute {
     fn execute<M>(&self, method: M) -> FutureResult<M>
@@ -28,14 +42,8 @@ pub enum Error {
     Timeout(String),
 }
 
-pub trait Connector {
-    type Connection: 'static + Execute;
-
-    fn connection(&self, database_name: &str) -> Self::Connection;
-
-    fn system_connection(&self) -> Self::Connection;
-
-    fn accept_auth_token(&mut self, token: Jwt);
-
-    fn invalidate_auth_token(&mut self);
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Self {
+        Error::Communication(err.to_string())
+    }
 }
