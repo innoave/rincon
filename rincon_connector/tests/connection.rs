@@ -7,6 +7,7 @@ extern crate rincon_core;
 extern crate rincon_connector;
 extern crate rincon_test_helper;
 
+use std::str::FromStr;
 use std::time::Duration;
 
 use tokio_core::reactor::Core;
@@ -66,7 +67,7 @@ fn establish_connection_timeout() {
     dotenv::dotenv().ok();
     let mut core = Core::new().unwrap();
     // 10.255.255.1 is a not a routable IP address
-    let datasource = DataSource::from_url("http://10.255.255.1:8529").unwrap()
+    let datasource = DataSource::from_str("http://10.255.255.1:8529").unwrap()
         .with_timeout(Duration::from_millis(500));
     let connector = JsonHttpConnector::new(datasource, &core.handle()).unwrap();
     let conn = connector.system_connection();

@@ -16,9 +16,10 @@
 //! # use rincon_connector::http::JsonHttpConnector;
 //! # use rincon_session::{ArangoSession, Document, Result};
 //! # use tokio_core::reactor::Core;
+//! # use std::str::FromStr;
 //! #
 //! # fn main() {
-//! #    let datasource = DataSource::from_url("http://localhost:8529")
+//! #    let datasource = DataSource::from_str("http://localhost:8529")
 //! #        .expect("invalid URL for datasource")
 //! #        .with_basic_authentication("root", "s3cur3");
 //! #
@@ -87,9 +88,10 @@
 //! ```rust
 //! # extern crate rincon_core;
 //! use rincon_core::api::datasource::DataSource;
+//! use std::str::FromStr;
 //!
 //! fn main() {
-//!     let datasource = DataSource::from_url("http://localhost:8529")
+//!     let datasource = DataSource::from_str("http://localhost:8529")
 //!         .expect("invalid URL for datasource")
 //!         .with_basic_authentication("root", "s3cur3");
 //! }
@@ -108,9 +110,10 @@
 //! use rincon_core::api::datasource::DataSource;
 //! use rincon_connector::http::JsonHttpConnector;
 //! use tokio_core::reactor::Core;
+//! use std::str::FromStr;
 //!
 //! fn main() {
-//!     let datasource = DataSource::from_url("http://localhost:8529")
+//!     let datasource = DataSource::from_str("http://localhost:8529")
 //!         .expect("invalid URL for datasource")
 //!         .with_basic_authentication("root", "s3cur3");
 //!
@@ -135,9 +138,10 @@
 //! use rincon_connector::http::JsonHttpConnector;
 //! use rincon_session::ArangoSession;
 //! use tokio_core::reactor::Core;
+//! use std::str::FromStr;
 //!
 //! fn main() {
-//!     let datasource = DataSource::from_url("http://localhost:8529")
+//!     let datasource = DataSource::from_str("http://localhost:8529")
 //!         .expect("invalid URL for datasource")
 //!         .with_basic_authentication("root", "s3cur3");
 //!

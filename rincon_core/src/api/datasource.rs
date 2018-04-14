@@ -1,10 +1,10 @@
 
 use std::env;
+use std::str::FromStr;
 use std::time::Duration;
 
-use url::Url;
-
 use api::auth::{Authentication, Credentials};
+use api::types::Url;
 
 pub const DEFAULT_PROTOCOL: &str = "http";
 pub const DEFAULT_HOST: &str = "localhost";
@@ -33,8 +33,7 @@ pub struct DataSource {
 }
 
 impl DataSource {
-    pub fn from_url(url: &str) -> Result<Self, Error> {
-        let url = Url::parse(url).map_err(|cause| Error::InvalidUrl(cause.to_string()))?;
+    pub fn from_url(url: Url) -> Self {
         let protocol = url.scheme();
         let host = url.host_str().unwrap_or(DEFAULT_HOST);
         let port = url.port().unwrap_or(DEFAULT_PORT);
@@ -52,7 +51,7 @@ impl DataSource {
         };
         //TODO parse database name from url path segments
         let database_name = None;
-        Ok(DataSource {
+        DataSource {
             protocol: protocol.to_owned(),
             host: host.to_owned(),
             port,
@@ -61,7 +60,7 @@ impl DataSource {
                 username.to_owned(),
                 password)),
             timeout: Duration::from_secs(DEFAULT_TIMEOUT),
-        })
+        }
     }
 
     pub fn use_database<DbName>(&self, database_name: DbName) -> Self
@@ -180,5 +179,15 @@ impl Default for DataSource {
             database_name: None,
             timeout: Duration::from_secs(DEFAULT_TIMEOUT),
         }
+    }
+}
+
+impl FromStr for DataSource {
+    type Err = Error;
+
+    fn from_str(url_str: &str) -> Result<Self, <Self as FromStr>::Err> {
+        Url::parse(url_str)
+            .map_err(|cause| Error::InvalidUrl(cause.to_string()))
+            .map(DataSource::from_url)
     }
 }

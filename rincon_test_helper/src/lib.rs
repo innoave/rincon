@@ -25,6 +25,7 @@ use std::env;
 use std::fs::{self, File, OpenOptions};
 use std::io;
 use std::panic;
+use std::str::FromStr;
 use std::time::{Duration, Instant};
 
 use dotenv::dotenv;
@@ -72,7 +73,7 @@ pub fn system_datasource() -> DataSource {
     dotenv().ok();
     let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
 
-    DataSource::from_url(&db_url).unwrap()
+    DataSource::from_str(&db_url).unwrap()
 }
 
 #[allow(dead_code)]
@@ -83,7 +84,7 @@ pub fn test_datasource() -> (DataSource, String) {
     let username = env::var(ENV_ARANGO_TEST_USERNAME).unwrap();
     let password = env::var(ENV_ARANGO_TEST_PASSWORD).unwrap();
 
-    (DataSource::from_url(&db_url).unwrap()
+    (DataSource::from_str(&db_url).unwrap()
         .with_basic_authentication(&username, &password),
     database)
 }
@@ -97,7 +98,7 @@ pub fn arango_session_test<Test, CleanUp>(test: Test, clean_up: CleanUp) -> ()
     dotenv().ok();
     let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
 
-    let system_ds = DataSource::from_url(&db_url).unwrap();
+    let system_ds = DataSource::from_str(&db_url).unwrap();
 
     let result = panic::catch_unwind(|| {
         let core = Core::new().unwrap();
@@ -123,7 +124,7 @@ pub fn arango_session_test_with_user_db<Test>(user: &str, database: &str, test: 
 
     let mut core = Core::new().unwrap();
 
-    let system_ds = DataSource::from_url(&db_url).unwrap();
+    let system_ds = DataSource::from_str(&db_url).unwrap();
     let connector = JsonHttpConnector::new(system_ds.clone(), &core.handle()).unwrap();
     let sys_conn = connector.system_connection();
 
@@ -131,7 +132,7 @@ pub fn arango_session_test_with_user_db<Test>(user: &str, database: &str, test: 
 
     let result = panic::catch_unwind(|| {
         let core = Core::new().unwrap();
-        let user_ds = DataSource::from_url(&db_url).unwrap()
+        let user_ds = DataSource::from_str(&db_url).unwrap()
             .with_basic_authentication(user, "");
         let connector = JsonHttpConnector::new(user_ds.clone(), &core.handle()).unwrap();
         test(connector, core);
@@ -151,7 +152,7 @@ pub fn arango_system_db_test<Test, CleanUp>(test: Test, clean_up: CleanUp) -> ()
     dotenv().ok();
     let db_url = env::var(ENV_ARANGO_DB_URL).unwrap();
 
-    let system_ds = DataSource::from_url(&db_url).unwrap();
+    let system_ds = DataSource::from_str(&db_url).unwrap();
 
     let result = panic::catch_unwind(|| {
         let mut core = Core::new().unwrap();
@@ -184,7 +185,7 @@ pub fn arango_user_db_test<Test, CleanUp>(test: Test, clean_up: CleanUp) -> ()
 
     setup_database_if_not_existing(&username, &password, &database, &db_url, &mut core);
 
-    let user_ds = DataSource::from_url(&db_url).unwrap()
+    let user_ds = DataSource::from_str(&db_url).unwrap()
         .with_basic_authentication(&username, &password);
 
     let result = panic::catch_unwind(|| {
@@ -211,7 +212,7 @@ pub fn arango_test_with_user_db<Test>(user: &str, database: &str, test: Test) ->
 
     let mut core = Core::new().unwrap();
 
-    let system_ds = DataSource::from_url(&db_url).unwrap();
+    let system_ds = DataSource::from_str(&db_url).unwrap();
     let connector = JsonHttpConnector::new(system_ds.clone(), &core.handle()).unwrap();
     let sys_conn = connector.system_connection();
 
@@ -219,7 +220,7 @@ pub fn arango_test_with_user_db<Test>(user: &str, database: &str, test: Test) ->
 
     let result = panic::catch_unwind(|| {
         let mut core = Core::new().unwrap();
-        let user_ds = DataSource::from_url(&db_url).unwrap()
+        let user_ds = DataSource::from_str(&db_url).unwrap()
             .with_basic_authentication(user, "");
         let connector = JsonHttpConnector::new(user_ds.clone(), &core.handle()).unwrap();
         let conn = connector.connection(database);
@@ -246,7 +247,7 @@ pub fn arango_test_with_document_collection<Test>(collection: &str, test: Test) 
 
     setup_database_if_not_existing(&username, &password, &database, &db_url, &mut core);
 
-    let user_ds = DataSource::from_url(&db_url).unwrap()
+    let user_ds = DataSource::from_str(&db_url).unwrap()
         .with_basic_authentication(&username, &password);
     let connector = JsonHttpConnector::new(user_ds.clone(), &core.handle()).unwrap();
     let user_conn = connector.connection(&database);
@@ -283,7 +284,7 @@ pub fn arango_test_with_edge_collection<Test>(collection: &str, test: Test) -> (
 
     setup_database_if_not_existing(&username, &password, &database, &db_url, &mut core);
 
-    let user_ds = DataSource::from_url(&db_url).unwrap()
+    let user_ds = DataSource::from_str(&db_url).unwrap()
         .with_basic_authentication(&username, &password);
     let connector = JsonHttpConnector::new(user_ds.clone(), &core.handle()).unwrap();
     let user_conn = connector.connection(&database);
@@ -338,7 +339,7 @@ fn setup_database_if_not_existing(
     db_url: &str,
     core: &mut Core,
 ) {
-    let system_ds = DataSource::from_url(db_url).unwrap();
+    let system_ds = DataSource::from_str(db_url).unwrap();
     let connector = JsonHttpConnector::new(system_ds.clone(), &core.handle()).unwrap();
     let sys_conn = connector.system_connection();
 

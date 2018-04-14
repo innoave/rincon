@@ -55,7 +55,7 @@ Here is diagram that depicts the dependencies between the crates:
 
 ![Crate dependency structure](../docs/crate_structure.png)
 
-## Important: Status of the project
+## Status of the project
 
 **Currently not all crates listed above are released yet**
 

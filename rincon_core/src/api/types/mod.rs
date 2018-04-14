@@ -8,14 +8,20 @@ use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer, SerializeSeq};
 use serde_json;
 
+/// The `Url` type used by this crate.
+pub type Url = ::url::Url;
+
 #[derive(Debug)]
 pub enum Entity<T> {
     Name(String),
     Object(T),
 }
 
+/// Constant instance of the `Empty` struct.
 pub const EMPTY: Empty = Empty {};
 
+/// Represents an 'empty' payload of a method where no type information is
+/// available.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Empty {}
 
@@ -25,8 +31,10 @@ impl Default for Empty {
     }
 }
 
+/// The type of JSON values used by this crate.
 pub type JsonValue = serde_json::Value;
 
+/// A new type for strings that contain JSON.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct JsonString(String);
 

@@ -38,7 +38,7 @@ impl<'a> Prepare for Prepared<'a> {
 
 #[test]
 fn build_request_uri_for_http() {
-    let datasource = DataSource::from_url("http://localhost:8529").unwrap();
+    let datasource = DataSource::from_str("http://localhost:8529").unwrap();
     let prepared = Prepared {
         operation: Operation::Read,
         path: "/_api/user",
@@ -53,7 +53,7 @@ fn build_request_uri_for_http() {
 
 #[test]
 fn build_request_uri_for_https_with_authentication() {
-    let datasource = DataSource::from_url("https://localhost:8529").unwrap()
+    let datasource = DataSource::from_str("https://localhost:8529").unwrap()
         .with_authentication(Authentication::Basic(
             Credentials::new("micky".to_owned(), "pass".to_owned())));
     let prepared = Prepared {
@@ -70,7 +70,7 @@ fn build_request_uri_for_https_with_authentication() {
 
 #[test]
 fn build_request_uri_for_given_database() {
-    let datasource = DataSource::from_url("https://localhost:8529").unwrap()
+    let datasource = DataSource::from_str("https://localhost:8529").unwrap()
         .use_database("url_test");
     let prepared = Prepared {
         operation: Operation::Read,
@@ -86,7 +86,7 @@ fn build_request_uri_for_given_database() {
 
 #[test]
 fn build_request_uri_for_specific_database() {
-    let datasource = DataSource::from_url("https://localhost:8529").unwrap()
+    let datasource = DataSource::from_str("https://localhost:8529").unwrap()
         .use_database("url_test");
     let prepared = Prepared {
         operation: Operation::Read,
@@ -102,7 +102,7 @@ fn build_request_uri_for_specific_database() {
 
 #[test]
 fn build_request_uri_for_specific_database_with_one_param() {
-    let datasource = DataSource::from_url("https://localhost:8529").unwrap()
+    let datasource = DataSource::from_str("https://localhost:8529").unwrap()
         .use_database("the big data");
     let prepared = Prepared {
         operation: Operation::Read,
@@ -119,7 +119,7 @@ fn build_request_uri_for_specific_database_with_one_param() {
 
 #[test]
 fn build_request_uri_for_specific_database_with_two_params() {
-    let datasource = DataSource::from_url("https://localhost:8529").unwrap()
+    let datasource = DataSource::from_str("https://localhost:8529").unwrap()
         .use_database("the büg data");
     let prepared = Prepared {
         operation: Operation::Read,
@@ -136,7 +136,7 @@ fn build_request_uri_for_specific_database_with_two_params() {
 
 #[test]
 fn build_request_uri_for_given_database_with_three_params() {
-    let datasource = DataSource::from_url("https://localhost:8529").unwrap()
+    let datasource = DataSource::from_str("https://localhost:8529").unwrap()
         .use_database("default_test_database");
     let prepared = Prepared {
         operation: Operation::Read,

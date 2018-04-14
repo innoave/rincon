@@ -34,6 +34,7 @@
 //! use rincon_core::api::datasource::DataSource;
 //! use rincon_connector::http::JsonHttpConnector;
 //! use tokio_core::reactor::Core;
+//! use std::str::FromStr;
 //!
 //! # fn main() {
 //! #     let connector = create_connector().unwrap();
@@ -41,7 +42,7 @@
 //!
 //! fn create_connector() -> Result<JsonHttpConnector, Error> {
 //!
-//!     let datasource = DataSource::from_url("http://localhost:8529")
+//!     let datasource = DataSource::from_str("http://localhost:8529")
 //!         .expect("invalid URL for datasource")
 //!         .with_basic_authentication("root", "s3cur3");
 //!
