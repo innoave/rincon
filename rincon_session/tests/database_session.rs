@@ -13,6 +13,7 @@ use galvanic_assert::matchers::*;
 
 use rincon_core::api::types::Entity;
 use rincon_session::*;
+use rincon_session::client::*;
 
 use rincon_test_helper::*;
 

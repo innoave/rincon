@@ -14,7 +14,8 @@
 //! # use rincon_core::api::connector::Connector;
 //! # use rincon_core::api::datasource::DataSource;
 //! # use rincon_connector::http::JsonHttpConnector;
-//! # use rincon_session::{ArangoSession, Document, Result};
+//! # use rincon_session::{ArangoSession, Result};
+//! # use rincon_session::client::Document;
 //! # use tokio_core::reactor::Core;
 //! # use std::str::FromStr;
 //! #
@@ -195,25 +196,25 @@ pub use self::edge_collection_session::*;
 pub use self::graph_session::*;
 pub use self::vertex_collection_session::*;
 
-//
-// Re-export types used by the public API of this crate
-//
-
-pub use rincon_client::admin::types::{ServerVersion, TargetVersion};
-pub use rincon_client::aql::types::{ExplainedQuery, ExplainOptions, ParsedQuery};
-pub use rincon_client::collection::types::{Collection, CollectionProperties,
-    CollectionPropertiesUpdate, CollectionRevision, CollectionStatus,
-    CollectionType, NewCollection, RenameTo};
-pub use rincon_client::cursor::types::{Cursor, CursorStatistics, NewCursor,
-    Warning};
-pub use rincon_client::database::types::{Database, NewDatabase};
-pub use rincon_client::document::types::{Document, DocumentHeader, DocumentId,
-    DocumentKey, DocumentModifyOptions, DocumentReplaceOptions, DocumentUpdate,
-    NewDocument, UpdatedDocument, UpdatedDocumentHeader};
-pub use rincon_client::graph::types::{EdgeCollection, EdgeDefinition, Graph, NewEdge, NewGraph,
-    VertexCollection};
-pub use rincon_client::user::types::{NewUser, Permission, User, UserExtra,
-    UserUpdate};
+/// Re-export of types from `rincon_client` crate that are used in the public
+/// API of this crate.
+pub mod client {
+    pub use rincon_client::admin::types::{ServerVersion, TargetVersion};
+    pub use rincon_client::aql::types::{ExplainedQuery, ExplainOptions, ParsedQuery};
+    pub use rincon_client::collection::types::{Collection, CollectionProperties,
+        CollectionPropertiesUpdate, CollectionRevision, CollectionStatus,
+        CollectionType, NewCollection, RenameTo};
+    pub use rincon_client::cursor::types::{Cursor, CursorStatistics, NewCursor,
+        Warning};
+    pub use rincon_client::database::types::{Database, NewDatabase};
+    pub use rincon_client::document::types::{Document, DocumentHeader, DocumentId,
+        DocumentKey, DocumentModifyOptions, DocumentReplaceOptions, DocumentUpdate,
+        NewDocument, UpdatedDocument, UpdatedDocumentHeader};
+    pub use rincon_client::graph::types::{EdgeCollection, EdgeDefinition, Graph, NewEdge, NewGraph,
+        VertexCollection};
+    pub use rincon_client::user::types::{NewUser, Permission, User, UserExtra,
+        UserUpdate};
+}
 
 use rincon_core::api::connector::Error;
 

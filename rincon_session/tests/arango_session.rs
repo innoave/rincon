@@ -18,6 +18,7 @@ use rincon_core::api::connector::Execute;
 use rincon_connector::http::JsonHttpConnector;
 use rincon_client::database::methods::DropDatabase;
 use rincon_session::*;
+use rincon_session::client::*;
 
 use rincon_test_helper::*;
 

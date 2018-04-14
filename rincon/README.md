@@ -51,7 +51,7 @@ The provided crates are:
 * [rincon_aql] : Provides a DSL to build [AQL] queries in a typesafe manner. 
 * [rincon_test_helper] : Provides utilities used in integration tests with an [ArangoDB] server.
 
-Here is diagram that depicts the dependencies between the crates:
+Here is a diagram that depicts the dependencies between the crates:
 
 ![Crate dependency structure](../docs/crate_structure.png)
 
