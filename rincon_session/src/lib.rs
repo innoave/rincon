@@ -18,7 +18,8 @@
 //! # use tokio_core::reactor::Core;
 //! #
 //! # fn main() {
-//! #    let datasource = DataSource::from_url("http://localhost:8529").unwrap()
+//! #    let datasource = DataSource::from_url("http://localhost:8529")
+//! #        .expect("invalid URL for datasource")
 //! #        .with_basic_authentication("root", "s3cur3");
 //! #
 //! #    let mut core = Core::new().unwrap();
@@ -88,7 +89,8 @@
 //! use rincon_core::api::datasource::DataSource;
 //!
 //! fn main() {
-//!     let datasource = DataSource::from_url("http://localhost:8529").unwrap()
+//!     let datasource = DataSource::from_url("http://localhost:8529")
+//!         .expect("invalid URL for datasource")
 //!         .with_basic_authentication("root", "s3cur3");
 //! }
 //! ```
@@ -107,7 +109,8 @@
 //! use tokio_core::reactor::Core;
 //!
 //! fn main() {
-//!     let datasource = DataSource::from_url("http://localhost:8529").unwrap()
+//!     let datasource = DataSource::from_url("http://localhost:8529")
+//!         .expect("invalid URL for datasource")
 //!         .with_basic_authentication("root", "s3cur3");
 //!
 //!     let mut core = Core::new().unwrap();
@@ -133,7 +136,8 @@
 //! use tokio_core::reactor::Core;
 //!
 //! fn main() {
-//!     let datasource = DataSource::from_url("http://localhost:8529").unwrap()
+//!     let datasource = DataSource::from_url("http://localhost:8529")
+//!         .expect("invalid URL for datasource")
 //!         .with_basic_authentication("root", "s3cur3");
 //!
 //!     let mut core = Core::new().unwrap();

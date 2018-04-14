@@ -1,3 +1,13 @@
+//! Connectors that use HTTP/HTTPS as transport protocol.
+//!
+//! This module provides `Connector` implementation that use HTTP or HTTPS as
+//! the transport protocol.
+//!
+//! The currently provided `Connector`s are:
+//!
+//! * `BasicConnector` : uses JSON over HTTP/HTTPS
+//!
+//! For an example on how to use a connector see the crate level documenation.
 
 #[cfg(test)]
 mod tests;
