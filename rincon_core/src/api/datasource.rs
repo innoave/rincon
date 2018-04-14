@@ -48,7 +48,7 @@ pub struct DataSource {
 
 impl DataSource {
     /// Creates a new `DataSource` with the parameters taken from the given URL.
-    pub fn from_url(url: Url) -> Self {
+    pub fn from_url(url: &Url) -> Self {
         let protocol = url.scheme();
         let host = url.host_str().unwrap_or(DEFAULT_HOST);
         let port = url.port().unwrap_or(DEFAULT_PORT);
@@ -223,6 +223,6 @@ impl FromStr for DataSource {
     fn from_str(url_str: &str) -> Result<Self, <Self as FromStr>::Err> {
         Url::parse(url_str)
             .map_err(|cause| Error::InvalidUrl(cause.to_string()))
-            .map(DataSource::from_url)
+            .map(|url| DataSource::from_url(&url))
     }
 }

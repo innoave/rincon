@@ -67,7 +67,7 @@ impl fmt::Display for Query {
         if !self.params.is_empty() {
             f.write_str("\n with: ")?;
             let mut first = true;
-            for (ref name, ref value) in &self.params {
+            for (name, value) in &self.params {
                 if first {
                     first = false;
                 } else {

@@ -1,4 +1,4 @@
-//! The common API of the rincon driver.
+//! The core API of the rincon driver.
 
 pub mod auth;
 pub mod connector;
