@@ -1,8 +1,8 @@
 //! Core types of the rincon ArangoDB driver
 //!
-//! `rincon_core` defines an types, traits and constants that are common to the
-//! other crates of the rincon driver project. This `rincon_core` driver API
-//! enables the modular design of the driver.
+//! `rincon_core` defines types, traits and constants that are common to the
+//! other crates of the rincon driver project. This core API enables the modular
+//! design of the rincon ArangoDB driver.
 //!
 //! The main parts of the API are:
 //!
@@ -16,10 +16,10 @@
 //! * `types` : defines common types, such as Url, Value, JsonValue and JsonString
 //! * `arango` : defines constants of values used by the ArangoDB REST API
 //!
-//! By defining this driver internal API the driver can be easily extended with
-//! new methods that may be coming in newer version of ArangoDB and use
-//! different implementations of `Connector`s while the `Method`s of the REST
-//! API are implemented only once.
+//! By defining this core API the driver can be easily extended with new methods
+//! that may be added in newer versions of ArangoDB and use different
+//! implementations of `Connector`s while the `Method`s of the REST API are
+//! implemented only once.
 
 #![doc(html_root_url = "https://docs.rs/rincon_core/0.1.0")]
 

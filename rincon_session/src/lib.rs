@@ -197,8 +197,8 @@ pub use self::graph_session::*;
 pub use self::vertex_collection_session::*;
 
 pub mod client {
-    //! Re-export of types from `rincon_client` crate that are used in the public
-    //! API of this crate.
+    //! Re-export of types from the `rincon_client` crate that are used in the
+    //! public API of this crate.
 
     pub use rincon_client::admin::types::{ServerVersion, TargetVersion};
     pub use rincon_client::aql::types::{ExplainedQuery, ExplainOptions, ParsedQuery};

@@ -14,10 +14,6 @@
 //! of concrete method calls can be easily queued, distributed, repeated or
 //! cached. Further it is very easy to extend the driver with new operations by
 //! simple defining a new struct for each new operation, done.
-//!
-//!
-//!
-//!
 
 use std;
 use std::fmt::{self, Debug, Display};
@@ -56,7 +52,7 @@ pub trait Method {
 }
 
 /// A `Prepare` type of a method call is used to convert the method call into
-/// a concrete request specific to the protocol used by a `Connector`.
+/// a concrete request that is specific to the protocol used by a `Connector`.
 ///
 /// For example the `JsonHttpConnector` converts the `Prepare` type into a
 /// HTTP-request and serializes the content as JSON into the body of the

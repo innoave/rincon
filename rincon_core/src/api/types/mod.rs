@@ -39,7 +39,7 @@ impl Default for Empty {
     }
 }
 
-/// The type of JSON values used by this crate.
+/// The type for JSON values used by this crate.
 pub type JsonValue = serde_json::Value;
 
 /// A new type for strings that contain JSON.

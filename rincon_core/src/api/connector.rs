@@ -2,17 +2,18 @@
 //!
 //! The rincon driver uses a connector that implements the communication layer
 //! to the ArangoDB server. It defines the transport protocol like HTTP or HTTPS
-//! and the format for serializing the payload of requests and responses.
+//! and the format for serializing the payload of requests and responses, like
+//! JSON for example.
 //!
 //! A connector establishes connections to a server. A connection is used to
 //! actually execute a method call.
 //!
 //! A connector is defined to implement the `Connector` trait. A connection as
 //! established and provided by a `Connector` is of type `Connector::Connection`
-//! and is bound to implement the `Execute` trait.
+//! The `Connection` type is bound to implement the `Execute` trait.
 //!
-//! Depending on the implementation of a connector it can be simple a factory
-//! for connections or more advanced maintain a pool of connections.
+//! Depending on the implementation of a connector it can be simply a factory
+//! for connections or be more advanced by maintaining a pool of connections.
 //!
 //! Implementations of a connection know how to serialize and send method calls
 //! to the server and deserialize the responses into the defined result type.
@@ -51,7 +52,7 @@ pub trait Connector {
 /// A type that can execute method calls.
 ///
 /// Any type that implements this `Execute` trait can be returned by the
-/// `Connector` as `Connector::Connections`.
+/// `Connector` as `Connector::Connection`.
 pub trait Execute {
     /// Executes the given method asynchronously and returns a future result.
     fn execute<M>(&self, method: M) -> FutureResult<M>
