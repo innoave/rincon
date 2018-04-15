@@ -2,11 +2,11 @@
 name = "rincon_session"
 version = "0.1.0"  # remember to update html_root_url
 description = "A synchronous session managed client API for the ArangoDB driver"
-authors = [ "haraldmaida" ]
+authors = ["haraldmaida"]
 repository = "https://github.com/innoave/rincon"
 documentation = "https://docs.rs/rincon_session"
 readme = "README.md"
-keywords = [ "arangodb", "aql", "nosql", "database", "client", "driver", "typesafe" ]
+keywords = ["nosql", "database", "client", "driver", "typesafe"]
 categories = [ "database" ]
 license = "Apache-2.0"
 

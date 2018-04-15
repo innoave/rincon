@@ -6,7 +6,7 @@ authors = ["haraldmaida"]
 repository = "https://github.com/innoave/rincon"
 documentation = "https://docs.rs/rincon_connector"
 readme = "README.md"
-keywords = ["arangodb", "aql", "nosql", "database", "client", "driver", "typesafe"]
+keywords = ["nosql", "database", "client", "driver", "typesafe"]
 categories = ["database"]
 license = "Apache-2.0"
 
