@@ -1,14 +1,14 @@
-//! Core types of the rincon ArangoDB driver
+//! Core types of the Rincon ArangoDB driver
 //!
 //! `rincon_core` defines types, traits and constants that are common to the
 //! other crates of the rincon driver project. This core API enables the modular
-//! design of the rincon ArangoDB driver.
+//! design of the Rincon ArangoDB driver.
 //!
 //! The main parts of the API are:
 //!
 //! * `datasource` : the `DataSource` struct holds the parameters needed by `Connector`s
 //! * `connector` : a `Connector` defines how the driver communicates with an ArangoDB server
-//! * `auth` : types used to define the authentication method and credentials
+//! * `auth` : types used to specify the authentication method and credentials
 //! * `method` : defines the traits `Method`, `Prepare` and `Execute` that need
 //!   to be implemented by all methods for the ArangoDB REST API in order that
 //!   they can be executed by a `Connection` of a `Connector`.
@@ -18,7 +18,7 @@
 //!
 //! By defining this core API the driver can be easily extended with new methods
 //! that may be added in newer versions of ArangoDB and use different
-//! implementations of `Connector`s while the `Method`s of the REST API are
+//! implementations of `Connector`s while the methods of the REST API are
 //! implemented only once.
 
 #![doc(html_root_url = "https://docs.rs/rincon_core/0.1.0")]

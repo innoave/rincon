@@ -1,3 +1,4 @@
+//! Methods for executing AQL queries.
 
 use std::marker::PhantomData;
 

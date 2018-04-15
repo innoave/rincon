@@ -1,3 +1,4 @@
+//! Types used in methods for executing AQL queries.
 
 #[cfg(test)]
 mod tests;
@@ -116,7 +117,8 @@ impl<T> Cursor<T> {
     }
 }
 
-//TODO find a suitable type for warnings
+/// A warning as it may occur during query execution.
+//TODO find a suitable type for warnings instead of using a plain JsonValue
 pub type Warning = JsonValue;
 
 /// Holds extra information about the query execution.

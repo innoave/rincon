@@ -1,3 +1,4 @@
+//! Types used in methods for user administration.
 
 #[cfg(test)]
 mod tests;
@@ -315,6 +316,7 @@ pub enum Permission {
 }
 
 impl Permission {
+    /// Returns a str representation of this permission value.
     pub fn as_str(&self) -> &str {
         use self::Permission::*;
         match *self {

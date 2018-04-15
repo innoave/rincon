@@ -1,3 +1,4 @@
+//! Types used in methods for managing collections.
 
 use std::mem;
 use std::i32;
@@ -1094,9 +1095,11 @@ impl<'de> Deserialize<'de> for CollectionStatus {
 /// This enum defines the types of key generators that are available.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum KeyGeneratorType {
+    /// Traditional key generator
     //TODO clarify what the `Traditional` key generator actually is.
     Traditional,
     //TODO clarify what the `AutoIncrement` key generator actually is.
+    /// Auto incrementing key generator
     AutoIncrement,
 }
 

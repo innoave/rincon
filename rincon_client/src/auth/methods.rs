@@ -1,3 +1,4 @@
+//! Methods for user authentication.
 
 use rincon_core::api::auth::Credentials;
 use rincon_core::api::method::{Method, Parameters, Operation, Prepare, RpcReturnType};

@@ -1,3 +1,4 @@
+//! Types used in methods for managing documents.
 
 #[cfg(test)]
 mod tests;

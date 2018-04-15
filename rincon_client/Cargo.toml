@@ -33,6 +33,7 @@ serde_json = "1.0"
 [dev-dependencies]
 rincon_connector = { version = "0.1", path = "../rincon_connector" }
 rincon_test_helper = { version = "0.1", path = "../rincon_test_helper" }
+futures = "0.1"
 tokio-core = "0.1"
 version-sync = "0.5"
 

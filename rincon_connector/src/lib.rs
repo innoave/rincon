@@ -60,7 +60,7 @@
 //!
 //! TODO: add example on how to use connectors with JWT authentication.
 //!
-//! [ArangoDB]: https://www.arangodb.org
+//! [ArangoDB]: https://www.arangodb.com
 //! [JSON]: https://json.org
 //! [`rincon_core`]: https://docs.rs/rincon_core
 //! [`rincon_client`]: https://docs.rs/rincon_client

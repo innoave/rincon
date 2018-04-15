@@ -1,3 +1,4 @@
+//! Types used in methods related to AQL queries.
 
 use std::cmp::Ordering;
 use std::collections::HashMap;

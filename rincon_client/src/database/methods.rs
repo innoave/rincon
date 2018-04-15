@@ -1,3 +1,4 @@
+//! Methods for managing databases.
 
 use serde::ser::Serialize;
 

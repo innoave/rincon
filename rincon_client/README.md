@@ -22,13 +22,15 @@
 [rincon_connector]: ../rincon_connector
 [rincon_client]: ../rincon_client
 
+**Type safe interaction with the ArangoDB REST API**
+
 The [rincon_client] [crate] provides types and functions to interact with the REST API of the
 [ArangoDB] server.
 
 In [rincon_client] the REST methods are represented by structs. A method is instantiated with the 
 desired parameters and data to get a method call. The method call is executed against an [ArangoDB] 
-server on a connection of a connector. This concept allows applications to queue, distribute or 
-batch process method calls.
+server on a connection provided by a connector. This concept allows applications to queue, 
+distribute or batch process method calls.
 
 For example, inserting a new document into an existing collection looks like:
 
@@ -69,10 +71,10 @@ and their results that are specific to the related [ArangoDB] configuration.
 
 The provided crate features are:
 
-* `mmfiles` : support for MMFiles storage engine specific features (optional)
-* `rocksdb` : support for RocksDB storage engine specific features (optional)
-* `cluster` : support for cluster specific features (optional)
-* `enterprise` : support for [ArangoDB] enterprise specific features (optional)
+* `mmfiles` : support for MMFiles storage engine specific attributes (optional)
+* `rocksdb` : support for RocksDB storage engine specific attributes (optional)
+* `cluster` : support for cluster specific attributes (optional)
+* `enterprise` : support for [ArangoDB] enterprise specific attributes (optional)
 
 Note1: A deployed [ArangoDB] server uses either MMFiles or RocksDB storage
        engine. Therefore only one of the features `mmfiles` and `rocksdb`
@@ -83,13 +85,16 @@ Note2: If [rincon_client] is compiled with the `cluster` feature some API
        [ArangoDB] server that is not configured in a cluster. This is due to
        the [ArangoDB] server does not return cluster specific fields in a 
        single server configuration.
+       
+It is not necessary to activate any of the optional crate features if an
+application does not need to access the feature related attributes.
 
 ### Examples
 
 **Using MMFiles storage engine**
 
-If you want to make use of the MMFiles features and the [ArangoDB] server is
-configured to use the MMFiles storage engine, [rincon_client] can be
+If you want to make use of the MMFiles related attributes and the [ArangoDB]
+server is configured to use the MMFiles storage engine, [rincon_client] can be
 compiled with the `mmfiles` feature to support MMFiles specific attributes
 and fields within the API methods.
 
@@ -175,6 +180,6 @@ for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 licensed as above, without any additional terms or conditions.
 
 
-[ArangoDB]: https://www.arangodb.org
+[ArangoDB]: https://www.arangodb.com
 [AQL]: https://docs.arangodb.com/3.2/AQL/index.html
 [Rust]: https://www.rust-lang.org

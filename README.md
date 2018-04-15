@@ -124,7 +124,7 @@ for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 licensed as above, without any additional terms or conditions.
 
 
-[ArangoDB]: https://www.arangodb.org
+[ArangoDB]: https://www.arangodb.com
 [ArangoDB REST API]: https://docs.arangodb.com/3.2/HTTP/index.html
 [AQL]: https://docs.arangodb.com/3.2/AQL/index.html
 [Avocado variety list]: http://www.ucavo.ucr.edu/AvocadoVarieties/VarietyFrame.html

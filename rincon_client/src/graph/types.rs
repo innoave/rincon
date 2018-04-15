@@ -1,3 +1,4 @@
+//! Types used in methods for managing graphs.
 
 use std::fmt::{self, Debug};
 use std::iter::FromIterator;

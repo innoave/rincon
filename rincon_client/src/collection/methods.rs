@@ -1,3 +1,4 @@
+//! Methods for managing collections.
 
 use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use rincon_core::arango::protocol::{FIELD_CODE, FIELD_ID, FIELD_RESULT,

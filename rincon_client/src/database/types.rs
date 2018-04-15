@@ -1,3 +1,4 @@
+//! Types used in methods for managing databases.
 
 use std::iter::{FromIterator, IntoIterator};
 

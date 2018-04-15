@@ -11,9 +11,9 @@
 //! that hold the data necessary to invoke an operation.
 //!
 //! The big advantage of defining method calls as data types is that instances
-//! of concrete method calls can be easily queued, distributed, repeated or
-//! cached. Further it is very easy to extend the driver with new operations by
-//! simple defining a new struct for each new operation, done.
+//! of concrete method calls can be easily queued, distributed, repeated, cached
+//! or processed in batches. Further it is very easy to extend the driver with
+//! new operations by simple defining a new struct for each new operation, done.
 
 use std;
 use std::fmt::{self, Debug, Display};

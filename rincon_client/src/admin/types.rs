@@ -1,3 +1,4 @@
+//! Types used in methods for server administration.
 
 use rincon_core::api::types::JsonValue;
 

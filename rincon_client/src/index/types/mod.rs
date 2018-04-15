@@ -1,3 +1,4 @@
+//! Types used in methods for managing indexes.
 
 #[cfg(test)]
 mod tests;

@@ -1,3 +1,4 @@
+//! Methods for server administration.
 
 use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use rincon_core::arango::protocol::{FIELD_CODE, PARAM_DETAILS, PATH_ADMIN,

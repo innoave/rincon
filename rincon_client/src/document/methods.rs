@@ -1,3 +1,4 @@
+//! Methods for managing documents.
 
 use std::fmt::Debug;
 use std::iter::FromIterator;

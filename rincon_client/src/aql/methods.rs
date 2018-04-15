@@ -1,3 +1,4 @@
+//! Methods related to AQL queries.
 
 use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use rincon_core::api::query::Query;

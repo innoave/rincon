@@ -1,3 +1,4 @@
+//! Methods for user administration.
 
 use std::collections::HashMap;
 use std::marker::PhantomData;

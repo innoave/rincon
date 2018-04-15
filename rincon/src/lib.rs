@@ -14,16 +14,17 @@
 //! * [rincon_session] : Provides a synchronous higher level API on top of [rincon_client].
 //! * [rincon_test_helper] : Provides utilities used in integration tests with an [ArangoDB] server.
 //!
-//! This `rincon` crate is a meta crate that provides documentation on how to
-//! use the multiple crates provided by this project. It does not provide any
-//! functionality itself. In the following examples are given which crates to
-//! use for different scenarios.
+//! This rincon crate is a meta crate that provides documentation on how to
+//! use the multiple crates provided by the Rincon ArangoDB driver. It does not
+//! provide any functionality itself. In the following we will look at examples
+//! to show which crates to use for different scenarios.
 //!
-//! # Synchronous Session API
+//! *...while I'm working on mentioned scenarios please see the documentation
+//! of the [rincon_client] crate and the [rincon_session] crate for how to use
+//! the Rincon ArangoDB driver.*
 //!
 //!
-//!
-//! [ArangoDB]: https://www.arangodb.org
+//! [ArangoDB]: https://www.arangodb.com
 //! [AQL]: https://docs.arangodb.com/3.2/AQL/index.html
 //! [rincon_core]: https://docs.rs/rincon_core
 //! [rincon_connector]: https://docs.rs/rincon_connector

@@ -1,3 +1,4 @@
+//! Methods for managing graphs.
 
 use std::fmt::Debug;
 use std::marker::PhantomData;

@@ -1,3 +1,4 @@
+//! Types used in methods for user authentication.
 
 use rincon_core::api::auth::Jwt;
 

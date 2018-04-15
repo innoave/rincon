@@ -157,7 +157,7 @@
 //! Now we are ready to conveniently interact with the [ArangoDB] server as
 //! shown in the example at the beginning of this chapter.
 //!
-//! [ArangoDB]: https://www.arangodb.org
+//! [ArangoDB]: https://www.arangodb.com
 
 #![doc(html_root_url = "https://docs.rs/rincon_session/0.1.0")]
 
