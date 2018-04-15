@@ -110,7 +110,7 @@ fn serialize_primitive_content_document_with_key() {
     let result = serde_json::to_string(&new_document);
 
     if let Err(error) = result {
-        assert_eq!("ErrorImpl { code: Message(\"Invalid document content! Only types that serialize into valid Json objects are supported. But got: 42\"), line: 0, column: 0 }", format!("{:?}", error));
+        assert_eq!("Error(\"Invalid document content! Only types that serialize into valid Json objects are supported. But got: 42\", line: 0, column: 0)", format!("{:?}", error));
     } else {
         panic!("Error expected, but got: {:?}", result);
     }
