@@ -13,8 +13,6 @@ publish = false
 
 [badges]
 maintenance = { status = "experimental" }
-travis-ci = { repository = "innoave/rincon" }
-appveyor = { repository = "innoave/rincon" }
 codecov = { repository = "innoave/rincon" }
 
 [features]
