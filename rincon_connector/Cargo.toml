@@ -31,7 +31,6 @@ tokio-core = "0.1"
 url = "1.7"
 
 [dev-dependencies]
-rincon_test_helper = { version = "0.1", path = "../rincon_test_helper" }
 dotenv = "0.11"
 log4rs = "0.8"
 version-sync = "0.5"

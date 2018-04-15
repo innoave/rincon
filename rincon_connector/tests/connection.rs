@@ -5,7 +5,6 @@ extern crate tokio_core;
 
 extern crate rincon_core;
 extern crate rincon_connector;
-extern crate rincon_test_helper;
 
 use std::str::FromStr;
 use std::time::Duration;
