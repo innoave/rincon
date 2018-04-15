@@ -19,9 +19,9 @@
 //! provide any functionality itself. In the following we will look at examples
 //! to show which crates to use for different scenarios.
 //!
-//! *...while I'm working on mentioned scenarios please see the documentation
-//! of the [rincon_client] crate and the [rincon_session] crate for how to use
-//! the Rincon ArangoDB driver.*
+//! *...while I'm working on writing mentioned scenarios please see the
+//! documentation of the [rincon_client] crate and the [rincon_session] crate
+//! for how to use the Rincon ArangoDB driver.*
 //!
 //!
 //! [ArangoDB]: https://www.arangodb.com
