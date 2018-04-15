@@ -37,67 +37,35 @@ easy and flexible use of [ArangoDB] in applications.
 
 **Status: Experimental**
 
-This project is under heavy development. There is no released version yet.
+The first usable version is released. Yuppie!
 
-The plans are to provide:
+For details about this first version and how to use the Rincon ArangoDB driver
+see the [README](rincon/README.md) in the [rincon] crates subdirectory.
 
-* A typesafe low level driver API for the [ArangoDB REST API]. (WIP)
-* Convenience 'Session'-API on top of the driver API. (WIP)
-* API to compose [AQL] queries in a typesafe manner. (PLANNED)
+The project is continuously evolving. There may be breaking changes in upcoming
+releases. All changes will be documented in the [CHANGELOG.md](CHANGELOG.md).
+Breaking changes will be marked as such.
 
-Currently I am working on the driver API for the REST API. There are a lot 
-methods in the REST API which require a lot of coding. Therefore I have
-split the implementation into 2 milestones. The details about the planned
-milestones and progress is documented in
-[docs/arangodb_rest_api_methods.md](docs/arangodb_rest_api_methods.md)
+If you are interested in using this Rincon ArangoDB driver I would be happy to
+receive feedback and here what everyone is thinking about it. Especially if
+you have ideas about improving usability of the driver.
 
-## Ideas
+Please file an issue on Github for every idea you have, the difficulties you are
+facing and naturally for all bugs you find.
 
-In this section ideas for this project are collected. The provided code
-snippets shall illustrate the ideas. This does not mean that they are
-implemented yet or will be implemented in exact that way. So don't
-expect that any code snippet provided here will compile or work yet. 
+You may also use the Gitter channel to ask questions and discuss things.
 
-#### Typesafe and low level driver API for the REST API of ArangoDB
+## What's next?
 
-e.g. something like
+There is still lot of work todo. The next planned steps are:
 
-```
-    let method = CreateCollection::with_name("my_collection");
-    let result = connection.execute(method);
-```
+* Implement more operation of the [ArangoDB REST API]. Details about the 
+  planned and ready operations can be found in
+  [docs/arangodb_rest_api_methods.md](docs/arangodb_rest_api_methods.md)
 
-#### Session API on top of the driver API
+* Implement the asynchronous session API (`rincon_session_async`)
 
-e.g. something like
-
-```
-    let session = datasource.create_session();
-    let database = session.use_database("my_database");
-    let collection = database.create_collection("my_new_collection");
-    collection.add_document(..);
-    let document = collection.get_document(..);
-```
-
-The main purpose of the session shall be:
-* no need to specify the database and collection on each and every request.
-* reuse of connections to the database, e.g. from a connection pool, for
-  speed and efficient use of resources.
-* convenient API for transaction handling
-* efficient execution of batches of operations.
-
-#### API to compose AQL queries in a typesafe manner
-
-e.g. something like
-
-```
-    let query = Aql::for(customers)
-        .filter(|c| c.age == 42)
-        .limit(10)
-        .return(|c| (c.name, c.age, c.city))
-        ;
-    let results = query.results(session);
-```
+* Work on the documentation
 
 ## Multiple Crates
 

@@ -103,7 +103,7 @@ in the `rincon_client` lib. The different entries and their meanings are:
 | Ready  | RenameCollection           | PUT /_api/collection/{collection-name}/rename | Rename collection |
 | Ready  | GetCollectionRevision      | GET /_api/collection/{collection-name}/revision | Return collection revision id |
 | M.2    |                            | PUT /_api/collection/{collection-name}/rotate | Rotate journal of a collection |
-| M.1    |                            | PUT /_api/collection/{collection-name}/truncate | Truncate collection |
+| M.2    |                            | PUT /_api/collection/{collection-name}/truncate | Truncate collection |
 | M.2    |                            | PUT /_api/collection/{collection-name}/unload | Unload collection |
 
 ### Cursors [M.1]
@@ -191,17 +191,17 @@ in the `rincon_client` lib. The different entries and their meanings are:
 | Ready  | ModifyVertex           | PATCH /_api/gharial/{graph-name}/vertex/{collection-name}/{vertex-key} | Modify a vertex |
 | Ready  | ReplaceVertex          | PUT /_api/gharial/{graph-name}/vertex/{collection-name}/{vertex-key} | Replace a vertex |
  
-### Graph edges [M.1]
+### Graph edges [M.2]
 
 | Status | Rust method struct | REST API method                     | Description |
 |--------|--------------------|-------------------------------------|-------------|
-| M.1    |                    | GET /_api/edges/{collection-id} | Read in- or outbound edges |
+| M.2    |                    | GET /_api/edges/{collection-id} | Read in- or outbound edges |
 
-### Graph Traversal [M.1]
+### Graph Traversal [M.2]
 
 | Status | Rust method struct | REST API method                     | Description |
 |--------|--------------------|-------------------------------------|-------------|
-| M.1    |                    | POST /_api/traversal | executes a traversal |
+| M.2    |                    | POST /_api/traversal | executes a traversal |
 
 ### Indexes [M.1]
 

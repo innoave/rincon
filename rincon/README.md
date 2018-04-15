@@ -55,6 +55,11 @@ Here is a diagram that depicts the dependencies between the crates:
 
 ![Crate dependency structure](../docs/crate_structure.png)
 
+## Getting started
+
+For guides on how to use the Rincon ArangoDB driver check out the documentation
+of the [rincon_session API] and the [rincon_client API]. 
+
 ## Status of the project
 
 **Currently not all crates listed above are released yet**
