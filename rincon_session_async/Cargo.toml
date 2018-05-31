@@ -13,7 +13,6 @@ publish = false
 
 [badges]
 maintenance = { status = "experimental" }
-codecov = { repository = "innoave/rincon" }
 
 [features]
 default = []
