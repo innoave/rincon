@@ -1,6 +1,6 @@
 [package]
 name = "rincon_client"
-version = "0.1.0"  # remember to update html_root_url
+version = "0.1.1"  # remember to update html_root_url
 description = "A typesafe client for the ArangoDB Rest API"
 authors = ["haraldmaida"]
 homepage = "https://github.com/innoave/rincon"

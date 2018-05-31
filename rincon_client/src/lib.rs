@@ -161,7 +161,7 @@
 //! [ArangoDB]: https://www.arangodb.com
 //! [`rincon_connector`]: https://docs.rs/rincon_connector
 
-#![doc(html_root_url = "https://docs.rs/rincon_client/0.1.0")]
+#![doc(html_root_url = "https://docs.rs/rincon_client/0.1.1")]
 
 #![warn(
     missing_copy_implementations,
