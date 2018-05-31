@@ -854,26 +854,27 @@ impl<T> NewEdge<T> {
 }
 
 impl<T> Serialize for NewEdge<T>
-    where T: Serialize + Debug
+where
+    T: Serialize + Debug,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use serde::ser::Error;
         use serde_json::{self, Value};
 
-        if let Some(ref key) = self.key {
-            let mut json_value = serde_json::to_value(&self.content).map_err(S::Error::custom)?;
-            match json_value {
-                Value::Object(ref mut fields) => {
+        let mut json_value = serde_json::to_value(&self.content).map_err(S::Error::custom)?;
+        match json_value {
+            Value::Object(ref mut fields) => {
+                if let Some(ref key) = self.key {
                     fields.insert(FIELD_ENTITY_KEY.to_owned(), Value::String(key.as_str().to_owned()));
-                },
-                _ => return Err(S::Error::custom(format!("Invalid edge content! Only types that serialize into valid Json objects are supported. But got: {:?}", &self.content))),
-            }
-            let json_value_with_key = json_value;
-            json_value_with_key.serialize(serializer)
-        } else {
-            self.content.serialize(serializer)
+                }
+                fields.insert(FIELD_ENTITY_FROM.to_owned(), Value::String(self.from.to_string()));
+                fields.insert(FIELD_ENTITY_TO.to_owned(), Value::String(self.to.to_string()));
+            },
+            _ => return Err(S::Error::custom(format!("Invalid edge content! Only types that serialize into valid Json objects are supported. But got: {:?}", &self.content))),
         }
+        json_value.serialize(serializer)
     }
 }
