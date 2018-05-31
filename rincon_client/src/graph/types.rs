@@ -875,6 +875,7 @@ where
             },
             _ => return Err(S::Error::custom(format!("Invalid edge content! Only types that serialize into valid Json objects are supported. But got: {:?}", &self.content))),
         }
+        let json_value = json_value;
         json_value.serialize(serializer)
     }
 }

@@ -1,4 +1,5 @@
 
+#[macro_use] extern crate serde_derive;
 extern crate tokio_core;
 
 extern crate rincon_core;
@@ -7,6 +8,8 @@ extern crate rincon_client;
 extern crate rincon_test_helper;
 
 use rincon_core::api::connector::Execute;
+use rincon_core::api::types::EMPTY;
+use rincon_client::document::types::NewDocument;
 use rincon_client::graph::methods::*;
 use rincon_client::graph::types::*;
 
@@ -307,13 +310,45 @@ fn list_vertex_collections() {
 }
 
 #[test]
+fn insert_vertex() {
+    arango_test_with_user_db("test_graph_user120", "test_graph_db120", |conn, ref mut core| {
+
+        let edge_defs = vec![
+            EdgeDefinition::new("works_in",
+                vec!["female".to_owned(), "male".to_owned()],
+                vec!["city".to_owned()],
+            ),
+        ];
+        #[cfg(not(feature = "enterprise"))]
+        let new_graph = NewGraph::new("social", edge_defs);
+        #[cfg(feature = "enterprise")]
+        let new_graph = NewGraph::new("social", edge_defs, false);
+        let created = core.run(conn.execute(CreateGraph::new(new_graph))).unwrap();
+        assert_eq!("_graphs/social".to_owned(), created.id().to_string());
+
+        #[derive(Debug, Serialize)]
+        struct City {
+            name: String,
+        }
+
+        let city_doc = NewDocument::from(City { name: "New Orleans".to_owned() });
+        let method = InsertVertex::new("social", "city", city_doc);
+        let doc_header = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("city".to_owned(), doc_header.id().collection_name());
+        assert!(!doc_header.key().as_str().is_empty());
+        assert!(!doc_header.revision().as_str().is_empty());
+    });
+}
+
+#[test]
 fn add_edge_definition() {
     arango_test_with_user_db("test_graph_user80", "test_graph_db80", |conn, ref mut core| {
 
         let edge_defs = vec![
             EdgeDefinition::new("relation",
                 vec!["female".to_owned(), "male".to_owned()],
-                vec!["female".to_owned(), "male".to_owned()],
+                vec!["male".to_owned(), "female".to_owned()],
             ),
         ];
         #[cfg(not(feature = "enterprise"))]
@@ -355,7 +390,7 @@ fn remove_edge_definition() {
         let edge_defs = vec![
             EdgeDefinition::new("relation",
                 vec!["female".to_owned(), "male".to_owned()],
-                vec!["female".to_owned(), "male".to_owned()],
+                vec!["male".to_owned(), "female".to_owned()],
             ),
             EdgeDefinition::new("works_in",
                 vec!["female".to_owned(), "male".to_owned()],
@@ -393,7 +428,7 @@ fn replace_edge_definition() {
         let edge_defs = vec![
             EdgeDefinition::new("relation",
                 vec!["female".to_owned(), "male".to_owned()],
-                vec!["female".to_owned(), "male".to_owned()],
+                vec!["male".to_owned(), "female".to_owned()],
             ),
         ];
         #[cfg(not(feature = "enterprise"))]
@@ -405,7 +440,7 @@ fn replace_edge_definition() {
 
         let replacement_edge_def = EdgeDefinition::new("relation",
             vec!["female".to_owned(), "male".to_owned(), "animal".to_owned()],
-            vec!["female".to_owned(), "male".to_owned(), "animal".to_owned()],
+            vec!["male".to_owned(), "female".to_owned(), "animal".to_owned()],
         );
         let method = ReplaceEdgeDefinition::new("social", "relation", replacement_edge_def);
         let graph = core.run(conn.execute(method)).unwrap();
@@ -431,7 +466,7 @@ fn list_edge_collections() {
         let edge_defs = vec![
             EdgeDefinition::new("relation",
                 vec!["female".to_owned(), "male".to_owned()],
-                vec!["female".to_owned(), "male".to_owned()],
+                vec!["male".to_owned(), "female".to_owned()],
             ),
             EdgeDefinition::new("works_in",
                 vec!["female".to_owned(), "male".to_owned()],
@@ -451,5 +486,50 @@ fn list_edge_collections() {
         assert!(edges.contains(&"relation".to_owned()));
         assert!(edges.contains(&"works_in".to_owned()));
         assert_eq!(2, edges.len());
+    });
+}
+
+#[test]
+fn insert_edge() {
+    arango_test_with_user_db("test_graph_user130", "test_graph_db130", |conn, ref mut core| {
+
+        let edge_defs = vec![
+            EdgeDefinition::new("works_in",
+                vec!["female".to_owned(), "male".to_owned()],
+                vec!["city".to_owned()],
+            ),
+        ];
+        #[cfg(not(feature = "enterprise"))]
+        let new_graph = NewGraph::new("social", edge_defs);
+        #[cfg(feature = "enterprise")]
+        let new_graph = NewGraph::new("social", edge_defs, false);
+        let created = core.run(conn.execute(CreateGraph::new(new_graph))).unwrap();
+        assert_eq!("_graphs/social".to_owned(), created.id().to_string());
+
+        #[derive(Debug, Serialize)]
+        struct Person {
+            name: String,
+        }
+
+        let person_doc = NewDocument::from(Person { name: "Jane Doe".to_owned() });
+        let method = InsertVertex::new("social", "female", person_doc);
+        let (person_id, _, _) = core.run(conn.execute(method)).unwrap().deconstruct();
+
+        #[derive(Debug, Serialize)]
+        struct City {
+            name: String,
+        }
+
+        let city_doc = NewDocument::from(City { name: "New Orleans".to_owned() });
+        let method = InsertVertex::new("social", "city", city_doc);
+        let (city_id, _, _) = core.run(conn.execute(method)).unwrap().deconstruct();
+
+        let works_in = NewEdge::new(person_id, city_id, EMPTY);
+        let method = InsertEdge::new("social", "works_in", works_in);
+        let edge_header = core.run(conn.execute(method)).unwrap();
+
+        assert_eq!("works_in".to_owned(), edge_header.id().collection_name());
+        assert!(!edge_header.key().as_str().is_empty());
+        assert!(!edge_header.revision().as_str().is_empty());
     });
 }
