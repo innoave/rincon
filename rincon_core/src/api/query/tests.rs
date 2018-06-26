@@ -1,6 +1,5 @@
-
-use api::types::Value;
 use super::*;
+use api::types::Value;
 
 #[test]
 fn query_set_string_parameter() {
@@ -40,7 +39,10 @@ fn query_set_vec_of_f32_parameter() {
     let ids = vec![1.1, 2.2, 3.3, 4.4, 5.5];
     query.set_parameter("ids", Value::VecF32(ids));
 
-    assert_eq!(Some(&vec![1.1f32, 2.2, 3.3, 4.4, 5.5]), query.parameter("ids"));
+    assert_eq!(
+        Some(&vec![1.1f32, 2.2, 3.3, 4.4, 5.5]),
+        query.parameter("ids")
+    );
 }
 
 #[test]

@@ -14,7 +14,9 @@ impl AuthenticationRequest {
     /// Constructs a new instance of an `AuthenticationRequest` containing the
     /// given username and password.
     pub fn new<N, P>(username: N, password: P) -> Self
-        where N: Into<String>, P: Into<String>
+    where
+        N: Into<String>,
+        P: Into<String>,
     {
         AuthenticationRequest {
             username: username.into(),
@@ -38,7 +40,7 @@ impl AuthenticationRequest {
 #[serde(rename_all = "camelCase")]
 pub struct AuthenticationResponse {
     jwt: Jwt,
-    must_change_password: Option<bool>
+    must_change_password: Option<bool>,
 }
 
 impl AuthenticationResponse {

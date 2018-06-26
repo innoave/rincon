@@ -6,6 +6,7 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 
 ## <unreleased>
 
+* use rustfmt consequently
 * Bump version of regex and dotenv
 
 ## 0.1.1 : 2018-05-31 : Bug fixes

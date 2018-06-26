@@ -1,21 +1,19 @@
-
 extern crate tokio_core;
 
-extern crate rincon_core;
-extern crate rincon_connector;
 extern crate rincon_client;
+extern crate rincon_connector;
+extern crate rincon_core;
 extern crate rincon_test_helper;
 
 use tokio_core::reactor::Core;
 
-use rincon_core::api::auth::Credentials;
-use rincon_core::api::ErrorCode;
-use rincon_core::api::connector::{Connector, Error, Execute};
-use rincon_connector::http::JsonHttpConnector;
 use rincon_client::auth::methods::*;
+use rincon_connector::http::JsonHttpConnector;
+use rincon_core::api::auth::Credentials;
+use rincon_core::api::connector::{Connector, Error, Execute};
+use rincon_core::api::ErrorCode;
 
 use rincon_test_helper::*;
-
 
 #[test]
 fn authenticate_root_user() {

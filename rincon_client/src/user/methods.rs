@@ -6,11 +6,10 @@ use std::marker::PhantomData;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
+use super::types::*;
 use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use rincon_core::api::types::Empty;
-use rincon_core::arango::protocol::{FIELD_CODE, FIELD_RESULT, PATH_DATABASE,
-    PATH_API_USER};
-use super::types::*;
+use rincon_core::arango::protocol::{FIELD_CODE, FIELD_RESULT, PATH_API_USER, PATH_DATABASE};
 
 /// Creates a new user.
 ///
@@ -18,19 +17,19 @@ use super::types::*;
 /// method call.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CreateUser<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     user: NewUser<E>,
 }
 
 impl<E> CreateUser<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// Constructs a new `CreateUser` method with the given user parameter.
     pub fn new(user: NewUser<E>) -> Self {
-        CreateUser {
-            user,
-        }
+        CreateUser { user }
     }
 
     /// Returns the user parameter of this `CreateUser` method.
@@ -40,7 +39,8 @@ impl<E> CreateUser<E>
 }
 
 impl<E> Method for CreateUser<E>
-    where E: UserExtra + DeserializeOwned
+where
+    E: UserExtra + DeserializeOwned,
 {
     type Result = User<E>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -50,7 +50,8 @@ impl<E> Method for CreateUser<E>
 }
 
 impl<E> Prepare for CreateUser<E>
-    where E: UserExtra + Serialize
+where
+    E: UserExtra + Serialize,
 {
     type Content = NewUser<E>;
 
@@ -81,14 +82,16 @@ impl<E> Prepare for CreateUser<E>
 /// method call. Otherwise, you will only get information about yourself.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ListUsers<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     user_info_type: PhantomData<E>,
 }
 
 #[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
 impl<E> ListUsers<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// Constructs a new `ListUsers` method.
     pub fn new() -> Self {
@@ -99,7 +102,8 @@ impl<E> ListUsers<E>
 }
 
 impl<E> Method for ListUsers<E>
-    where E: UserExtra + DeserializeOwned
+where
+    E: UserExtra + DeserializeOwned,
 {
     type Result = Vec<User<E>>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -109,7 +113,8 @@ impl<E> Method for ListUsers<E>
 }
 
 impl<E> Prepare for ListUsers<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     type Content = ();
 
@@ -147,7 +152,8 @@ impl DeleteUser {
     /// Constructs a new `DeleteUser` instance with the given user name of the
     /// user to be removed.
     pub fn with_name<S>(user_name: S) -> Self
-        where S: Into<String>
+    where
+        S: Into<String>,
     {
         DeleteUser {
             name: user_name.into(),
@@ -198,14 +204,16 @@ impl Prepare for DeleteUser {
 /// server' access level in order to execute this method.
 #[derive(Debug, Clone, PartialEq)]
 pub struct GetUser<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     name: String,
     user_info_type: PhantomData<E>,
 }
 
 impl<E> GetUser<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// Constructs a new instance of the `GetUser` method with all attributes
     /// explicitly set.
@@ -218,7 +226,8 @@ impl<E> GetUser<E>
 
     /// Constructs a new `GetUser` method with the given user name.
     pub fn with_name<S>(user_name: S) -> Self
-        where S: Into<String>
+    where
+        S: Into<String>,
     {
         GetUser {
             name: user_name.into(),
@@ -233,7 +242,8 @@ impl<E> GetUser<E>
 }
 
 impl<E> Method for GetUser<E>
-    where E: UserExtra + DeserializeOwned
+where
+    E: UserExtra + DeserializeOwned,
 {
     type Result = User<E>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -243,7 +253,8 @@ impl<E> Method for GetUser<E>
 }
 
 impl<E> Prepare for GetUser<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     type Content = ();
 
@@ -275,7 +286,8 @@ impl<E> Prepare for GetUser<E>
 /// call. Additionally, a user can change his/her own data.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ModifyUser<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// The name of the user to be modified.
     user_name: String,
@@ -284,21 +296,20 @@ pub struct ModifyUser<E>
 }
 
 impl<E> ModifyUser<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// Constructs a new instance of `ModifyUser` for the given user and with
     /// the given `UserUpdate`.
     pub fn new(user_name: String, updates: UserUpdate<E>) -> Self {
-        ModifyUser {
-            user_name,
-            updates,
-        }
+        ModifyUser { user_name, updates }
     }
 
     /// Constructs a new instance of `ModifyUser` for the given user with no
     /// defined updates (an empty `UserUpdate`).
     pub fn with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         ModifyUser {
             user_name: name.into(),
@@ -318,7 +329,8 @@ impl<E> ModifyUser<E>
 }
 
 impl<E> Method for ModifyUser<E>
-    where E: UserExtra + DeserializeOwned
+where
+    E: UserExtra + DeserializeOwned,
 {
     type Result = User<E>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -328,7 +340,8 @@ impl<E> Method for ModifyUser<E>
 }
 
 impl<E> Prepare for ModifyUser<E>
-    where E: UserExtra + Serialize
+where
+    E: UserExtra + Serialize,
 {
     type Content = UserUpdate<E>;
 
@@ -360,7 +373,8 @@ impl<E> Prepare for ModifyUser<E>
 /// call. Additionally, a user can change his/her own data.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ReplaceUser<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// The name of the user to be modified.
     user_name: String,
@@ -369,20 +383,19 @@ pub struct ReplaceUser<E>
 }
 
 impl<E> ReplaceUser<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// Constructs a new instance of `ReplaceUser` with the given `UserUpdate`.
     pub fn new(user_name: String, updates: UserUpdate<E>) -> Self {
-        ReplaceUser {
-            user_name,
-            updates,
-        }
+        ReplaceUser { user_name, updates }
     }
 
     /// Constructs a new instance of `ReplaceUser` for the given user with no
     /// defined updates (an empty `UserUpdate`).
     pub fn with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         ReplaceUser {
             user_name: name.into(),
@@ -407,7 +420,8 @@ impl<E> ReplaceUser<E>
 }
 
 impl<E> Method for ReplaceUser<E>
-    where E: UserExtra + DeserializeOwned
+where
+    E: UserExtra + DeserializeOwned,
 {
     type Result = User<E>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -417,7 +431,8 @@ impl<E> Method for ReplaceUser<E>
 }
 
 impl<E> Prepare for ReplaceUser<E>
-    where E: UserExtra + Serialize
+where
+    E: UserExtra + Serialize,
 {
     type Content = UserUpdate<E>;
 
@@ -455,15 +470,14 @@ impl ListDatabasesForUser {
     /// Constructs a new instance of `ListDatabasesForUser` with the given
     /// user name.
     pub fn new(user_name: String) -> Self {
-        ListDatabasesForUser {
-            user_name,
-        }
+        ListDatabasesForUser { user_name }
     }
 
     /// Constructs a new instance of `ListDatabasesForUser` with the given
     /// user name.
     pub fn for_user<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         ListDatabasesForUser {
             user_name: name.into(),
@@ -493,8 +507,7 @@ impl Prepare for ListDatabasesForUser {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_USER) + "/" + &self.user_name
-            + PATH_DATABASE
+        String::from(PATH_API_USER) + "/" + &self.user_name + PATH_DATABASE
     }
 
     fn parameters(&self) -> Parameters {
@@ -555,8 +568,7 @@ impl Prepare for GetDatabaseAccessLevel {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_USER) + "/" + &self.user_name
-            + PATH_DATABASE + "/" + &self.database
+        String::from(PATH_API_USER) + "/" + &self.user_name + PATH_DATABASE + "/" + &self.database
     }
 
     fn parameters(&self) -> Parameters {
@@ -627,8 +639,7 @@ impl Prepare for SetDatabaseAccessLevel {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_USER) + "/" + &self.user_name
-            + PATH_DATABASE + "/" + &self.database
+        String::from(PATH_API_USER) + "/" + &self.user_name + PATH_DATABASE + "/" + &self.database
     }
 
     fn parameters(&self) -> Parameters {
@@ -694,8 +705,7 @@ impl Prepare for ResetDatabaseAccessLevel {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_USER) + "/" + &self.user_name
-            + PATH_DATABASE + "/" + &self.database
+        String::from(PATH_API_USER) + "/" + &self.user_name + PATH_DATABASE + "/" + &self.database
     }
 
     fn parameters(&self) -> Parameters {
@@ -764,9 +774,14 @@ impl Prepare for GetCollectionAccessLevel {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_USER) + "/" + &self.user_name
-            + PATH_DATABASE + "/" + &self.database
-            + "/" + &self.collection
+        String::from(PATH_API_USER)
+            + "/"
+            + &self.user_name
+            + PATH_DATABASE
+            + "/"
+            + &self.database
+            + "/"
+            + &self.collection
     }
 
     fn parameters(&self) -> Parameters {
@@ -796,11 +811,7 @@ pub struct SetCollectionAccessLevel {
 
 impl SetCollectionAccessLevel {
     /// Constructs a new instance of the `SetCollectionAccessLevel` method.
-    pub fn new(user_name: String,
-        database: String,
-        collection: String,
-        grant: Permission
-    ) -> Self {
+    pub fn new(user_name: String, database: String, collection: String, grant: Permission) -> Self {
         SetCollectionAccessLevel {
             user_name,
             database,
@@ -849,9 +860,14 @@ impl Prepare for SetCollectionAccessLevel {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_USER) + "/" + &self.user_name
-            + PATH_DATABASE + "/" + &self.database
-            + "/" + &self.collection
+        String::from(PATH_API_USER)
+            + "/"
+            + &self.user_name
+            + PATH_DATABASE
+            + "/"
+            + &self.database
+            + "/"
+            + &self.collection
     }
 
     fn parameters(&self) -> Parameters {
@@ -925,9 +941,14 @@ impl Prepare for ResetCollectionAccessLevel {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_USER) + "/" + &self.user_name
-            + PATH_DATABASE + "/" + &self.database
-            + "/" + &self.collection
+        String::from(PATH_API_USER)
+            + "/"
+            + &self.user_name
+            + PATH_DATABASE
+            + "/"
+            + &self.database
+            + "/"
+            + &self.collection
     }
 
     fn parameters(&self) -> Parameters {

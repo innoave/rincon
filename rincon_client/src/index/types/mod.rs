@@ -51,7 +51,8 @@ impl FromStr for IndexIdOption {
 
 impl Serialize for IndexIdOption {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use self::IndexIdOption::*;
         match *self {
@@ -63,7 +64,8 @@ impl Serialize for IndexIdOption {
 
 impl<'de> Deserialize<'de> for IndexIdOption {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;
@@ -79,12 +81,20 @@ pub struct IndexId {
 
 impl IndexId {
     pub fn new<C, K>(collection_name: C, index_key: K) -> Self
-        where C: Into<String>, K: Into<String>
+    where
+        C: Into<String>,
+        K: Into<String>,
     {
         let collection_name = collection_name.into();
-        assert!(!collection_name.contains('/'), "A collection name must not contain any '/' character");
+        assert!(
+            !collection_name.contains('/'),
+            "A collection name must not contain any '/' character"
+        );
         let index_key = index_key.into();
-        assert!(!index_key.contains('/'), "An index key must not contain any '/' character");
+        assert!(
+            !index_key.contains('/'),
+            "An index key must not contain any '/' character"
+        );
         IndexId {
             collection_name,
             index_key,
@@ -133,7 +143,8 @@ impl From<IndexId> for IndexIdOption {
 
 impl Serialize for IndexId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_str(&self.to_string())
     }
@@ -141,7 +152,8 @@ impl Serialize for IndexId {
 
 impl<'de> Deserialize<'de> for IndexId {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;
@@ -154,16 +166,24 @@ pub struct IndexKey(String);
 
 impl IndexKey {
     pub fn new<K>(index_key: K) -> Self
-        where K: Into<String>
+    where
+        K: Into<String>,
     {
         let index_key = index_key.into();
-        assert!(!index_key.contains('/'), "An index key must not contain any '/' character, but got: {:?}", &index_key);
+        assert!(
+            !index_key.contains('/'),
+            "An index key must not contain any '/' character, but got: {:?}",
+            &index_key
+        );
         IndexKey(index_key)
     }
 
     pub fn from_string(value: String) -> Result<Self, String> {
         if value.contains('/') {
-            Err(format!("An index key must not contain any '/' character, but got: {:?}", &value))
+            Err(format!(
+                "An index key must not contain any '/' character, but got: {:?}",
+                &value
+            ))
         } else {
             Ok(IndexKey(value))
         }
@@ -204,7 +224,8 @@ impl From<IndexKey> for IndexIdOption {
 
 impl Serialize for IndexKey {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_str(self.as_str())
     }
@@ -212,7 +233,8 @@ impl Serialize for IndexKey {
 
 impl<'de> Deserialize<'de> for IndexKey {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;
@@ -362,9 +384,9 @@ impl HashIndex {
         deduplicate: bool,
         selectivity_estimate: u32,
     ) -> Self
-        where
-            Flds: IntoIterator<Item=Fld>,
-            Fld: Into<String>,
+    where
+        Flds: IntoIterator<Item = Fld>,
+        Fld: Into<String>,
     {
         HashIndex {
             newly_created: false,
@@ -687,7 +709,8 @@ pub enum NewIndex {
 
 impl Serialize for NewIndex {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use self::NewIndex::*;
         match *self {
@@ -713,7 +736,8 @@ pub struct NewHashIndex {
 
 impl NewHashIndex {
     pub fn new<F>(fields: F, unique: bool, sparse: bool, deduplicate: bool) -> Self
-        where F: IntoIterator<Item=String>
+    where
+        F: IntoIterator<Item = String>,
     {
         NewHashIndex {
             kind: IndexType::Hash,
@@ -776,7 +800,8 @@ pub struct NewSkipListIndex {
 
 impl NewSkipListIndex {
     pub fn new<F>(fields: F, unique: bool, sparse: bool, deduplicate: bool) -> Self
-        where F: IntoIterator<Item=String>
+    where
+        F: IntoIterator<Item = String>,
     {
         NewSkipListIndex {
             kind: IndexType::SkipList,
@@ -838,7 +863,8 @@ pub struct NewPersistentIndex {
 
 impl NewPersistentIndex {
     pub fn new<F>(fields: F, unique: bool, sparse: bool) -> Self
-        where F: IntoIterator<Item=String>
+    where
+        F: IntoIterator<Item = String>,
     {
         NewPersistentIndex {
             kind: IndexType::Persistent,
@@ -890,7 +916,8 @@ pub struct NewGeoIndex {
 
 impl NewGeoIndex {
     pub fn new<F>(fields: F, geo_json: bool) -> Self
-        where F: IntoIterator<Item=String>
+    where
+        F: IntoIterator<Item = String>,
     {
         NewGeoIndex {
             kind: IndexType::Geo,
@@ -900,13 +927,16 @@ impl NewGeoIndex {
     }
 
     pub fn with_location_field<L>(location_field: L, geo_json: bool) -> Self
-        where L: Into<String>
+    where
+        L: Into<String>,
     {
         NewGeoIndex::new(vec![location_field.into()], geo_json)
     }
 
     pub fn with_lat_lng_fields<LAT, LNG>(lat_field: LAT, lng_field: LNG) -> Self
-        where LAT: Into<String>, LNG: Into<String>
+    where
+        LAT: Into<String>,
+        LNG: Into<String>,
     {
         NewGeoIndex::new(vec![lat_field.into(), lng_field.into()], false)
     }
@@ -945,7 +975,8 @@ pub struct NewFulltextIndex {
 
 impl NewFulltextIndex {
     pub fn new<F>(fields: F, min_length: u32) -> Self
-        where F: IntoIterator<Item=String>
+    where
+        F: IntoIterator<Item = String>,
     {
         NewFulltextIndex {
             kind: IndexType::Fulltext,
@@ -955,7 +986,8 @@ impl NewFulltextIndex {
     }
 
     pub fn with_field<F>(field: F, min_length: u32) -> Self
-        where F: Into<String>
+    where
+        F: Into<String>,
     {
         NewFulltextIndex {
             kind: IndexType::Fulltext,
@@ -1002,7 +1034,8 @@ enum IndexType {
 
 impl Serialize for IndexType {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use self::IndexType::*;
         let type_str = match *self {
@@ -1022,10 +1055,11 @@ impl Serialize for IndexType {
 
 impl<'de> Deserialize<'de> for IndexType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
-        use serde::de::Error;
         use self::IndexType::*;
+        use serde::de::Error;
         let value = String::deserialize(deserializer)?;
         match &value[..] {
             INDEX_TYPE_PRIMARY => Ok(Primary),
@@ -1037,7 +1071,10 @@ impl<'de> Deserialize<'de> for IndexType {
             INDEX_TYPE_GEO => Ok(Geo),
             INDEX_TYPE_FULLTEXT => Ok(Fulltext),
             INDEX_TYPE_EDGE => Ok(Edge),
-            _ => Err(D::Error::custom(format!("Unsupported index type: {:?}", value))),
+            _ => Err(D::Error::custom(format!(
+                "Unsupported index type: {:?}",
+                value
+            ))),
         }
     }
 }
@@ -1061,10 +1098,11 @@ struct GenericIndex {
 
 impl<'de> Deserialize<'de> for Index {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
-        use serde::de::Error;
         use self::IndexType::*;
+        use serde::de::Error;
         let GenericIndex {
             kind,
             id,
@@ -1080,7 +1118,7 @@ impl<'de> Deserialize<'de> for Index {
         } = GenericIndex::deserialize(deserializer)?;
         match kind {
             Primary => match (selectivity_estimate, sparse, unique) {
-                (Some(selectivity_estimate), Some(sparse), Some(unique)) =>
+                (Some(selectivity_estimate), Some(sparse), Some(unique)) => {
                     Ok(Index::Primary(PrimaryIndex {
                         newly_created: is_newly_created.unwrap_or(false),
                         id,
@@ -1088,11 +1126,12 @@ impl<'de> Deserialize<'de> for Index {
                         sparse,
                         unique,
                         selectivity_estimate,
-                    })),
+                    }))
+                },
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
-            }
+            },
             Hash => match (deduplicate, selectivity_estimate, sparse, unique) {
-                (Some(deduplicate), Some(selectivity_estimate), Some(sparse), Some(unique)) =>
+                (Some(deduplicate), Some(selectivity_estimate), Some(sparse), Some(unique)) => {
                     Ok(Index::Hash(HashIndex {
                         newly_created: is_newly_created.unwrap_or(false),
                         id,
@@ -1101,11 +1140,12 @@ impl<'de> Deserialize<'de> for Index {
                         unique,
                         deduplicate,
                         selectivity_estimate,
-                    })),
+                    }))
+                },
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
-            SkipList =>match (deduplicate, sparse, unique) {
-                (Some(deduplicate), Some(sparse), Some(unique)) =>
+            SkipList => match (deduplicate, sparse, unique) {
+                (Some(deduplicate), Some(sparse), Some(unique)) => {
                     Ok(Index::SkipList(SkipListIndex {
                         newly_created: is_newly_created.unwrap_or(false),
                         id,
@@ -1113,11 +1153,12 @@ impl<'de> Deserialize<'de> for Index {
                         sparse,
                         unique,
                         deduplicate,
-                    })),
+                    }))
+                },
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
             Persistent => match (deduplicate, sparse, unique) {
-                (Some(deduplicate), Some(sparse), Some(unique)) =>
+                (Some(deduplicate), Some(sparse), Some(unique)) => {
                     Ok(Index::Persistent(PersistentIndex {
                         newly_created: is_newly_created.unwrap_or(false),
                         id,
@@ -1125,11 +1166,12 @@ impl<'de> Deserialize<'de> for Index {
                         sparse,
                         unique,
                         deduplicate,
-                    })),
+                    }))
+                },
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
             Geo1 => match (geo_json, constraint, sparse, unique) {
-                (Some(geo_json), Some(constraint), Some(sparse), Some(unique)) =>
+                (Some(geo_json), Some(constraint), Some(sparse), Some(unique)) => {
                     Ok(Index::Geo1(Geo1Index {
                         newly_created: is_newly_created.unwrap_or(false),
                         id,
@@ -1138,23 +1180,23 @@ impl<'de> Deserialize<'de> for Index {
                         unique,
                         constraint,
                         geo_json,
-                    })),
+                    }))
+                },
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
             Geo2 => match (constraint, sparse, unique) {
-                (Some(constraint), Some(sparse), Some(unique)) =>
-                    Ok(Index::Geo2(Geo2Index {
-                        newly_created: is_newly_created.unwrap_or(false),
-                        id,
-                        fields,
-                        sparse,
-                        unique,
-                        constraint,
-                    })),
+                (Some(constraint), Some(sparse), Some(unique)) => Ok(Index::Geo2(Geo2Index {
+                    newly_created: is_newly_created.unwrap_or(false),
+                    id,
+                    fields,
+                    sparse,
+                    unique,
+                    constraint,
+                })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
             Fulltext => match (min_length, sparse, unique) {
-                (Some(min_length), Some(sparse), Some(unique)) =>
+                (Some(min_length), Some(sparse), Some(unique)) => {
                     Ok(Index::Fulltext(FulltextIndex {
                         newly_created: is_newly_created.unwrap_or(false),
                         id,
@@ -1162,20 +1204,20 @@ impl<'de> Deserialize<'de> for Index {
                         sparse,
                         unique,
                         min_length,
-                    })),
+                    }))
+                },
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
             Edge => match (sparse, unique) {
-                (Some(sparse), Some(unique)) =>
-                    Ok(Index::Edge(EdgeIndex {
-                        newly_created: is_newly_created.unwrap_or(false),
-                        id,
-                        fields,
-                        sparse,
-                        unique,
-                    })),
+                (Some(sparse), Some(unique)) => Ok(Index::Edge(EdgeIndex {
+                    newly_created: is_newly_created.unwrap_or(false),
+                    id,
+                    fields,
+                    sparse,
+                    unique,
+                })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
-            }
+            },
             Geo => Err(D::Error::custom("Unsupported index type")),
         }
     }

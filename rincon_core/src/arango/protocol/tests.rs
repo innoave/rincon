@@ -1,4 +1,3 @@
-
 use super::*;
 
 #[test]
@@ -10,19 +9,30 @@ fn get_handle_key_from_str() {
 #[test]
 fn get_handle_key_from_str_with_slash_character_in_the_middle() {
     let result = HandleKey::from_string("index id", "mine/12341".to_owned());
-    assert_eq!(Err("A index id key must not contain any '/' character, but got: \"mine/12341\"".to_owned()), result);
+    assert_eq!(
+        Err(
+            "A index id key must not contain any '/' character, but got: \"mine/12341\"".to_owned()
+        ),
+        result
+    );
 }
 
 #[test]
 fn get_handle_key_from_str_with_slash_character_at_the_beginning() {
     let result = HandleKey::from_string("index id", "/12341".to_owned());
-    assert_eq!(Err("A index id key must not contain any '/' character, but got: \"/12341\"".to_owned()), result);
+    assert_eq!(
+        Err("A index id key must not contain any '/' character, but got: \"/12341\"".to_owned()),
+        result
+    );
 }
 
 #[test]
 fn get_handle_key_from_str_with_slash_character_at_the_end() {
     let result = HandleKey::from_string("index id", "12341/".to_owned());
-    assert_eq!(Err("A index id key must not contain any '/' character, but got: \"12341/\"".to_owned()), result);
+    assert_eq!(
+        Err("A index id key must not contain any '/' character, but got: \"12341/\"".to_owned()),
+        result
+    );
 }
 
 #[test]
@@ -37,7 +47,10 @@ fn get_handle_from_str() {
 #[test]
 fn get_handle_from_str_without_context() {
     let result = Handle::from_str("index id", "12341");
-    assert_eq!(Err("index id does not have a context: \"12341\"".to_owned()), result);
+    assert_eq!(
+        Err("index id does not have a context: \"12341\"".to_owned()),
+        result
+    );
 }
 
 #[test]
@@ -60,8 +73,11 @@ fn get_handle_option_from_str_with_context_and_key() {
             let (context, key) = handle.unwrap();
             assert_eq!("mine", &context);
             assert_eq!("12341", &key);
-        }
-        _ => panic!("Expected HandleOption::Qualified(_), but got: {:?}", handle_option),
+        },
+        _ => panic!(
+            "Expected HandleOption::Qualified(_), but got: {:?}",
+            handle_option
+        ),
     }
 }
 
@@ -71,7 +87,10 @@ fn get_handle_option_from_str_with_key_only() {
     match handle_option {
         HandleOption::Local(handle_key) => {
             assert_eq!("12341", &handle_key.unwrap());
-        }
-        _ => panic!("Expected HandleOption::Local(_), but got: {:?}", handle_option),
+        },
+        _ => panic!(
+            "Expected HandleOption::Local(_), but got: {:?}",
+            handle_option
+        ),
     }
 }

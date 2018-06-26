@@ -1,4 +1,3 @@
-
 use std::cell::RefCell;
 use std::iter::{IntoIterator, Iterator};
 use std::rc::Rc;
@@ -25,7 +24,9 @@ pub struct CursorSession<T, C> {
 }
 
 impl<T, C> CursorSession<T, C>
-    where T: 'static + DeserializeOwned, C: 'static + Connector
+where
+    T: 'static + DeserializeOwned,
+    C: 'static + Connector,
 {
     /// Instantiates a new `CursorSession` for the given cursor.
     pub(crate) fn new(
@@ -44,11 +45,13 @@ impl<T, C> CursorSession<T, C>
 
     /// Executes an API method applied to the database of this session.
     fn execute<M>(&self, method: M) -> Result<<M as Method>::Result>
-        where M: 'static + Method + Prepare
+    where
+        M: 'static + Method + Prepare,
     {
         self.core.borrow_mut().run(
-            self.connector.connection(&self.database_name)
-                .execute(method)
+            self.connector
+                .connection(&self.database_name)
+                .execute(method),
         )
     }
 
@@ -123,7 +126,7 @@ impl<T, C> CursorSession<T, C>
     /// cursor. It returns `Some(Error)` if fetching the next batch of results
     /// fails.
     pub fn next_cursor(&self) -> Option<Result<CursorSession<T, C>>> {
-        self.cursor.id().map(|v| v.to_owned()).map(|id|
+        self.cursor.id().map(|v| v.to_owned()).map(|id| {
             self.execute(ReadNextBatchFromCursor::with_id(id))
                 .map(|cursor| CursorSession {
                     cursor,
@@ -131,7 +134,7 @@ impl<T, C> CursorSession<T, C>
                     connector: self.connector.clone(),
                     core: self.core.clone(),
                 })
-        )
+        })
     }
 
     /// Deletes the cursor represented by this session on the server if it is
@@ -146,7 +149,9 @@ impl<T, C> CursorSession<T, C>
 }
 
 impl<T, C> IntoIterator for CursorSession<T, C>
-    where T: 'static + DeserializeOwned, C: 'static + Connector
+where
+    T: 'static + DeserializeOwned,
+    C: 'static + Connector,
 {
     type Item = Result<T>;
     type IntoIter = CursorSessionIntoIter<T, C>;
@@ -179,21 +184,27 @@ pub struct CursorSessionIntoIter<T, C> {
 }
 
 impl<T, C> CursorSessionIntoIter<T, C>
-    where T: 'static + DeserializeOwned, C: 'static + Connector
+where
+    T: 'static + DeserializeOwned,
+    C: 'static + Connector,
 {
     /// Executes an API method applied to the database of this session.
     fn execute<M>(&self, method: M) -> Result<<M as Method>::Result>
-        where M: 'static + Method + Prepare
+    where
+        M: 'static + Method + Prepare,
     {
         self.core.borrow_mut().run(
-            self.connector.connection(&self.database_name)
-                .execute(method)
+            self.connector
+                .connection(&self.database_name)
+                .execute(method),
         )
     }
 }
 
 impl<T, C> Iterator for CursorSessionIntoIter<T, C>
-    where T: 'static + DeserializeOwned, C: 'static + Connector
+where
+    T: 'static + DeserializeOwned,
+    C: 'static + Connector,
 {
     type Item = Result<T>;
 
@@ -224,8 +235,12 @@ impl<T, C> Iterator for CursorSessionIntoIter<T, C>
         (self.batch.len(), self.count.map(|c| c as usize))
     }
 
-    fn count(self) -> usize where Self: Sized {
-        self.count.map(|c| c as usize)
+    fn count(self) -> usize
+    where
+        Self: Sized,
+    {
+        self.count
+            .map(|c| c as usize)
             .unwrap_or_else(|| self.fold(0, |cnt, _| cnt + 1))
     }
 }

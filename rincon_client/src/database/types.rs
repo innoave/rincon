@@ -48,7 +48,8 @@ impl Database {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewDatabase<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// Has to contain a valid database name.
     name: String,
@@ -63,12 +64,15 @@ pub struct NewDatabase<E>
 }
 
 impl<E> NewDatabase<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// Constructs a new instance of `NewDatabase` with all attributes
     /// set explicitly.
     pub fn new<N, U>(name: N, users: U) -> Self
-        where N: Into<String>, U: IntoIterator<Item=NewUser<E>>
+    where
+        N: Into<String>,
+        U: IntoIterator<Item = NewUser<E>>,
     {
         NewDatabase {
             name: name.into(),
@@ -81,7 +85,8 @@ impl<E> NewDatabase<E>
     ///
     /// The method will be called with an empty user array.
     pub fn with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         NewDatabase {
             name: name.into(),
@@ -92,7 +97,8 @@ impl<E> NewDatabase<E>
     /// Sets the users for this `NewDatabase` that should be assigned to the
     /// newly created database.
     pub fn set_users<U>(&mut self, users: U)
-        where U: IntoIterator<Item=NewUser<E>>
+    where
+        U: IntoIterator<Item = NewUser<E>>,
     {
         self.users = Vec::from_iter(users.into_iter());
     }

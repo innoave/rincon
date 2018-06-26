@@ -1,15 +1,15 @@
 use std::iter::FromIterator;
 
+use super::*;
 use rincon_core::api::auth::{Authentication, Credentials};
 use rincon_core::api::method::{Parameters, Prepare};
 use rincon_core::api::user_agent::Version;
-use super::*;
 
 struct Prepared<'a> {
     operation: Operation,
     path: &'a str,
     params: Vec<(&'a str, &'a str)>,
-    content: Option<Value>
+    content: Option<Value>,
 }
 
 impl<'a> Prepare for Prepared<'a> {
@@ -53,9 +53,12 @@ fn build_request_uri_for_http() {
 
 #[test]
 fn build_request_uri_for_https_with_authentication() {
-    let datasource = DataSource::from_str("https://localhost:8529").unwrap()
-        .with_authentication(Authentication::Basic(
-            Credentials::new("micky".to_owned(), "pass".to_owned())));
+    let datasource = DataSource::from_str("https://localhost:8529")
+        .unwrap()
+        .with_authentication(Authentication::Basic(Credentials::new(
+            "micky".to_owned(),
+            "pass".to_owned(),
+        )));
     let prepared = Prepared {
         operation: Operation::Read,
         path: "/_api/user",
@@ -70,7 +73,8 @@ fn build_request_uri_for_https_with_authentication() {
 
 #[test]
 fn build_request_uri_for_given_database() {
-    let datasource = DataSource::from_str("https://localhost:8529").unwrap()
+    let datasource = DataSource::from_str("https://localhost:8529")
+        .unwrap()
         .use_database("url_test");
     let prepared = Prepared {
         operation: Operation::Read,
@@ -81,12 +85,16 @@ fn build_request_uri_for_given_database() {
 
     let uri = build_request_uri(&datasource, Some(&"given_db_name".to_owned()), &prepared);
 
-    assert_eq!("https://localhost:8529/_db/given_db_name/_api/collection", uri.to_string());
+    assert_eq!(
+        "https://localhost:8529/_db/given_db_name/_api/collection",
+        uri.to_string()
+    );
 }
 
 #[test]
 fn build_request_uri_for_specific_database() {
-    let datasource = DataSource::from_str("https://localhost:8529").unwrap()
+    let datasource = DataSource::from_str("https://localhost:8529")
+        .unwrap()
         .use_database("url_test");
     let prepared = Prepared {
         operation: Operation::Read,
@@ -97,12 +105,16 @@ fn build_request_uri_for_specific_database() {
 
     let uri = build_request_uri(&datasource, datasource.database_name(), &prepared);
 
-    assert_eq!("https://localhost:8529/_db/url_test/_api/collection", uri.to_string());
+    assert_eq!(
+        "https://localhost:8529/_db/url_test/_api/collection",
+        uri.to_string()
+    );
 }
 
 #[test]
 fn build_request_uri_for_specific_database_with_one_param() {
-    let datasource = DataSource::from_str("https://localhost:8529").unwrap()
+    let datasource = DataSource::from_str("https://localhost:8529")
+        .unwrap()
         .use_database("the big data");
     let prepared = Prepared {
         operation: Operation::Read,
@@ -113,13 +125,17 @@ fn build_request_uri_for_specific_database_with_one_param() {
 
     let uri = build_request_uri(&datasource, datasource.database_name(), &prepared);
 
-    assert_eq!("https://localhost:8529/_db/the%20big%20data/_api/document\
-                ?id=25", uri.to_string());
+    assert_eq!(
+        "https://localhost:8529/_db/the%20big%20data/_api/document\
+         ?id=25",
+        uri.to_string()
+    );
 }
 
 #[test]
 fn build_request_uri_for_specific_database_with_two_params() {
-    let datasource = DataSource::from_str("https://localhost:8529").unwrap()
+    let datasource = DataSource::from_str("https://localhost:8529")
+        .unwrap()
         .use_database("the büg data");
     let prepared = Prepared {
         operation: Operation::Read,
@@ -130,13 +146,17 @@ fn build_request_uri_for_specific_database_with_two_params() {
 
     let uri = build_request_uri(&datasource, datasource.database_name(), &prepared);
 
-    assert_eq!("https://localhost:8529/_db/the%20b%C3%BCg%20data/_api/document\
-                ?id=25&name=JuneReport", uri.to_string());
+    assert_eq!(
+        "https://localhost:8529/_db/the%20b%C3%BCg%20data/_api/document\
+         ?id=25&name=JuneReport",
+        uri.to_string()
+    );
 }
 
 #[test]
 fn build_request_uri_for_given_database_with_three_params() {
-    let datasource = DataSource::from_str("https://localhost:8529").unwrap()
+    let datasource = DataSource::from_str("https://localhost:8529")
+        .unwrap()
         .use_database("default_test_database");
     let prepared = Prepared {
         operation: Operation::Read,
@@ -147,18 +167,23 @@ fn build_request_uri_for_given_database_with_three_params() {
 
     let uri = build_request_uri(&datasource, Some(&"the big data".to_owned()), &prepared);
 
-    assert_eq!("https://localhost:8529/_db/the%20big%20data/_api/document\
-                ?id=25&name=JuneReport&max=42", uri.to_string());
+    assert_eq!(
+        "https://localhost:8529/_db/the%20big%20data/_api/document\
+         ?id=25&name=JuneReport&max=42",
+        uri.to_string()
+    );
 }
 
 #[test]
 fn header_user_agent_for_default_rincon_user_agent() {
-
     let agent = header_user_agent_for(&RinconUserAgent);
 
-    assert_eq!(agent,
-        header::UserAgent::new("Mozilla/5.0 (compatible; rincon/0.1; +https://github.com/innoave/rincon)"));
-
+    assert_eq!(
+        agent,
+        header::UserAgent::new(
+            "Mozilla/5.0 (compatible; rincon/0.1; +https://github.com/innoave/rincon)"
+        )
+    );
 }
 
 #[test]
@@ -202,6 +227,10 @@ fn header_user_agent_for_my_user_agent() {
 
     let agent = header_user_agent_for(&MyUserAgent);
 
-    assert_eq!(agent,
-        header::UserAgent::new("Mozilla/5.0 (compatible; MyRinconApp/2.5; +https://myrinconapp.com)"));
+    assert_eq!(
+        agent,
+        header::UserAgent::new(
+            "Mozilla/5.0 (compatible; MyRinconApp/2.5; +https://myrinconapp.com)"
+        )
+    );
 }

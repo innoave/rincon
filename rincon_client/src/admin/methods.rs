@@ -1,9 +1,10 @@
 //! Methods for server administration.
 
-use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use rincon_core::arango::protocol::{FIELD_CODE, PARAM_DETAILS, PATH_ADMIN,
-    PATH_API_VERSION, PATH_DATABASE, PATH_TARGET_VERSION};
 use super::types::*;
+use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use rincon_core::arango::protocol::{
+    FIELD_CODE, PARAM_DETAILS, PATH_ADMIN, PATH_API_VERSION, PATH_DATABASE, PATH_TARGET_VERSION,
+};
 
 #[allow(missing_copy_implementations)]
 #[derive(Debug, Clone, PartialEq)]
@@ -57,15 +58,11 @@ pub struct GetServerVersion {
 #[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
 impl GetServerVersion {
     pub fn new() -> Self {
-        GetServerVersion {
-            details: false,
-        }
+        GetServerVersion { details: false }
     }
 
     pub fn with_details() -> Self {
-        GetServerVersion {
-            details: true,
-        }
+        GetServerVersion { details: true }
     }
 
     pub fn details(&self) -> bool {

@@ -6,13 +6,16 @@ use std::marker::PhantomData;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
-use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use rincon_core::arango::protocol::{FIELD_CODE, FIELD_COLLECTIONS, FIELD_EDGE, FIELD_GRAPH,
-    FIELD_GRAPHS, FIELD_REMOVED, FIELD_VERTEX, HEADER_IF_MATCH, HEADER_IF_NON_MATCH,
-    PARAM_KEEP_NULL, PARAM_WAIT_FOR_SYNC, PATH_API_GHARIAL, PATH_EDGE, PATH_VERTEX};
-use document::types::{Document, DocumentHeader, DocumentId, DocumentKey, NewDocument,
-    UpdatedDocumentHeader};
 use super::types::*;
+use document::types::{
+    Document, DocumentHeader, DocumentId, DocumentKey, NewDocument, UpdatedDocumentHeader,
+};
+use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use rincon_core::arango::protocol::{
+    FIELD_CODE, FIELD_COLLECTIONS, FIELD_EDGE, FIELD_GRAPH, FIELD_GRAPHS, FIELD_REMOVED,
+    FIELD_VERTEX, HEADER_IF_MATCH, HEADER_IF_NON_MATCH, PARAM_KEEP_NULL, PARAM_WAIT_FOR_SYNC,
+    PATH_API_GHARIAL, PATH_EDGE, PATH_VERTEX,
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct CreateGraph {
@@ -21,9 +24,7 @@ pub struct CreateGraph {
 
 impl CreateGraph {
     pub fn new(graph: NewGraph) -> Self {
-        CreateGraph {
-            graph,
-        }
+        CreateGraph { graph }
     }
 
     pub fn graph(&self) -> &NewGraph {
@@ -70,15 +71,15 @@ pub struct DropGraph {
 
 impl DropGraph {
     pub fn new<Name>(name: Name) -> Self
-        where Name: Into<String>
+    where
+        Name: Into<String>,
     {
-        DropGraph {
-            name: name.into(),
-        }
+        DropGraph { name: name.into() }
     }
 
     pub fn with_name<Name>(name: Name) -> Self
-        where Name: Into<String>
+    where
+        Name: Into<String>,
     {
         DropGraph::new(name)
     }
@@ -127,13 +128,12 @@ pub struct GetGraph {
 
 impl GetGraph {
     pub fn new(name: String) -> Self {
-        GetGraph {
-            name,
-        }
+        GetGraph { name }
     }
 
     pub fn with_name<Name>(name: Name) -> Self
-        where Name: Into<String>
+    where
+        Name: Into<String>,
     {
         GetGraph::new(name.into())
     }
@@ -226,7 +226,8 @@ pub struct AddVertexCollection {
 
 impl AddVertexCollection {
     pub fn new<G>(graph_name: G, vertex_collection: VertexCollection) -> Self
-        where G: Into<String>
+    where
+        G: Into<String>,
     {
         AddVertexCollection {
             graph_name: graph_name.into(),
@@ -255,8 +256,7 @@ impl Prepare for AddVertexCollection {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_VERTEX
+        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name + PATH_VERTEX
     }
 
     fn parameters(&self) -> Parameters {
@@ -280,7 +280,9 @@ pub struct RemoveVertexCollection {
 
 impl RemoveVertexCollection {
     pub fn new<G, Coll>(graph_name: G, collection_name: Coll) -> Self
-        where G: Into<String>, Coll: Into<String>
+    where
+        G: Into<String>,
+        Coll: Into<String>,
     {
         RemoveVertexCollection {
             graph_name: graph_name.into(),
@@ -313,8 +315,12 @@ impl Prepare for RemoveVertexCollection {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_VERTEX + "/" + &self.collection_name
+        String::from(PATH_API_GHARIAL)
+            + "/"
+            + &self.graph_name
+            + PATH_VERTEX
+            + "/"
+            + &self.collection_name
     }
 
     fn parameters(&self) -> Parameters {
@@ -337,7 +343,8 @@ pub struct ListVertexCollections {
 
 impl ListVertexCollections {
     pub fn new<G>(graph_name: G) -> Self
-        where G: Into<String>
+    where
+        G: Into<String>,
     {
         ListVertexCollections {
             graph_name: graph_name.into(),
@@ -365,8 +372,7 @@ impl Prepare for ListVertexCollections {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_VERTEX
+        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name + PATH_VERTEX
     }
 
     fn parameters(&self) -> Parameters {
@@ -392,7 +398,9 @@ pub struct InsertVertex<T> {
 
 impl<T> InsertVertex<T> {
     pub fn new<G, Coll>(graph_name: G, collection_name: Coll, vertex: NewDocument<T>) -> Self
-        where G: Into<String>, Coll: Into<String>
+    where
+        G: Into<String>,
+        Coll: Into<String>,
     {
         InsertVertex {
             graph_name: graph_name.into(),
@@ -433,7 +441,8 @@ impl<T> Method for InsertVertex<T> {
 }
 
 impl<T> Prepare for InsertVertex<T>
-    where T: Serialize + Debug
+where
+    T: Serialize + Debug,
 {
     type Content = NewDocument<T>;
 
@@ -442,8 +451,12 @@ impl<T> Prepare for InsertVertex<T>
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_VERTEX + "/" + &self.collection_name
+        String::from(PATH_API_GHARIAL)
+            + "/"
+            + &self.graph_name
+            + PATH_VERTEX
+            + "/"
+            + &self.collection_name
     }
 
     fn parameters(&self) -> Parameters {
@@ -473,7 +486,9 @@ pub struct RemoveVertex {
 
 impl RemoveVertex {
     pub fn new<G, Coll>(graph_name: G, collection_name: Coll, vertex_key: DocumentKey) -> Self
-        where G: Into<String>, Coll: Into<String>
+    where
+        G: Into<String>,
+        Coll: Into<String>,
     {
         RemoveVertex {
             graph_name: graph_name.into(),
@@ -484,7 +499,9 @@ impl RemoveVertex {
     }
 
     pub fn with_key<G, Coll>(graph_name: G, collection_name: Coll, vertex_key: DocumentKey) -> Self
-        where G: Into<String>, Coll: Into<String>
+    where
+        G: Into<String>,
+        Coll: Into<String>,
     {
         RemoveVertex {
             graph_name: graph_name.into(),
@@ -495,7 +512,8 @@ impl RemoveVertex {
     }
 
     pub fn with_id<G>(graph_name: G, vertex_id: DocumentId) -> Self
-        where G: Into<String>
+    where
+        G: Into<String>,
     {
         RemoveVertex {
             graph_name: graph_name.into(),
@@ -511,7 +529,8 @@ impl RemoveVertex {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
@@ -550,9 +569,14 @@ impl Prepare for RemoveVertex {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_VERTEX + "/" + self.vertex_id.collection_name()
-            + "/" + self.vertex_id.document_key()
+        String::from(PATH_API_GHARIAL)
+            + "/"
+            + &self.graph_name
+            + PATH_VERTEX
+            + "/"
+            + self.vertex_id.collection_name()
+            + "/"
+            + self.vertex_id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -587,7 +611,9 @@ pub struct GetVertex<T> {
 
 impl<T> GetVertex<T> {
     pub fn new<G, Coll>(graph_name: G, collection_name: Coll, vertex_key: DocumentKey) -> Self
-        where G: Into<String>, Coll: Into<String>
+    where
+        G: Into<String>,
+        Coll: Into<String>,
     {
         GetVertex {
             graph_name: graph_name.into(),
@@ -599,7 +625,9 @@ impl<T> GetVertex<T> {
     }
 
     pub fn with_key<G, Coll>(graph_name: G, collection_name: Coll, vertex_key: DocumentKey) -> Self
-        where G: Into<String>, Coll: Into<String>
+    where
+        G: Into<String>,
+        Coll: Into<String>,
     {
         GetVertex {
             graph_name: graph_name.into(),
@@ -611,7 +639,8 @@ impl<T> GetVertex<T> {
     }
 
     pub fn with_id<G>(graph_name: G, vertex_id: DocumentId) -> Self
-        where G: Into<String>
+    where
+        G: Into<String>,
     {
         GetVertex {
             graph_name: graph_name.into(),
@@ -623,14 +652,16 @@ impl<T> GetVertex<T> {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
     }
 
     pub fn with_if_non_match<IfNonMatch>(mut self, if_non_match: IfNonMatch) -> Self
-        where IfNonMatch: Into<String>
+    where
+        IfNonMatch: Into<String>,
     {
         self.if_non_match = Some(if_non_match.into());
         self
@@ -654,7 +685,8 @@ impl<T> GetVertex<T> {
 }
 
 impl<T> Method for GetVertex<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     type Result = Document<T>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -671,9 +703,14 @@ impl<T> Prepare for GetVertex<T> {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_VERTEX + "/" + self.vertex_id.collection_name()
-            + "/" + self.vertex_id.document_key()
+        String::from(PATH_API_GHARIAL)
+            + "/"
+            + &self.graph_name
+            + PATH_VERTEX
+            + "/"
+            + self.vertex_id.collection_name()
+            + "/"
+            + self.vertex_id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -707,7 +744,8 @@ pub struct ReplaceVertex<T> {
 
 impl<T> ReplaceVertex<T> {
     pub fn new<G>(graph_name: G, vertex_id: DocumentId, new_vertex: NewDocument<T>) -> Self
-        where G: Into<String>
+    where
+        G: Into<String>,
     {
         ReplaceVertex {
             graph_name: graph_name.into(),
@@ -724,7 +762,8 @@ impl<T> ReplaceVertex<T> {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
@@ -760,7 +799,8 @@ impl<T> Method for ReplaceVertex<T> {
 }
 
 impl<T> Prepare for ReplaceVertex<T>
-    where T: Serialize + Debug
+where
+    T: Serialize + Debug,
 {
     type Content = NewDocument<T>;
 
@@ -769,9 +809,14 @@ impl<T> Prepare for ReplaceVertex<T>
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_VERTEX + "/" + self.vertex_id.collection_name()
-            + "/" + self.vertex_id.document_key()
+        String::from(PATH_API_GHARIAL)
+            + "/"
+            + &self.graph_name
+            + PATH_VERTEX
+            + "/"
+            + self.vertex_id.collection_name()
+            + "/"
+            + self.vertex_id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -807,7 +852,8 @@ pub struct ModifyVertex<Upd> {
 
 impl<Upd> ModifyVertex<Upd> {
     pub fn new<G>(graph_name: G, vertex_id: DocumentId, update: Upd) -> Self
-        where G: Into<String>
+    where
+        G: Into<String>,
     {
         ModifyVertex {
             graph_name: graph_name.into(),
@@ -825,7 +871,8 @@ impl<Upd> ModifyVertex<Upd> {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
@@ -870,7 +917,8 @@ impl<Upd> Method for ModifyVertex<Upd> {
 }
 
 impl<Upd> Prepare for ModifyVertex<Upd>
-    where Upd: Serialize + Debug
+where
+    Upd: Serialize + Debug,
 {
     type Content = Upd;
 
@@ -879,9 +927,14 @@ impl<Upd> Prepare for ModifyVertex<Upd>
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_VERTEX + "/" + self.vertex_id.collection_name()
-            + "/" + self.vertex_id.document_key()
+        String::from(PATH_API_GHARIAL)
+            + "/"
+            + &self.graph_name
+            + PATH_VERTEX
+            + "/"
+            + self.vertex_id.collection_name()
+            + "/"
+            + self.vertex_id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -916,7 +969,8 @@ pub struct AddEdgeDefinition {
 
 impl AddEdgeDefinition {
     pub fn new<G>(graph_name: G, edge_definition: EdgeDefinition) -> Self
-        where G: Into<String>
+    where
+        G: Into<String>,
     {
         AddEdgeDefinition {
             graph_name: graph_name.into(),
@@ -949,8 +1003,7 @@ impl Prepare for AddEdgeDefinition {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + self.graph_name()
-            + PATH_EDGE
+        String::from(PATH_API_GHARIAL) + "/" + self.graph_name() + PATH_EDGE
     }
 
     fn parameters(&self) -> Parameters {
@@ -974,7 +1027,9 @@ pub struct RemoveEdgeDefinition {
 
 impl RemoveEdgeDefinition {
     pub fn new<G, E>(graph_name: G, edge_definition_name: E) -> Self
-        where G: Into<String>, E: Into<String>
+    where
+        G: Into<String>,
+        E: Into<String>,
     {
         RemoveEdgeDefinition {
             graph_name: graph_name.into(),
@@ -1007,8 +1062,12 @@ impl Prepare for RemoveEdgeDefinition {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_EDGE + "/" + &self.edge_definition_name
+        String::from(PATH_API_GHARIAL)
+            + "/"
+            + &self.graph_name
+            + PATH_EDGE
+            + "/"
+            + &self.edge_definition_name
     }
 
     fn parameters(&self) -> Parameters {
@@ -1032,8 +1091,14 @@ pub struct ReplaceEdgeDefinition {
 }
 
 impl ReplaceEdgeDefinition {
-    pub fn new<G, E>(graph_name: G, edge_definition_name: E, edge_definition: EdgeDefinition) -> Self
-        where G: Into<String>, E: Into<String>
+    pub fn new<G, E>(
+        graph_name: G,
+        edge_definition_name: E,
+        edge_definition: EdgeDefinition,
+    ) -> Self
+    where
+        G: Into<String>,
+        E: Into<String>,
     {
         ReplaceEdgeDefinition {
             graph_name: graph_name.into(),
@@ -1071,8 +1136,12 @@ impl Prepare for ReplaceEdgeDefinition {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_EDGE + "/" + &self.edge_definition_name
+        String::from(PATH_API_GHARIAL)
+            + "/"
+            + &self.graph_name
+            + PATH_EDGE
+            + "/"
+            + &self.edge_definition_name
     }
 
     fn parameters(&self) -> Parameters {
@@ -1090,12 +1159,13 @@ impl Prepare for ReplaceEdgeDefinition {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ListEdgeCollections {
-    graph_name: String
+    graph_name: String,
 }
 
 impl ListEdgeCollections {
     pub fn new<G>(graph_name: G) -> Self
-        where G: Into<String>
+    where
+        G: Into<String>,
     {
         ListEdgeCollections {
             graph_name: graph_name.into(),
@@ -1123,8 +1193,7 @@ impl Prepare for ListEdgeCollections {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_EDGE
+        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name + PATH_EDGE
     }
 
     fn parameters(&self) -> Parameters {
@@ -1150,7 +1219,9 @@ pub struct InsertEdge<T> {
 
 impl<T> InsertEdge<T> {
     pub fn new<G, Coll>(graph_name: G, collection_name: Coll, edge: NewEdge<T>) -> Self
-        where G: Into<String>, Coll: Into<String>
+    where
+        G: Into<String>,
+        Coll: Into<String>,
     {
         InsertEdge {
             graph_name: graph_name.into(),
@@ -1191,7 +1262,8 @@ impl<T> Method for InsertEdge<T> {
 }
 
 impl<T> Prepare for InsertEdge<T>
-    where T: Serialize + Debug
+where
+    T: Serialize + Debug,
 {
     type Content = NewEdge<T>;
 
@@ -1200,8 +1272,12 @@ impl<T> Prepare for InsertEdge<T>
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_EDGE + "/" + &self.collection_name
+        String::from(PATH_API_GHARIAL)
+            + "/"
+            + &self.graph_name
+            + PATH_EDGE
+            + "/"
+            + &self.collection_name
     }
 
     fn parameters(&self) -> Parameters {
@@ -1231,28 +1307,33 @@ pub struct RemoveEdge {
 
 impl RemoveEdge {
     pub fn new<G, Coll>(graph_name: G, collection_name: Coll, edge_key: DocumentKey) -> Self
-        where G: Into<String>, Coll: Into<String>
+    where
+        G: Into<String>,
+        Coll: Into<String>,
     {
-        RemoveEdge::with_id(graph_name, DocumentId::new(
-            collection_name,
-            edge_key.unwrap(),
-        ))
+        RemoveEdge::with_id(
+            graph_name,
+            DocumentId::new(collection_name, edge_key.unwrap()),
+        )
     }
 
     pub fn with_key<G, Coll>(graph_name: G, collection_name: Coll, edge_key: DocumentKey) -> Self
-        where G: Into<String>, Coll: Into<String>
+    where
+        G: Into<String>,
+        Coll: Into<String>,
     {
         RemoveEdge::new(graph_name, collection_name, edge_key)
     }
 
     pub fn with_id<G>(graph_name: G, edge_id: DocumentId) -> Self
-        where G: Into<String>
+    where
+        G: Into<String>,
     {
         RemoveEdge {
             graph_name: graph_name.into(),
             edge_id,
             force_wait_for_sync: None,
-            if_match: None
+            if_match: None,
         }
     }
 
@@ -1262,7 +1343,8 @@ impl RemoveEdge {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
@@ -1301,9 +1383,14 @@ impl Prepare for RemoveEdge {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_EDGE + "/" + self.edge_id.collection_name()
-            + "/" + self.edge_id.document_key()
+        String::from(PATH_API_GHARIAL)
+            + "/"
+            + &self.graph_name
+            + PATH_EDGE
+            + "/"
+            + self.edge_id.collection_name()
+            + "/"
+            + self.edge_id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -1338,7 +1425,9 @@ pub struct GetEdge<T> {
 
 impl<T> GetEdge<T> {
     pub fn new<G, Coll>(graph_name: G, collection_name: Coll, edge_key: DocumentKey) -> Self
-        where G: Into<String>, Coll: Into<String>
+    where
+        G: Into<String>,
+        Coll: Into<String>,
     {
         GetEdge {
             graph_name: graph_name.into(),
@@ -1350,13 +1439,16 @@ impl<T> GetEdge<T> {
     }
 
     pub fn with_key<G, Coll>(graph_name: G, collection_name: Coll, edge_key: DocumentKey) -> Self
-        where G: Into<String>, Coll: Into<String>
+    where
+        G: Into<String>,
+        Coll: Into<String>,
     {
         GetEdge::new(graph_name, collection_name, edge_key)
     }
 
     pub fn with_id<G>(graph_name: G, edge_id: DocumentId) -> Self
-        where G: Into<String>
+    where
+        G: Into<String>,
     {
         GetEdge {
             graph_name: graph_name.into(),
@@ -1368,14 +1460,16 @@ impl<T> GetEdge<T> {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
     }
 
     pub fn with_if_non_match<IfNonMatch>(mut self, if_non_match: IfNonMatch) -> Self
-        where IfNonMatch: Into<String>
+    where
+        IfNonMatch: Into<String>,
     {
         self.if_non_match = Some(if_non_match.into());
         self
@@ -1399,7 +1493,8 @@ impl<T> GetEdge<T> {
 }
 
 impl<T> Method for GetEdge<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     type Result = Edge<T>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -1416,9 +1511,14 @@ impl<T> Prepare for GetEdge<T> {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_EDGE + "/" + self.edge_id.collection_name()
-            + "/" + self.edge_id.document_key()
+        String::from(PATH_API_GHARIAL)
+            + "/"
+            + &self.graph_name
+            + PATH_EDGE
+            + "/"
+            + self.edge_id.collection_name()
+            + "/"
+            + self.edge_id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -1452,7 +1552,8 @@ pub struct ReplaceEdge<T> {
 
 impl<T> ReplaceEdge<T> {
     pub fn new<G>(graph_name: G, edge_id: DocumentId, new_edge: NewEdge<T>) -> Self
-        where G: Into<String>
+    where
+        G: Into<String>,
     {
         ReplaceEdge {
             graph_name: graph_name.into(),
@@ -1469,7 +1570,8 @@ impl<T> ReplaceEdge<T> {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
@@ -1505,7 +1607,8 @@ impl<T> Method for ReplaceEdge<T> {
 }
 
 impl<T> Prepare for ReplaceEdge<T>
-    where T: Serialize + Debug
+where
+    T: Serialize + Debug,
 {
     type Content = NewEdge<T>;
 
@@ -1514,9 +1617,14 @@ impl<T> Prepare for ReplaceEdge<T>
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_EDGE + "/" + self.edge_id.collection_name()
-            + "/" + self.edge_id.document_key()
+        String::from(PATH_API_GHARIAL)
+            + "/"
+            + &self.graph_name
+            + PATH_EDGE
+            + "/"
+            + self.edge_id.collection_name()
+            + "/"
+            + self.edge_id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -1552,7 +1660,8 @@ pub struct ModifyEdge<Upd> {
 
 impl<Upd> ModifyEdge<Upd> {
     pub fn new<G>(graph_name: G, edge_id: DocumentId, update: Upd) -> Self
-        where G: Into<String>
+    where
+        G: Into<String>,
     {
         ModifyEdge {
             graph_name: graph_name.into(),
@@ -1570,7 +1679,8 @@ impl<Upd> ModifyEdge<Upd> {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
@@ -1615,7 +1725,8 @@ impl<Upd> Method for ModifyEdge<Upd> {
 }
 
 impl<Upd> Prepare for ModifyEdge<Upd>
-    where Upd: Serialize
+where
+    Upd: Serialize,
 {
     type Content = Upd;
 
@@ -1624,9 +1735,14 @@ impl<Upd> Prepare for ModifyEdge<Upd>
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_GHARIAL) + "/" + &self.graph_name
-            + PATH_EDGE + "/" + self.edge_id.collection_name()
-            + "/" + self.edge_id.document_key()
+        String::from(PATH_API_GHARIAL)
+            + "/"
+            + &self.graph_name
+            + PATH_EDGE
+            + "/"
+            + self.edge_id.collection_name()
+            + "/"
+            + self.edge_id.document_key()
     }
 
     fn parameters(&self) -> Parameters {

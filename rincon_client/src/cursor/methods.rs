@@ -4,11 +4,11 @@ use std::marker::PhantomData;
 
 use serde::de::DeserializeOwned;
 
+use super::types::*;
 use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use rincon_core::api::query::Query;
 use rincon_core::api::types::Empty;
 use rincon_core::arango::protocol::{FIELD_CODE, PATH_API_CURSOR};
-use super::types::*;
 
 /// Executes a query and returns a cursor with the first result set.
 #[derive(Debug, Clone, PartialEq)]
@@ -43,7 +43,8 @@ impl<T> CreateCursor<T> {
 }
 
 impl<T> Method for CreateCursor<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     type Result = Cursor<T>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -87,15 +88,14 @@ impl DeleteCursor {
     /// Constructs a new instance of the `DeleteCursor` method that shall
     /// delete the cursor with the given id.
     pub fn new(cursor_id: String) -> Self {
-        DeleteCursor {
-            cursor_id,
-        }
+        DeleteCursor { cursor_id }
     }
 
     /// Constructs a new instance of the `DeleteCursor` method that shall
     /// delete the cursor with the given id.
     pub fn with_id<I>(cursor_id: I) -> Self
-        where I: Into<String>
+    where
+        I: Into<String>,
     {
         DeleteCursor {
             cursor_id: cursor_id.into(),
@@ -136,8 +136,7 @@ impl Prepare for DeleteCursor {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_CURSOR)
-            + "/" + &self.cursor_id
+        String::from(PATH_API_CURSOR) + "/" + &self.cursor_id
     }
 
     fn parameters(&self) -> Parameters {
@@ -174,7 +173,8 @@ impl<T> ReadNextBatchFromCursor<T> {
     /// Constructs a new instance of the `ReadNextBatchFromCursor` method for
     /// the cursor with the given id.
     pub fn with_id<I>(cursor_id: I) -> Self
-        where I: Into<String>
+    where
+        I: Into<String>,
     {
         ReadNextBatchFromCursor {
             result_type: PhantomData,
@@ -203,7 +203,8 @@ impl<T> ReadNextBatchFromCursor<T> {
 }
 
 impl<T> Method for ReadNextBatchFromCursor<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     type Result = Cursor<T>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -220,8 +221,7 @@ impl<T> Prepare for ReadNextBatchFromCursor<T> {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_CURSOR)
-            + "/" + &self.cursor_id
+        String::from(PATH_API_CURSOR) + "/" + &self.cursor_id
     }
 
     fn parameters(&self) -> Parameters {

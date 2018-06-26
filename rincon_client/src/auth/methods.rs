@@ -1,9 +1,9 @@
 //! Methods for user authentication.
 
-use rincon_core::api::auth::Credentials;
-use rincon_core::api::method::{Method, Parameters, Operation, Prepare, RpcReturnType};
-use rincon_core::arango::protocol::{FIELD_CODE, PATH_OPEN_AUTH};
 use super::types::*;
+use rincon_core::api::auth::Credentials;
+use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use rincon_core::arango::protocol::{FIELD_CODE, PATH_OPEN_AUTH};
 
 /// Authenticates a user.
 #[derive(Debug, Clone, PartialEq)]
@@ -23,7 +23,9 @@ impl Authenticate {
     /// Constructs a new instance of the `Authenticate` initialized with the
     /// given username and password.
     pub fn with_user<N, P>(username: N, password: P) -> Self
-        where N: Into<String>, P: Into<String>
+    where
+        N: Into<String>,
+        P: Into<String>,
     {
         Authenticate {
             request: AuthenticationRequest::new(username, password),

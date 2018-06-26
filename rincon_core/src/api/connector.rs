@@ -56,11 +56,12 @@ pub trait Connector {
 pub trait Execute {
     /// Executes the given method asynchronously and returns a future result.
     fn execute<M>(&self, method: M) -> FutureResult<M>
-        where M: 'static + Method + Prepare;
+    where
+        M: 'static + Method + Prepare;
 }
 
 /// The result of any asynchronous method call
-pub type FutureResult<M> = Box<Future<Item=<M as Method>::Result, Error=Error>>;
+pub type FutureResult<M> = Box<Future<Item = <M as Method>::Result, Error = Error>>;
 
 /// The type of error that can occur during communication with the server.
 #[derive(Debug, Clone, PartialEq, Eq, Fail)]

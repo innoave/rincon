@@ -1,4 +1,3 @@
-
 use super::*;
 
 #[test]
@@ -109,7 +108,11 @@ fn convert_usize_value_to_string() {
 #[ignore] //TODO make test pass
 #[test]
 fn convert_string_vec_value_to_string() {
-    let value = Value::VecString(vec!["a".to_owned(), "wooxoi xcvakljs".to_owned(), "eirwo".to_owned()]);
+    let value = Value::VecString(vec![
+        "a".to_owned(),
+        "wooxoi xcvakljs".to_owned(),
+        "eirwo".to_owned(),
+    ]);
     let string = value.to_string();
     assert_eq!(String::from(r#"["a","wooxoi xcvakljs","eirwo"]"#), string)
 }
@@ -145,14 +148,14 @@ fn convert_i8_vec_value_to_string() {
 
 #[test]
 fn convert_isize_vec_value_to_string() {
-    let value = Value::VecISize(vec![-1,2,-3,4,-5]);
+    let value = Value::VecISize(vec![-1, 2, -3, 4, -5]);
     let string = value.to_string();
     assert_eq!(String::from(r#"[-1,2,-3,4,-5]"#), string)
 }
 
 #[test]
 fn convert_u8_vec_value_to_string() {
-    let value = Value::VecU8(vec![0,1,0,1]);
+    let value = Value::VecU8(vec![0, 1, 0, 1]);
     let string = value.to_string();
     assert_eq!(String::from(r#"[0,1,0,1]"#), string)
 }

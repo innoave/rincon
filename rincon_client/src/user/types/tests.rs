@@ -1,8 +1,7 @@
-
 use serde_json;
 
-use rincon_core::api::types::{Empty, EMPTY};
 use super::*;
+use rincon_core::api::types::{Empty, EMPTY};
 
 #[test]
 fn serialize_new_user_without_info_to_json() {
@@ -25,5 +24,8 @@ fn serialize_inactive_new_user_to_json() {
     let mut new_user: NewUser<Empty> = NewUser::with_name("cesar", "s3cr3t");
     new_user.set_active(Some(false));
     let json_str = serde_json::to_string(&new_user).unwrap();
-    assert_eq!(r#"{"user":"cesar","passwd":"s3cr3t","active":false}"#, &json_str);
+    assert_eq!(
+        r#"{"user":"cesar","passwd":"s3cr3t","active":false}"#,
+        &json_str
+    );
 }

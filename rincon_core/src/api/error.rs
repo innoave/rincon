@@ -1,4 +1,3 @@
-
 use std::fmt;
 
 pub use arango::ErrorCode;
@@ -19,7 +18,8 @@ impl Error {
     /// Creates a new `Error` with the given status code, error code and
     /// message.
     pub fn new<M>(status_code: u16, error_code: ErrorCode, message: M) -> Self
-        where M: Into<String>
+    where
+        M: Into<String>,
     {
         Error {
             status_code,
@@ -46,7 +46,11 @@ impl Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(&format!("Error {}: {} (Status: {})",
-            &self.error_code.as_u16(), &self.message, &self.status_code))
+        f.write_str(&format!(
+            "Error {}: {} (Status: {})",
+            &self.error_code.as_u16(),
+            &self.message,
+            &self.status_code
+        ))
     }
 }

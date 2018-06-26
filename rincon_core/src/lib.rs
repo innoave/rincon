@@ -6,15 +6,16 @@
 //!
 //! The main parts of the API are:
 //!
-//! * `datasource` : the `DataSource` struct holds the parameters needed by `Connector`s
-//! * `connector` : a `Connector` defines how the driver communicates with an ArangoDB server
-//! * `auth` : types used to specify the authentication method and credentials
-//! * `method` : defines the traits `Method`, `Prepare` and `Execute` that need
-//!   to be implemented by all methods for the ArangoDB REST API in order that
-//!   they can be executed by a `Connection` of a `Connector`.
-//! * `query` : the `Query` struct holds AQL-queries with query-parameters
-//! * `types` : defines common types, such as Url, Value, JsonValue and JsonString
-//! * `arango` : defines constants of values used by the ArangoDB REST API
+//! * `datasource` : the `DataSource` struct holds the parameters needed by
+//! `Connector`s * `connector` : a `Connector` defines how the driver
+//! communicates with an ArangoDB server * `auth` : types used to specify the
+//! authentication method and credentials * `method` : defines the traits
+//! `Method`, `Prepare` and `Execute` that need to be implemented by all
+//! methods for the ArangoDB REST API in order that they can be executed by a
+//! `Connection` of a `Connector`. * `query` : the `Query` struct holds
+//! AQL-queries with query-parameters * `types` : defines common types, such as
+//! Url, Value, JsonValue and JsonString * `arango` : defines constants of
+//! values used by the ArangoDB REST API
 //!
 //! By defining this core API the driver can be easily extended with new methods
 //! that may be added in newer versions of ArangoDB and use different
@@ -22,24 +23,19 @@
 //! implemented only once.
 
 #![doc(html_root_url = "https://docs.rs/rincon_core/0.1.0")]
-
 #![warn(
-    missing_copy_implementations,
-    missing_debug_implementations,
-    missing_docs,
-    trivial_casts,
-    trivial_numeric_casts,
-    unsafe_code,
-    unstable_features,
-    unused_import_braces,
-    unused_qualifications,
+    missing_copy_implementations, missing_debug_implementations, missing_docs, trivial_casts,
+    trivial_numeric_casts, unsafe_code, unstable_features, unused_import_braces,
+    unused_qualifications
 )]
 
-#[macro_use] extern crate failure;
+#[macro_use]
+extern crate failure;
 extern crate futures;
 extern crate regex;
 extern crate serde;
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 extern crate url;
 

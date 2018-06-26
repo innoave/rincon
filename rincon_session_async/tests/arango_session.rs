@@ -1,11 +1,11 @@
-
-#[macro_use] extern crate galvanic_assert;
+#[macro_use]
+extern crate galvanic_assert;
 
 extern crate tokio_core;
 
-extern crate rincon_core;
 extern crate rincon_client;
 extern crate rincon_connector;
+extern crate rincon_core;
 extern crate rincon_session_async;
 extern crate rincon_test_helper;
 
@@ -13,28 +13,31 @@ use galvanic_assert::matchers::*;
 
 use tokio_core::reactor::Core;
 
-use rincon_core::api::connector::Execute;
-use rincon_connector::http::JsonHttpConnector;
 use rincon_client::database::methods::DropDatabase;
+use rincon_connector::http::JsonHttpConnector;
+use rincon_core::api::connector::Execute;
 use rincon_session_async::*;
 
 use rincon_test_helper::*;
 
-
 #[test]
 fn create_database() {
-    arango_session_test(|connector, mut core| {
+    arango_session_test(
+        |connector, mut core| {
+            let arango = ArangoSession::new(connector);
 
-        let arango = ArangoSession::new(connector);
+            let database =
+                core.run(arango.create_database::<Empty>(NewDatabase::new(
+                    "the_social_network",
+                    vec![NewUser::with_name("an_user", "a_pass")],
+                ))).unwrap();
 
-        let database = core.run(arango.create_database::<Empty>(NewDatabase::new("the_social_network",
-            vec![NewUser::with_name("an_user", "a_pass")]))).unwrap();
-
-        assert_that!(&database.name(), eq("the_social_network"));
-    },
-    |conn, ref mut core| {
-        let _ = core.run(conn.execute(DropDatabase::with_name("the_social_network")));
-    });
+            assert_that!(&database.name(), eq("the_social_network"));
+        },
+        |conn, ref mut core| {
+            let _ = core.run(conn.execute(DropDatabase::with_name("the_social_network")));
+        },
+    );
 }
 
 #[test]

@@ -1,7 +1,7 @@
 //! Types used in methods for managing collections.
 
-use std::mem;
 use std::i32;
+use std::mem;
 
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
@@ -255,7 +255,10 @@ pub struct NewCollection {
 
 impl NewCollection {
     fn new<N, K, S>(name: N, kind: K, is_system: S) -> Self
-        where N: Into<String>, K: Into<Option<CollectionType>>, S: Into<Option<bool>>
+    where
+        N: Into<String>,
+        K: Into<Option<CollectionType>>,
+        S: Into<Option<bool>>,
     {
         NewCollection {
             name: name.into(),
@@ -287,7 +290,8 @@ impl NewCollection {
     /// All other attributes of the collection are set to their default values
     /// by the ArangoDB server.
     pub fn with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         NewCollection::new(name.into(), None, None)
     }
@@ -299,7 +303,8 @@ impl NewCollection {
     /// All other attributes of the collection are set to their default values
     /// by the ArangoDB server.
     pub fn documents_with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         NewCollection::new(name.into(), Some(CollectionType::Documents), None)
     }
@@ -311,7 +316,8 @@ impl NewCollection {
     /// All other attributes of the collection are set to their default values
     /// by the ArangoDB server.
     pub fn edges_with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         NewCollection::new(name.into(), Some(CollectionType::Edges), None)
     }
@@ -323,7 +329,8 @@ impl NewCollection {
     /// All other attributes of the collection are set to their default values
     /// by the ArangoDB server.
     pub fn system_documents_with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         NewCollection::new(name.into(), Some(CollectionType::Documents), Some(true))
     }
@@ -335,7 +342,8 @@ impl NewCollection {
     /// All other attributes of the collection are set to their default values
     /// by the ArangoDB server.
     pub fn system_edges_with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         NewCollection::new(name.into(), Some(CollectionType::Edges), Some(true))
     }
@@ -375,7 +383,8 @@ impl NewCollection {
     /// Sets whether the server waits for sync to the filesystem before
     /// sending the response.
     pub fn set_wait_for_sync<W>(&mut self, wait_for_sync: W)
-        where W: Into<Option<bool>>
+    where
+        W: Into<Option<bool>>,
     {
         self.wait_for_sync = wait_for_sync.into();
     }
@@ -389,7 +398,8 @@ impl NewCollection {
     #[cfg(feature = "cluster")]
     /// Sets the number of shards that shall be created for this collection.
     pub fn set_number_of_shards<S>(&mut self, number_of_shards: S)
-        where S: Into<Option<u16>>
+    where
+        S: Into<Option<u16>>,
     {
         self.number_of_shards = number_of_shards.into();
     }
@@ -403,7 +413,8 @@ impl NewCollection {
     #[cfg(feature = "cluster")]
     /// Sets the keys to determine the shard for a collection.
     pub fn set_shard_keys<K>(&mut self, shard_keys: K)
-        where K: Into<Option<String>>
+    where
+        K: Into<Option<String>>,
     {
         self.shard_keys = shard_keys.into();
     }
@@ -417,7 +428,8 @@ impl NewCollection {
     #[cfg(feature = "cluster")]
     /// Sets the number of copies that are kept of each shard.
     pub fn set_replication_factor<R>(&mut self, replication_factor: R)
-        where R: Into<Option<u16>>
+    where
+        R: Into<Option<u16>>,
     {
         self.replication_factor = replication_factor.into();
     }
@@ -431,7 +443,8 @@ impl NewCollection {
     #[cfg(feature = "mmfiles")]
     /// Sets whether this collection is going to be a volatile collection.
     pub fn set_volatile<V>(&mut self, volatile: V)
-        where V: Into<Option<bool>>
+    where
+        V: Into<Option<bool>>,
     {
         self.is_volatile = volatile.into();
     }
@@ -445,7 +458,8 @@ impl NewCollection {
     #[cfg(feature = "mmfiles")]
     /// Sets whether this collection is going to be compacted.
     pub fn set_do_compact<C>(&mut self, do_compact: C)
-        where C: Into<Option<bool>>
+    where
+        C: Into<Option<bool>>,
     {
         self.do_compact = do_compact.into();
     }
@@ -460,7 +474,8 @@ impl NewCollection {
     /// Sets the number of buckets into which indexes using a hash table
     /// are split.
     pub fn set_index_buckets<B>(&mut self, index_buckets: B)
-        where B: Into<Option<u16>>
+    where
+        B: Into<Option<u16>>,
     {
         self.index_buckets = index_buckets.into();
     }
@@ -475,7 +490,8 @@ impl NewCollection {
     #[cfg(feature = "mmfiles")]
     /// Sets the maximal size of a journal or datafile in bytes.
     pub fn set_journal_size<J>(&mut self, journal_size: J)
-        where J: Into<Option<u64>>
+    where
+        J: Into<Option<u64>>,
     {
         self.journal_size = journal_size.into();
     }
@@ -533,7 +549,8 @@ impl NewKeyOptions {
     /// solely be responsible for generating keys and supplying own key values
     /// in the _key attribute of documents is considered an error.
     pub fn set_allow_user_keys<U>(&mut self, allow_user_keys: U)
-        where U: Into<Option<bool>>
+    where
+        U: Into<Option<bool>>,
     {
         self.allow_user_keys = allow_user_keys.into();
     }
@@ -545,8 +562,7 @@ impl NewKeyOptions {
 
     /// Sets the type of the key generator that shall be used by the new
     /// collection.
-    pub fn set_kind(&mut self, kind: KeyGeneratorType)
-    {
+    pub fn set_kind(&mut self, kind: KeyGeneratorType) {
         self.kind = kind;
     }
 
@@ -559,7 +575,8 @@ impl NewKeyOptions {
     ///
     /// Used for 'AutoIncrement' key generator only.
     pub fn set_increment<I>(&mut self, increment: I)
-        where I: Into<Option<u64>>
+    where
+        I: Into<Option<u64>>,
     {
         self.increment = increment.into();
     }
@@ -573,7 +590,8 @@ impl NewKeyOptions {
     ///
     /// Used for 'AutoIncrement' key generator only.
     pub fn set_offset<O>(&mut self, offset: O)
-        where O: Into<Option<u64>>
+    where
+        O: Into<Option<u64>>,
     {
         self.offset = offset.into();
     }
@@ -736,7 +754,7 @@ impl From<CollectionProperties> for BasicCollectionProperties {
             is_system: properties.is_system,
             wait_for_sync: properties.wait_for_sync,
             #[cfg(feature = "mmfiles")]
-            is_volatile: properties.is_volatile
+            is_volatile: properties.is_volatile,
         }
     }
 }
@@ -911,7 +929,8 @@ impl CollectionPropertiesUpdate {
     /// Sets whether the server waits for sync to the filesystem before
     /// sending the response.
     pub fn set_wait_for_sync<W>(&mut self, wait_for_sync: W)
-        where W: Into<Option<bool>>
+    where
+        W: Into<Option<bool>>,
     {
         self.wait_for_sync = wait_for_sync.into();
     }
@@ -925,7 +944,8 @@ impl CollectionPropertiesUpdate {
     #[cfg(feature = "mmfiles")]
     /// Sets the maximal size of a journal or datafile in bytes.
     pub fn set_journal_size<J>(&mut self, journal_size: J)
-        where J: Into<Option<u64>>
+    where
+        J: Into<Option<u64>>,
     {
         self.journal_size = journal_size.into();
     }
@@ -948,7 +968,8 @@ impl RenameTo {
     /// Constructs a new instance of the `RenameTo` struct with the given
     /// new name.
     pub fn new<N>(new_name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         RenameTo {
             name: new_name.into(),
@@ -1011,7 +1032,8 @@ pub enum CollectionType {
 
 impl Serialize for CollectionType {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use self::CollectionType::*;
         let type_id = match *self {
@@ -1024,15 +1046,19 @@ impl Serialize for CollectionType {
 
 impl<'de> Deserialize<'de> for CollectionType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
-        use serde::de::Error;
         use self::CollectionType::*;
+        use serde::de::Error;
         let value = i32::deserialize(deserializer)?;
         match value {
             COLLECTION_TYPE_DOCUMENTS => Ok(Documents),
             COLLECTION_TYPE_EDGES => Ok(Edges),
-            _ => Err(D::Error::custom(format!("Unknown collection type: {:?}", value))),
+            _ => Err(D::Error::custom(format!(
+                "Unknown collection type: {:?}",
+                value
+            ))),
         }
     }
 }
@@ -1058,7 +1084,8 @@ pub enum CollectionStatus {
 
 impl Serialize for CollectionStatus {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use self::CollectionStatus::*;
         let status_id = match *self {
@@ -1076,7 +1103,8 @@ impl Serialize for CollectionStatus {
 
 impl<'de> Deserialize<'de> for CollectionStatus {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use self::CollectionStatus::*;
         let value = i32::deserialize(deserializer)?;
@@ -1105,7 +1133,8 @@ pub enum KeyGeneratorType {
 
 impl Serialize for KeyGeneratorType {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use self::KeyGeneratorType::*;
         let type_str = match *self {
@@ -1118,15 +1147,19 @@ impl Serialize for KeyGeneratorType {
 
 impl<'de> Deserialize<'de> for KeyGeneratorType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
-        use serde::de::Error;
         use self::KeyGeneratorType::*;
+        use serde::de::Error;
         let value = String::deserialize(deserializer)?;
         match &value[..] {
             KEY_GENERATOR_TYPE_TRADITIONAL => Ok(Traditional),
             KEY_GENERATOR_TYPE_AUTO_INCREMENT => Ok(AutoIncrement),
-            _ => Err(D::Error::custom(format!("Unknown KeyGeneratorType: {:?}", value))),
+            _ => Err(D::Error::custom(format!(
+                "Unknown KeyGeneratorType: {:?}",
+                value
+            ))),
         }
     }
 }

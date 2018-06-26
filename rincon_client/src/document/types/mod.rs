@@ -10,9 +10,10 @@ use std::str::FromStr;
 use serde::de::{Deserialize, DeserializeOwned, Deserializer, MapAccess, Visitor};
 use serde::ser::{Serialize, Serializer};
 
-use rincon_core::arango::protocol::{FIELD_ENTITY_ID, FIELD_ENTITY_KEY,
-    FIELD_ENTITY_REVISION, FIELD_ENTITY_NEW, FIELD_ENTITY_OLD,
-    FIELD_ENTITY_OLD_REVISION, Handle, HandleOption};
+use rincon_core::arango::protocol::{
+    Handle, HandleOption, FIELD_ENTITY_ID, FIELD_ENTITY_KEY, FIELD_ENTITY_NEW, FIELD_ENTITY_OLD,
+    FIELD_ENTITY_OLD_REVISION, FIELD_ENTITY_REVISION,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum DocumentIdOption {
@@ -55,7 +56,8 @@ impl From<DocumentKey> for DocumentIdOption {
 
 impl Serialize for DocumentIdOption {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use self::DocumentIdOption::*;
         match *self {
@@ -67,7 +69,8 @@ impl Serialize for DocumentIdOption {
 
 impl<'de> Deserialize<'de> for DocumentIdOption {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;
@@ -83,12 +86,20 @@ pub struct DocumentId {
 
 impl DocumentId {
     pub fn new<C, K>(collection_name: C, document_key: K) -> Self
-        where C: Into<String>, K: Into<String>
+    where
+        C: Into<String>,
+        K: Into<String>,
     {
         let collection_name = collection_name.into();
-        assert!(!collection_name.contains('/'), "A collection name must not contain any '/' character");
+        assert!(
+            !collection_name.contains('/'),
+            "A collection name must not contain any '/' character"
+        );
         let document_key = document_key.into();
-        assert!(!document_key.contains('/'), "A document key must not contain any '/' character");
+        assert!(
+            !document_key.contains('/'),
+            "A document key must not contain any '/' character"
+        );
         DocumentId {
             collection_name,
             document_key,
@@ -131,7 +142,8 @@ impl FromStr for DocumentId {
 
 impl Serialize for DocumentId {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_str(&self.to_string())
     }
@@ -139,7 +151,8 @@ impl Serialize for DocumentId {
 
 impl<'de> Deserialize<'de> for DocumentId {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;
@@ -152,16 +165,24 @@ pub struct DocumentKey(String);
 
 impl DocumentKey {
     pub fn new<K>(document_key: K) -> Self
-        where K: Into<String>
+    where
+        K: Into<String>,
     {
         let document_key = document_key.into();
-        assert!(!document_key.contains('/'), "A document key must not contain any '/' character, but got: {:?}", &document_key);
+        assert!(
+            !document_key.contains('/'),
+            "A document key must not contain any '/' character, but got: {:?}",
+            &document_key
+        );
         DocumentKey(document_key)
     }
 
     pub fn from_string(value: String) -> Result<Self, String> {
         if value.contains('/') {
-            Err(format!("A document key must not contain any '/' character, but got {:?}", &value))
+            Err(format!(
+                "A document key must not contain any '/' character, but got {:?}",
+                &value
+            ))
         } else {
             Ok(DocumentKey(value))
         }
@@ -192,7 +213,8 @@ impl From<DocumentId> for DocumentKey {
 
 impl Serialize for DocumentKey {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_str(self.as_str())
     }
@@ -200,7 +222,8 @@ impl Serialize for DocumentKey {
 
 impl<'de> Deserialize<'de> for DocumentKey {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;
@@ -213,7 +236,8 @@ pub struct Revision(String);
 
 impl Revision {
     pub fn new<R>(value: R) -> Self
-        where R: Into<String>
+    where
+        R: Into<String>,
     {
         Revision(value.into())
     }
@@ -270,7 +294,8 @@ impl From<DocumentHeader> for DocumentSelector {
 
 impl Serialize for DocumentSelector {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use self::DocumentSelector::*;
         match *self {
@@ -296,7 +321,8 @@ enum DocumentField {
 
 impl<'de> Deserialize<'de> for DocumentField {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
 
@@ -310,7 +336,8 @@ impl<'de> Deserialize<'de> for DocumentField {
             }
 
             fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-                where E: Error,
+            where
+                E: Error,
             {
                 Ok(match value {
                     FIELD_ENTITY_ID => DocumentField::Id,
@@ -340,11 +367,7 @@ pub struct DocumentHeader {
 
 impl DocumentHeader {
     pub fn new(id: DocumentId, key: DocumentKey, revision: Revision) -> Self {
-        DocumentHeader {
-            id,
-            key,
-            revision,
-        }
+        DocumentHeader { id, key, revision }
     }
 
     pub fn id(&self) -> &DocumentId {
@@ -417,12 +440,7 @@ pub struct Document<T> {
 }
 
 impl<T> Document<T> {
-    pub fn new(
-        id: DocumentId,
-        key: DocumentKey,
-        revision: Revision,
-        content: T,
-    ) -> Self {
+    pub fn new(id: DocumentId, key: DocumentKey, revision: Revision, content: T) -> Self {
         Document {
             id,
             key,
@@ -461,18 +479,21 @@ impl<T> Document<T> {
 }
 
 impl<'de, T> Deserialize<'de> for Document<T>
-    where T: DeserializeOwned,
+where
+    T: DeserializeOwned,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
-        use serde_json::{Map, Value, from_value};
+        use serde_json::{from_value, Map, Value};
 
         struct DocumentVisitor<T>(PhantomData<T>);
 
         impl<'de, T> Visitor<'de> for DocumentVisitor<T>
-            where T: DeserializeOwned,
+        where
+            T: DeserializeOwned,
         {
             type Value = Document<T>;
 
@@ -481,7 +502,8 @@ impl<'de, T> Deserialize<'de> for Document<T>
             }
 
             fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
-                where A: MapAccess<'de>,
+            where
+                A: MapAccess<'de>,
             {
                 let mut id: Option<String> = None;
                 let mut key: Option<String> = None;
@@ -502,7 +524,8 @@ impl<'de, T> Deserialize<'de> for Document<T>
                             revision = fields.next_value()?;
                         },
                         DocumentField::OldRevision => {
-                            other.insert(FIELD_ENTITY_OLD_REVISION.to_owned(), fields.next_value()?);
+                            other
+                                .insert(FIELD_ENTITY_OLD_REVISION.to_owned(), fields.next_value()?);
                         },
                         DocumentField::New | DocumentField::Old => {
                             content = fields.next_value()?;
@@ -557,14 +580,12 @@ pub struct NewDocument<T> {
 
 impl<T> NewDocument<T> {
     pub fn from_content(content: T) -> Self {
-        NewDocument {
-            key: None,
-            content,
-        }
+        NewDocument { key: None, content }
     }
 
     pub fn with_key<K>(mut self, key: K) -> Self
-        where K: Into<Option<DocumentKey>>
+    where
+        K: Into<Option<DocumentKey>>,
     {
         self.key = key.into();
         self
@@ -586,10 +607,12 @@ impl<T> From<T> for NewDocument<T> {
 }
 
 impl<T> Serialize for NewDocument<T>
-    where T: Serialize + Debug
+where
+    T: Serialize + Debug,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use serde::ser::Error;
         use serde_json::{self, Value};
@@ -647,18 +670,23 @@ impl<Old, New> UpdatedDocument<Old, New> {
 }
 
 impl<'de, Old, New> Deserialize<'de> for UpdatedDocument<Old, New>
-    where Old: DeserializeOwned, New: DeserializeOwned
+where
+    Old: DeserializeOwned,
+    New: DeserializeOwned,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
-        use serde_json::{Map, Value, from_value};
+        use serde_json::{from_value, Map, Value};
 
         struct DocumentVisitor<Old, New>(PhantomData<Old>, PhantomData<New>);
 
         impl<'de, Old, New> Visitor<'de> for DocumentVisitor<Old, New>
-            where Old: DeserializeOwned, New: DeserializeOwned
+        where
+            Old: DeserializeOwned,
+            New: DeserializeOwned,
         {
             type Value = UpdatedDocument<Old, New>;
 
@@ -667,7 +695,8 @@ impl<'de, Old, New> Deserialize<'de> for UpdatedDocument<Old, New>
             }
 
             fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
-                where A: MapAccess<'de>,
+            where
+                A: MapAccess<'de>,
             {
                 let mut id: Option<String> = None;
                 let mut key: Option<String> = None;
@@ -758,7 +787,8 @@ impl<Upd> DocumentUpdate<Upd> {
     }
 
     pub fn with_revision<Rev>(mut self, revision: Rev) -> Self
-        where Rev: Into<Revision>
+    where
+        Rev: Into<Revision>,
     {
         self.revision = Some(revision.into());
         self
@@ -778,10 +808,12 @@ impl<Upd> DocumentUpdate<Upd> {
 }
 
 impl<Upd> Serialize for DocumentUpdate<Upd>
-    where Upd: Serialize + Debug
+where
+    Upd: Serialize + Debug,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use serde::ser::Error;
         use serde_json::{self, Value};

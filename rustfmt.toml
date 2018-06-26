@@ -1,12 +1,7 @@
 
-attributes_on_same_line_as_field = false
-closure_block_indent_threshold = 2
 format_strings = false
 imports_indent = "Block"
 match_block_trailing_comma = true
-match_pattern_separator_break_point = "Back"
-reorder_imported_names = true
 reorder_imports = true
-reorder_imports_in_group = true
-take_source_hints = true
+reorder_modules = true
 wrap_comments = true

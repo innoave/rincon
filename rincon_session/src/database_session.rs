@@ -1,4 +1,3 @@
-
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -6,9 +5,8 @@ use serde::de::DeserializeOwned;
 use tokio_core::reactor::Core;
 
 use rincon_client::aql::methods::{ExplainQuery, ParseQuery};
-use rincon_client::aql::types::{ExplainedQuery, ExplainOptions, ParsedQuery};
-use rincon_client::collection::methods::{CreateCollection, DropCollection,
-    ListCollections};
+use rincon_client::aql::types::{ExplainOptions, ExplainedQuery, ParsedQuery};
+use rincon_client::collection::methods::{CreateCollection, DropCollection, ListCollections};
 use rincon_client::collection::types::Collection;
 use rincon_client::cursor::methods::CreateCursor;
 use rincon_client::cursor::types::NewCursor;
@@ -22,10 +20,10 @@ use rincon_core::api::method::{Method, Prepare};
 use rincon_core::api::query::Query;
 use rincon_core::api::types::Entity;
 
+use super::Result;
 use collection_session::CollectionSession;
 use cursor_session::CursorSession;
 use graph_session::GraphSession;
-use super::Result;
 
 /// A session for operating with a specific database.
 #[derive(Debug)]
@@ -36,15 +34,12 @@ pub struct DatabaseSession<C> {
 }
 
 impl<C> DatabaseSession<C>
-    where C: 'static + Connector
+where
+    C: 'static + Connector,
 {
     /// Instantiates a new `DatabaseSession` for the database with the given
     /// name.
-    pub(crate) fn new(
-        database_name: String,
-        connector: Rc<C>,
-        core: Rc<RefCell<Core>>,
-    ) -> Self {
+    pub(crate) fn new(database_name: String, connector: Rc<C>, core: Rc<RefCell<Core>>) -> Self {
         DatabaseSession {
             database_name,
             connector,
@@ -54,11 +49,13 @@ impl<C> DatabaseSession<C>
 
     /// Executes an API method applied to the database of this session.
     pub fn execute<M>(&self, method: M) -> Result<<M as Method>::Result>
-        where M: 'static + Method + Prepare
+    where
+        M: 'static + Method + Prepare,
     {
         self.core.borrow_mut().run(
-            self.connector.connection(&self.database_name)
-                .execute(method)
+            self.connector
+                .connection(&self.database_name)
+                .execute(method),
         )
     }
 
@@ -80,8 +77,10 @@ impl<C> DatabaseSession<C>
     /// longer valid.
     pub fn drop(self) -> Result<bool> {
         let database_name = self.database_name.to_owned();
-        self.core.borrow_mut().run(self.connector.system_connection()
-            .execute(DropDatabase::new(database_name))
+        self.core.borrow_mut().run(
+            self.connector
+                .system_connection()
+                .execute(DropDatabase::new(database_name)),
         )
     }
 
@@ -93,15 +92,17 @@ impl<C> DatabaseSession<C>
     /// To specify cursor options and/or query execution options use the
     /// `query_opt(&self, NewCursor)` function.
     pub fn query<T>(&self, query: Query) -> Result<CursorSession<T, C>>
-        where T: 'static + DeserializeOwned
+    where
+        T: 'static + DeserializeOwned,
     {
-        self.execute(CreateCursor::from_query(query))
-            .map(|cursor| CursorSession::new(
+        self.execute(CreateCursor::from_query(query)).map(|cursor| {
+            CursorSession::new(
                 cursor,
                 self.database_name.clone(),
                 self.connector.clone(),
                 self.core.clone(),
-            ))
+            )
+        })
     }
 
     /// Executes a query and returns a cursor with the first result set.
@@ -112,15 +113,17 @@ impl<C> DatabaseSession<C>
     /// To execute a query with all options left at their defaults the
     /// `query(&self, Query)` function might be more suitable.
     pub fn query_opt<T>(&self, new_cursor: NewCursor) -> Result<CursorSession<T, C>>
-        where T: 'static + DeserializeOwned
+    where
+        T: 'static + DeserializeOwned,
     {
-        self.execute(CreateCursor::new(new_cursor))
-            .map(|cursor| CursorSession::new(
+        self.execute(CreateCursor::new(new_cursor)).map(|cursor| {
+            CursorSession::new(
                 cursor,
                 self.database_name.clone(),
                 self.connector.clone(),
                 self.core.clone(),
-            ))
+            )
+        })
     }
 
     /// Generates an execution plan for a query but does not execute it.
@@ -132,7 +135,11 @@ impl<C> DatabaseSession<C>
     ///
     /// Some options about how many execution plans are generated and the
     /// configuration options for the query optimizer can be provided.
-    pub fn explain_query_opt(&self, query: Query, options: ExplainOptions) -> Result<ExplainedQuery> {
+    pub fn explain_query_opt(
+        &self,
+        query: Query,
+        options: ExplainOptions,
+    ) -> Result<ExplainedQuery> {
         self.execute(ExplainQuery::with_options(query, options))
     }
 
@@ -141,14 +148,16 @@ impl<C> DatabaseSession<C>
     /// If the query can be parsed without error the abstract syntax tree (AST)
     /// of the query is returned.
     pub fn parse_query<Q>(&self, query: Q) -> Result<ParsedQuery>
-        where Q: Into<String>
+    where
+        Q: Into<String>,
     {
         self.execute(ParseQuery::from_query(query.into()))
     }
 
     /// Fetch the document with the given id from the database of this session.
     pub fn get_document<T>(&self, id: DocumentId) -> Result<Document<T>>
-        where T: 'static + DeserializeOwned
+    where
+        T: 'static + DeserializeOwned,
     {
         self.execute(GetDocument::with_id(id))
     }
@@ -156,7 +165,8 @@ impl<C> DatabaseSession<C>
     /// Returns a new `CollectionSession` for the collection with the given
     /// name.
     pub fn use_collection_with_name<N>(&self, collection_name: N) -> CollectionSession<C>
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         CollectionSession::new(
             Entity::Name(collection_name.into()),
@@ -178,23 +188,25 @@ impl<C> DatabaseSession<C>
 
     /// Creates a new collection within the database of this session.
     pub fn create_collection<N>(&self, collection_name: N) -> Result<CollectionSession<C>>
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         self.execute(CreateCollection::with_name(collection_name))
-            .map(|props|
+            .map(|props| {
                 CollectionSession::new(
                     Entity::Object(Collection::from(props)),
                     self.database_name.clone(),
                     self.connector.clone(),
                     self.core.clone(),
                 )
-            )
+            })
     }
 
     /// Drops the collection with the given name from the database of this
     /// session and returns the identifier of the dropped collection.
     pub fn drop_collection<N>(&self, collection_name: N) -> Result<String>
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         self.execute(DropCollection::with_name(collection_name))
     }
@@ -214,7 +226,8 @@ impl<C> DatabaseSession<C>
 
     /// Returns a new `GraphSession` for the graph with the given name.
     pub fn use_graph_with_name<N>(&self, graph_name: N) -> GraphSession<C>
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         GraphSession::new(
             Entity::Name(graph_name.into()),
@@ -241,14 +254,7 @@ impl<C> DatabaseSession<C>
         let connector = self.connector.clone();
         let database_name = self.database_name.clone();
         self.execute(CreateGraph::new(new_graph))
-            .map(|graph|
-                GraphSession::new(
-                    Entity::Object(graph),
-                    database_name,
-                    connector,
-                    core,
-                )
-            )
+            .map(|graph| GraphSession::new(Entity::Object(graph), database_name, connector, core))
     }
 
     /// Drops the graph with the given name from the database of this session.
@@ -256,7 +262,8 @@ impl<C> DatabaseSession<C>
     /// This function returns true if the graph has been deleted and false
     /// otherwise.
     pub fn drop_graph<N>(&self, graph_name: N) -> Result<bool>
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         self.execute(DropGraph::with_name(graph_name))
     }

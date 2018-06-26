@@ -1,4 +1,3 @@
-
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::iter::IntoIterator;
@@ -9,16 +8,19 @@ use serde::ser::Serialize;
 use tokio_core::reactor::Core;
 
 use rincon_client::collection::methods::*;
-use rincon_client::collection::types::{Collection, CollectionProperties,
-    CollectionPropertiesUpdate, CollectionRevision, RenameTo};
+use rincon_client::collection::types::{
+    Collection, CollectionProperties, CollectionPropertiesUpdate, CollectionRevision, RenameTo,
+};
 use rincon_client::document::methods::*;
-use rincon_client::document::types::{Document, DocumentHeader, DocumentId,
-    DocumentKey, DocumentModifyOptions, DocumentReplaceOptions, DocumentUpdate,
-    NewDocument, UpdatedDocument};
+use rincon_client::document::types::{
+    Document, DocumentHeader, DocumentId, DocumentKey, DocumentModifyOptions,
+    DocumentReplaceOptions, DocumentUpdate, NewDocument, UpdatedDocument,
+};
 use rincon_client::index::methods::*;
-use rincon_client::index::types::{Index, IndexId, IndexIdOption, IndexKey,
-    NewFulltextIndex, NewGeoIndex, NewHashIndex, NewPersistentIndex,
-    NewSkipListIndex};
+use rincon_client::index::types::{
+    Index, IndexId, IndexIdOption, IndexKey, NewFulltextIndex, NewGeoIndex, NewHashIndex,
+    NewPersistentIndex, NewSkipListIndex,
+};
 use rincon_core::api::connector::{Connector, Execute};
 use rincon_core::api::method::{Method, Prepare, ResultList};
 use rincon_core::api::types::Entity;
@@ -35,7 +37,8 @@ pub struct CollectionSession<C> {
 }
 
 impl<C> CollectionSession<C>
-    where C: 'static + Connector
+where
+    C: 'static + Connector,
 {
     /// Instantiates a new `CollectionSession` for the given collection entity.
     pub(crate) fn new(
@@ -54,11 +57,13 @@ impl<C> CollectionSession<C>
 
     /// Executes an API method applied to the database of this session.
     fn execute<M>(&self, method: M) -> Result<<M as Method>::Result>
-        where M: 'static + Method + Prepare
+    where
+        M: 'static + Method + Prepare,
     {
         self.core.borrow_mut().run(
-            self.connector.connection(&self.database_name)
-                .execute(method)
+            self.connector
+                .connection(&self.database_name)
+                .execute(method),
         )
     }
 
@@ -112,14 +117,12 @@ impl<C> CollectionSession<C>
     /// returns a new `CollectionSession` with the entity set in the session.
     pub fn fetch(self) -> Result<CollectionSession<C>> {
         self.execute(GetCollection::with_name(self.name()))
-            .map(|collection|
-                CollectionSession {
-                    entity: Entity::Object(collection),
-                    database_name: self.database_name,
-                    connector: self.connector,
-                    core: self.core,
-                }
-            )
+            .map(|collection| CollectionSession {
+                entity: Entity::Object(collection),
+                database_name: self.database_name,
+                connector: self.connector,
+                core: self.core,
+            })
     }
 
     /// Drops the collection that is represented by this session.
@@ -136,15 +139,18 @@ impl<C> CollectionSession<C>
     /// Renames the collection represented by this session and returns the
     /// renamed collection as a new `CollectionSession`.
     pub fn rename<N>(self, new_name: N) -> Result<CollectionSession<C>>
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
-        self.execute(RenameCollection::new(self.name().into(), RenameTo::new(new_name)))
-            .map(|collection| CollectionSession {
-                entity: Entity::Object(collection),
-                database_name: self.database_name,
-                connector: self.connector,
-                core: self.core,
-            })
+        self.execute(RenameCollection::new(
+            self.name().into(),
+            RenameTo::new(new_name),
+        )).map(|collection| CollectionSession {
+            entity: Entity::Object(collection),
+            database_name: self.database_name,
+            connector: self.connector,
+            core: self.core,
+        })
     }
 
     /// Gets the revision of the collection represented by this session.
@@ -159,15 +165,21 @@ impl<C> CollectionSession<C>
 
     /// Changes the properties of the collection represented by this session
     /// and returns the updated collection properties.
-    pub fn change_properties(&self, properties: CollectionPropertiesUpdate) -> Result<CollectionProperties> {
-        self.execute(ChangeCollectionProperties::new(self.name().into(), properties))
+    pub fn change_properties(
+        &self,
+        properties: CollectionPropertiesUpdate,
+    ) -> Result<CollectionProperties> {
+        self.execute(ChangeCollectionProperties::new(
+            self.name().into(),
+            properties,
+        ))
     }
 
     /// Inserts a new document into this collection.
     pub fn insert_document<D, T>(&self, document: D) -> Result<DocumentHeader>
-        where
-            D: Into<NewDocument<T>>,
-            T: 'static + Serialize + DeserializeOwned + Debug,
+    where
+        D: Into<NewDocument<T>>,
+        T: 'static + Serialize + DeserializeOwned + Debug,
     {
         self.execute(InsertDocument::new(self.name(), document.into()))
     }
@@ -175,20 +187,21 @@ impl<C> CollectionSession<C>
     /// Inserts a new document into this collection and waits until the changes
     /// are written to disk.
     pub fn insert_document_synced<D, T>(&self, document: D) -> Result<DocumentHeader>
-        where
-            D: Into<NewDocument<T>>,
-            T: 'static + Serialize + DeserializeOwned + Debug,
+    where
+        D: Into<NewDocument<T>>,
+        T: 'static + Serialize + DeserializeOwned + Debug,
     {
-        self.execute(InsertDocument::new(self.name(), document.into())
-            .with_force_wait_for_sync(true))
+        self.execute(
+            InsertDocument::new(self.name(), document.into()).with_force_wait_for_sync(true),
+        )
     }
 
     /// Inserts a new document into this collection and returns the newly
     /// created document.
     pub fn insert_document_return_new<D, T>(&self, document: D) -> Result<Document<T>>
-        where
-            D: Into<NewDocument<T>>,
-            T: 'static + Serialize + DeserializeOwned + Debug,
+    where
+        D: Into<NewDocument<T>>,
+        T: 'static + Serialize + DeserializeOwned + Debug,
     {
         self.execute(InsertDocumentReturnNew::new(self.name(), document.into()))
     }
@@ -196,19 +209,21 @@ impl<C> CollectionSession<C>
     /// Inserts a new document into this collection, waits until the changes are
     /// written to disk and returns the newly created document
     pub fn insert_document_return_new_synced<D, T>(&self, document: D) -> Result<Document<T>>
-        where
-            D: Into<NewDocument<T>>,
-            T: 'static + Serialize + DeserializeOwned + Debug,
+    where
+        D: Into<NewDocument<T>>,
+        T: 'static + Serialize + DeserializeOwned + Debug,
     {
-        self.execute(InsertDocumentReturnNew::new(self.name(), document.into())
-            .with_force_wait_for_sync(true))
+        self.execute(
+            InsertDocumentReturnNew::new(self.name(), document.into())
+                .with_force_wait_for_sync(true),
+        )
     }
 
     /// Inserts multiple documents into this collection.
     pub fn insert_documents<D, T>(&self, documents: D) -> Result<ResultList<DocumentHeader>>
-        where
-            D: IntoIterator<Item=NewDocument<T>>,
-            T: 'static + Serialize + DeserializeOwned + Debug,
+    where
+        D: IntoIterator<Item = NewDocument<T>>,
+        T: 'static + Serialize + DeserializeOwned + Debug,
     {
         self.execute(InsertDocuments::new(self.name(), documents))
     }
@@ -216,67 +231,79 @@ impl<C> CollectionSession<C>
     /// Inserts multiple documents into this collection and waits until the
     /// changes are written to disk.
     pub fn insert_documents_synced<D, T>(&self, documents: D) -> Result<ResultList<DocumentHeader>>
-        where
-            D: IntoIterator<Item=NewDocument<T>>,
-            T: 'static + Serialize + DeserializeOwned + Debug,
+    where
+        D: IntoIterator<Item = NewDocument<T>>,
+        T: 'static + Serialize + DeserializeOwned + Debug,
     {
-        self.execute(InsertDocuments::new(self.name(), documents)
-            .with_force_wait_for_sync(true))
+        self.execute(InsertDocuments::new(self.name(), documents).with_force_wait_for_sync(true))
     }
 
     /// Inserts multiple documents into this collection and returns the newly
     /// created documents.
     pub fn insert_documents_return_new<D, T>(&self, documents: D) -> Result<ResultList<Document<T>>>
-        where
-            D: IntoIterator<Item=NewDocument<T>>,
-            T: 'static + Serialize + DeserializeOwned + Debug,
+    where
+        D: IntoIterator<Item = NewDocument<T>>,
+        T: 'static + Serialize + DeserializeOwned + Debug,
     {
         self.execute(InsertDocumentsReturnNew::new(self.name(), documents))
     }
 
     /// Inserts multiple documents into this collection, waits until the changes
     /// are written to disk and returns the newly created documents.
-    pub fn insert_documents_return_new_synced<D, T>(&self, documents: D) -> Result<ResultList<Document<T>>>
-        where
-            D: IntoIterator<Item=NewDocument<T>>,
-            T: 'static + Serialize + DeserializeOwned + Debug,
+    pub fn insert_documents_return_new_synced<D, T>(
+        &self,
+        documents: D,
+    ) -> Result<ResultList<Document<T>>>
+    where
+        D: IntoIterator<Item = NewDocument<T>>,
+        T: 'static + Serialize + DeserializeOwned + Debug,
     {
-        self.execute(InsertDocumentsReturnNew::new(self.name(), documents)
-            .with_force_wait_for_sync(true))
+        self.execute(
+            InsertDocumentsReturnNew::new(self.name(), documents).with_force_wait_for_sync(true),
+        )
     }
 
     /// Fetches the document with the given key from this collection.
     pub fn get_document<T>(&self, key: DocumentKey) -> Result<Document<T>>
-        where T: 'static + DeserializeOwned
+    where
+        T: 'static + DeserializeOwned,
     {
         self.execute(GetDocument::new(self.name(), key))
     }
 
     /// Fetches the document with the given key from this collection if the
     /// revision matches the given predicate.
-    pub fn get_document_if_match<IfMatch, T>(&self, key: DocumentKey, if_match: IfMatch) -> Result<Document<T>>
-        where
-            IfMatch: Into<String>,
-            T: 'static + DeserializeOwned,
+    pub fn get_document_if_match<IfMatch, T>(
+        &self,
+        key: DocumentKey,
+        if_match: IfMatch,
+    ) -> Result<Document<T>>
+    where
+        IfMatch: Into<String>,
+        T: 'static + DeserializeOwned,
     {
         self.execute(GetDocument::new(self.name(), key).with_if_match(if_match))
     }
 
     /// Fetches the document with the given key from this collection if the
     /// revision does not match the given predicate.
-    pub fn get_document_if_non_match<IfNonMatch, T>(&self, key: DocumentKey, if_non_match: IfNonMatch) -> Result<Document<T>>
-        where
-            IfNonMatch: Into<String>,
-            T: 'static + DeserializeOwned,
+    pub fn get_document_if_non_match<IfNonMatch, T>(
+        &self,
+        key: DocumentKey,
+        if_non_match: IfNonMatch,
+    ) -> Result<Document<T>>
+    where
+        IfNonMatch: Into<String>,
+        T: 'static + DeserializeOwned,
     {
         self.execute(GetDocument::new(self.name(), key).with_if_non_match(if_non_match))
     }
 
     /// Fetches multiple documents with the given keys from this collection.
     pub fn get_documents<Keys, T>(&self, keys: Keys) -> Result<ResultList<Document<T>>>
-        where
-            Keys: IntoIterator<Item=DocumentKey>,
-            T: 'static + DeserializeOwned,
+    where
+        Keys: IntoIterator<Item = DocumentKey>,
+        T: 'static + DeserializeOwned,
     {
         self.execute(GetDocuments::with_keys(self.name(), keys))
     }
@@ -292,9 +319,9 @@ impl<C> CollectionSession<C>
         key: DocumentKey,
         new_document: DocumentUpdate<New>,
     ) -> Result<UpdatedDocument<Old, New>>
-        where
-            Old: 'static + DeserializeOwned,
-            New: 'static + Serialize + DeserializeOwned + Debug,
+    where
+        Old: 'static + DeserializeOwned,
+        New: 'static + Serialize + DeserializeOwned + Debug,
     {
         let id = DocumentId::new(self.name(), key.unwrap());
         self.execute(ReplaceDocument::new(id, new_document))
@@ -315,15 +342,13 @@ impl<C> CollectionSession<C>
         new_document: DocumentUpdate<New>,
         if_match: IfMatch,
     ) -> Result<UpdatedDocument<Old, New>>
-        where
-            IfMatch: Into<String>,
-            Old: 'static + DeserializeOwned,
-            New: 'static + Serialize + DeserializeOwned + Debug,
+    where
+        IfMatch: Into<String>,
+        Old: 'static + DeserializeOwned,
+        New: 'static + Serialize + DeserializeOwned + Debug,
     {
         let id = DocumentId::new(self.name(), key.unwrap());
-        self.execute(ReplaceDocument::new(id, new_document)
-            .with_if_match(if_match)
-        )
+        self.execute(ReplaceDocument::new(id, new_document).with_if_match(if_match))
     }
 
     /// Replaces an existing document with new content if the match condition
@@ -344,15 +369,16 @@ impl<C> CollectionSession<C>
         if_match: IfMatch,
         options: DocumentReplaceOptions,
     ) -> Result<UpdatedDocument<Old, New>>
-        where
-            IfMatch: Into<String>,
-            Old: 'static + DeserializeOwned,
-            New: 'static + Serialize + DeserializeOwned + Debug,
+    where
+        IfMatch: Into<String>,
+        Old: 'static + DeserializeOwned,
+        New: 'static + Serialize + DeserializeOwned + Debug,
     {
         let id = DocumentId::new(self.name(), key.unwrap());
-        self.execute(ReplaceDocument::new(id, new_document)
-            .with_if_match(if_match)
-            .with_options(options)
+        self.execute(
+            ReplaceDocument::new(id, new_document)
+                .with_if_match(if_match)
+                .with_options(options),
         )
     }
 
@@ -370,9 +396,9 @@ impl<C> CollectionSession<C>
         new_document: DocumentUpdate<New>,
         options: DocumentReplaceOptions,
     ) -> Result<UpdatedDocument<Old, New>>
-        where
-            Old: 'static + DeserializeOwned,
-            New: 'static + Serialize + DeserializeOwned + Debug,
+    where
+        Old: 'static + DeserializeOwned,
+        New: 'static + Serialize + DeserializeOwned + Debug,
     {
         let id = DocumentId::new(self.name(), key.unwrap());
         self.execute(ReplaceDocument::new(id, new_document).with_options(options))
@@ -394,10 +420,10 @@ impl<C> CollectionSession<C>
         key: DocumentKey,
         update: DocumentUpdate<Upd>,
     ) -> Result<UpdatedDocument<Old, New>>
-        where
-            Upd: 'static + Serialize + Debug,
-            Old: 'static + DeserializeOwned,
-            New: 'static + DeserializeOwned,
+    where
+        Upd: 'static + Serialize + Debug,
+        Old: 'static + DeserializeOwned,
+        New: 'static + DeserializeOwned,
     {
         let id = DocumentId::new(self.name(), key.unwrap());
         self.execute(ModifyDocument::new(id, update))
@@ -422,16 +448,14 @@ impl<C> CollectionSession<C>
         update: DocumentUpdate<Upd>,
         if_match: IfMatch,
     ) -> Result<UpdatedDocument<Old, New>>
-        where
-            IfMatch: Into<String>,
-            Upd: 'static + Serialize + Debug,
-            Old: 'static + DeserializeOwned,
-            New: 'static + DeserializeOwned,
+    where
+        IfMatch: Into<String>,
+        Upd: 'static + Serialize + Debug,
+        Old: 'static + DeserializeOwned,
+        New: 'static + DeserializeOwned,
     {
         let id = DocumentId::new(self.name(), key.unwrap());
-        self.execute(ModifyDocument::new(id, update)
-            .with_if_match(if_match)
-        )
+        self.execute(ModifyDocument::new(id, update).with_if_match(if_match))
     }
 
     /// Partially modifies an existing document if the match condition is met.
@@ -456,16 +480,17 @@ impl<C> CollectionSession<C>
         if_match: IfMatch,
         options: DocumentModifyOptions,
     ) -> Result<UpdatedDocument<Old, New>>
-        where
-            IfMatch: Into<String>,
-            Upd: 'static + Serialize + Debug,
-            Old: 'static + DeserializeOwned,
-            New: 'static + DeserializeOwned,
+    where
+        IfMatch: Into<String>,
+        Upd: 'static + Serialize + Debug,
+        Old: 'static + DeserializeOwned,
+        New: 'static + DeserializeOwned,
     {
         let id = DocumentId::new(self.name(), key.unwrap());
-        self.execute(ModifyDocument::new(id, update)
-            .with_if_match(if_match)
-            .with_options(options)
+        self.execute(
+            ModifyDocument::new(id, update)
+                .with_if_match(if_match)
+                .with_options(options),
         )
     }
 
@@ -488,15 +513,13 @@ impl<C> CollectionSession<C>
         update: DocumentUpdate<Upd>,
         options: DocumentModifyOptions,
     ) -> Result<UpdatedDocument<Old, New>>
-        where
-            Upd: 'static + Serialize + Debug,
-            Old: 'static + DeserializeOwned,
-            New: 'static + DeserializeOwned,
+    where
+        Upd: 'static + Serialize + Debug,
+        Old: 'static + DeserializeOwned,
+        New: 'static + DeserializeOwned,
     {
         let id = DocumentId::new(self.name(), key.unwrap());
-        self.execute(ModifyDocument::new(id, update)
-            .with_options(options)
-        )
+        self.execute(ModifyDocument::new(id, update).with_options(options))
     }
 
     /// Deletes the document with the given key from this collection.
@@ -517,12 +540,10 @@ impl<C> CollectionSession<C>
         key: DocumentKey,
         if_match: IfMatch,
     ) -> Result<DocumentHeader>
-        where
-            IfMatch: Into<String>,
+    where
+        IfMatch: Into<String>,
     {
-        self.execute(DeleteDocument::new(self.name(), key)
-            .with_if_match(if_match)
-        )
+        self.execute(DeleteDocument::new(self.name(), key).with_if_match(if_match))
     }
 
     /// Deletes the document with the given key from this collection if the
@@ -538,28 +559,27 @@ impl<C> CollectionSession<C>
         key: DocumentKey,
         if_match: IfMatch,
     ) -> Result<DocumentHeader>
-        where
-            IfMatch: Into<String>,
+    where
+        IfMatch: Into<String>,
     {
-        self.execute(DeleteDocument::new(self.name(), key)
-            .with_if_match(if_match)
-            .with_force_wait_for_sync(true)
+        self.execute(
+            DeleteDocument::new(self.name(), key)
+                .with_if_match(if_match)
+                .with_force_wait_for_sync(true),
         )
     }
 
     /// Deletes the document with the given key from this collection and waits
     /// until the changes are written to disk.
     pub fn delete_document_synced(&self, key: DocumentKey) -> Result<DocumentHeader> {
-        self.execute(DeleteDocument::new(self.name(), key)
-            .with_force_wait_for_sync(true)
-        )
+        self.execute(DeleteDocument::new(self.name(), key).with_force_wait_for_sync(true))
     }
 
     /// Deletes the document with the given key from this collection and returns
     /// the deleted document.
     pub fn delete_document_return_old<Old>(&self, key: DocumentKey) -> Result<Document<Old>>
-        where
-            Old: 'static + DeserializeOwned,
+    where
+        Old: 'static + DeserializeOwned,
     {
         self.execute(DeleteDocumentReturnOld::new(self.name(), key))
     }
@@ -577,13 +597,11 @@ impl<C> CollectionSession<C>
         key: DocumentKey,
         if_match: IfMatch,
     ) -> Result<Document<Old>>
-        where
-            IfMatch: Into<String>,
-            Old: 'static + DeserializeOwned,
+    where
+        IfMatch: Into<String>,
+        Old: 'static + DeserializeOwned,
     {
-        self.execute(DeleteDocumentReturnOld::new(self.name(), key)
-            .with_if_match(if_match)
-        )
+        self.execute(DeleteDocumentReturnOld::new(self.name(), key).with_if_match(if_match))
     }
 
     /// Deletes the document with the given key from this collection if the
@@ -600,24 +618,24 @@ impl<C> CollectionSession<C>
         key: DocumentKey,
         if_match: IfMatch,
     ) -> Result<Document<Old>>
-        where
-            IfMatch: Into<String>,
-            Old: 'static + DeserializeOwned,
+    where
+        IfMatch: Into<String>,
+        Old: 'static + DeserializeOwned,
     {
-        self.execute(DeleteDocumentReturnOld::new(self.name(), key)
-            .with_if_match(if_match)
-            .with_force_wait_for_sync(true)
+        self.execute(
+            DeleteDocumentReturnOld::new(self.name(), key)
+                .with_if_match(if_match)
+                .with_force_wait_for_sync(true),
         )
     }
 
     /// Deletes the document with the given key from this collection, waits
     /// until the changes are written to disk and returns the deleted document.
     pub fn delete_document_return_old_synced<Old>(&self, key: DocumentKey) -> Result<Document<Old>>
-        where
-            Old: 'static + DeserializeOwned,
+    where
+        Old: 'static + DeserializeOwned,
     {
-        self.execute(DeleteDocumentReturnOld::new(self.name(), key)
-            .with_force_wait_for_sync(true))
+        self.execute(DeleteDocumentReturnOld::new(self.name(), key).with_force_wait_for_sync(true))
     }
 
     /// Creates a hash index for this collection if it does not exist already.
@@ -638,15 +656,13 @@ impl<C> CollectionSession<C>
         sparse: bool,
         deduplicate: bool,
     ) -> Result<Index>
-        where
-            Fields: IntoIterator<Item=String>
+    where
+        Fields: IntoIterator<Item = String>,
     {
-        self.execute(CreateIndex::new(self.name(), NewHashIndex::new(
-            fields,
-            unique,
-            sparse,
-            deduplicate,
-        )))
+        self.execute(CreateIndex::new(
+            self.name(),
+            NewHashIndex::new(fields, unique, sparse, deduplicate),
+        ))
     }
 
     /// Creates a skip list index for this collection if it does not exist
@@ -668,15 +684,13 @@ impl<C> CollectionSession<C>
         sparse: bool,
         deduplicate: bool,
     ) -> Result<Index>
-        where
-            Fields: IntoIterator<Item=String>
+    where
+        Fields: IntoIterator<Item = String>,
     {
-        self.execute(CreateIndex::new(self.name(), NewSkipListIndex::new(
-            fields,
-            unique,
-            sparse,
-            deduplicate,
-        )))
+        self.execute(CreateIndex::new(
+            self.name(),
+            NewSkipListIndex::new(fields, unique, sparse, deduplicate),
+        ))
     }
 
     /// Creates a persistent index for this collection if it does not exist
@@ -696,14 +710,13 @@ impl<C> CollectionSession<C>
         unique: bool,
         sparse: bool,
     ) -> Result<Index>
-        where
-            Fields: IntoIterator<Item=String>
+    where
+        Fields: IntoIterator<Item = String>,
     {
-        self.execute(CreateIndex::new(self.name(), NewPersistentIndex::new(
-            fields,
-            unique,
-            sparse,
-        )))
+        self.execute(CreateIndex::new(
+            self.name(),
+            NewPersistentIndex::new(fields, unique, sparse),
+        ))
     }
 
     /// Creates a geo spatial index for this collection if it does not exist
@@ -715,13 +728,18 @@ impl<C> CollectionSession<C>
     /// * `geo_json` : If a geo-spatial index on a location is constructed and
     ///   `geo_json` is true, then the order within the array is longitude
     ///   followed by latitude.
-    pub fn ensure_geo_location_index<Loc>(&self, location_field: Loc, geo_json: bool) -> Result<Index>
-        where Loc: Into<String>
+    pub fn ensure_geo_location_index<Loc>(
+        &self,
+        location_field: Loc,
+        geo_json: bool,
+    ) -> Result<Index>
+    where
+        Loc: Into<String>,
     {
-        self.execute(CreateIndex::new(self.name(), NewGeoIndex::with_location_field(
-            location_field,
-            geo_json,
-        )))
+        self.execute(CreateIndex::new(
+            self.name(),
+            NewGeoIndex::with_location_field(location_field, geo_json),
+        ))
     }
 
     /// Creates a geo spatial index for this collection if it does not exist
@@ -731,13 +749,19 @@ impl<C> CollectionSession<C>
     ///
     /// * `latitude_field` : The attribute path of the latitude field
     /// * `longitude_field` : The attribute path of the longitude field
-    pub fn ensure_geo_lat_lng_index<Lat, Lng>(&self, latitude_field: Lat, longitude_field: Lng) -> Result<Index>
-        where Lat: Into<String>, Lng: Into<String>
+    pub fn ensure_geo_lat_lng_index<Lat, Lng>(
+        &self,
+        latitude_field: Lat,
+        longitude_field: Lng,
+    ) -> Result<Index>
+    where
+        Lat: Into<String>,
+        Lng: Into<String>,
     {
-        self.execute(CreateIndex::new(self.name(), NewGeoIndex::with_lat_lng_fields(
-            latitude_field,
-            longitude_field,
-        )))
+        self.execute(CreateIndex::new(
+            self.name(),
+            NewGeoIndex::with_lat_lng_fields(latitude_field, longitude_field),
+        ))
     }
 
     /// Creates a fulltext index for this collection if it does not exist
@@ -747,18 +771,14 @@ impl<C> CollectionSession<C>
     ///
     /// * `field` : An attribute paths
     /// * `min_length` : Minimum character length of words to index
-    pub fn ensure_fulltext_index<Field>(
-        &self,
-        field: Field,
-        min_length: u32,
-    ) -> Result<Index>
-        where
-            Field: Into<String>
+    pub fn ensure_fulltext_index<Field>(&self, field: Field, min_length: u32) -> Result<Index>
+    where
+        Field: Into<String>,
     {
-        self.execute(CreateIndex::new(self.name(), NewFulltextIndex::with_field(
-            field,
-            min_length,
-        )))
+        self.execute(CreateIndex::new(
+            self.name(),
+            NewFulltextIndex::with_field(field, min_length),
+        ))
     }
 
     /// Fetches the index with the given key from this collection.

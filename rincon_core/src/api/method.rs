@@ -121,16 +121,12 @@ pub struct Parameters {
 impl Parameters {
     /// Creates and empty set of parameters.
     pub fn empty() -> Self {
-        Parameters {
-            list: Vec::new(),
-        }
+        Parameters { list: Vec::new() }
     }
 
     /// Creates a new set of parameters, which is empty.
     pub fn new() -> Self {
-        Parameters {
-            list: Vec::new(),
-        }
+        Parameters { list: Vec::new() }
     }
 
     /// Creates a new set of parameters with the given capacity.
@@ -157,7 +153,9 @@ impl Parameters {
 
     /// Inserts a name/value pair as a new parameter into this set.
     pub fn insert<K, V>(&mut self, name: K, value: V)
-        where K: Into<String>, V: Into<Value>
+    where
+        K: Into<String>,
+        V: Into<Value>,
     {
         self.list.push((name.into(), value.into()));
     }
@@ -199,7 +197,9 @@ impl Display for Parameters {
 }
 
 impl<K, V> From<Vec<(K, V)>> for Parameters
-    where K: Into<String>, V: Into<Value>
+where
+    K: Into<String>,
+    V: Into<Value>,
 {
     fn from(list: Vec<(K, V)>) -> Self {
         Parameters::from_iter(list)
@@ -207,9 +207,11 @@ impl<K, V> From<Vec<(K, V)>> for Parameters
 }
 
 impl<K, V> FromIterator<(K, V)> for Parameters
-    where K: Into<String>, V: Into<Value>
+where
+    K: Into<String>,
+    V: Into<Value>,
 {
-    fn from_iter<T: IntoIterator<Item=(K, V)>>(iter: T) -> Parameters {
+    fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Parameters {
         Parameters {
             list: Vec::from_iter(iter.into_iter().map(|(k, v)| (k.into(), v.into()))),
         }
@@ -217,21 +219,28 @@ impl<K, V> FromIterator<(K, V)> for Parameters
 }
 
 impl<'i, K, V> FromIterator<&'i (K, V)> for Parameters
-    where K: Into<String> + Clone, V: Into<Value> + Clone
+where
+    K: Into<String> + Clone,
+    V: Into<Value> + Clone,
 {
-    fn from_iter<T: IntoIterator<Item=&'i (K, V)>>(iter: T) -> Parameters {
+    fn from_iter<T: IntoIterator<Item = &'i (K, V)>>(iter: T) -> Parameters {
         Parameters {
-            list: Vec::from_iter(iter.into_iter().map(|&(ref k, ref v)|
-                (k.clone().into(), v.clone().into()))),
+            list: Vec::from_iter(
+                iter.into_iter()
+                    .map(|&(ref k, ref v)| (k.clone().into(), v.clone().into())),
+            ),
         }
     }
 }
 
 impl<K, V> Extend<(K, V)> for Parameters
-    where K: Into<String>, V: Into<Value>
+where
+    K: Into<String>,
+    V: Into<Value>,
 {
-    fn extend<T: IntoIterator<Item=(K, V)>>(&mut self, iter: T) {
-        self.list.extend(iter.into_iter().map(|(k, v)| (k.into(), v.into())));
+    fn extend<T: IntoIterator<Item = (K, V)>>(&mut self, iter: T) {
+        self.list
+            .extend(iter.into_iter().map(|(k, v)| (k.into(), v.into())));
     }
 }
 
@@ -344,7 +353,8 @@ impl<T> ResultList<T> {
 
 impl<T> FromIterator<std::result::Result<T, Error>> for ResultList<T> {
     fn from_iter<I>(iter: I) -> Self
-        where I: IntoIterator<Item=std::result::Result<T, Error>>
+    where
+        I: IntoIterator<Item = std::result::Result<T, Error>>,
     {
         ResultList(Vec::from_iter(iter.into_iter().map(From::from)))
     }
@@ -352,14 +362,16 @@ impl<T> FromIterator<std::result::Result<T, Error>> for ResultList<T> {
 
 impl<T> FromIterator<Result<T>> for ResultList<T> {
     fn from_iter<I>(iter: I) -> Self
-        where I: IntoIterator<Item=Result<T>>
+    where
+        I: IntoIterator<Item = Result<T>>,
     {
         ResultList(Vec::from_iter(iter.into_iter()))
     }
 }
 
 impl<T> IntoIterator for ResultList<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     type Item = std::result::Result<T, Error>;
     type IntoIter = ResultListIntoIter<T>;
@@ -416,7 +428,8 @@ pub struct Error {
 impl Error {
     /// Contructs a new method `Error` with given code and message.
     pub fn new<M>(code: ErrorCode, message: M) -> Self
-        where M: Into<String>
+    where
+        M: Into<String>,
     {
         Error {
             code,
@@ -443,14 +456,12 @@ impl Error {
 
 impl Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(&format!("Error {}: {}",
-            &self.code.as_u16(), &self.message))
+        f.write_str(&format!("Error {}: {}", &self.code.as_u16(), &self.message))
     }
 }
 
 impl Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(&format!("Error {}: {}",
-            &self.code.as_u16(), &self.message))
+        f.write_str(&format!("Error {}: {}", &self.code.as_u16(), &self.message))
     }
 }

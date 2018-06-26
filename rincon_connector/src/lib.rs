@@ -30,18 +30,17 @@
 //! # extern crate rincon_core;
 //! # extern crate rincon_connector;
 //! # extern crate tokio_core;
+//! use rincon_connector::http::JsonHttpConnector;
 //! use rincon_core::api::connector::Error;
 //! use rincon_core::api::datasource::DataSource;
-//! use rincon_connector::http::JsonHttpConnector;
-//! use tokio_core::reactor::Core;
 //! use std::str::FromStr;
+//! use tokio_core::reactor::Core;
 //!
 //! # fn main() {
 //! #     let connector = create_connector().unwrap();
 //! # }
 //!
 //! fn create_connector() -> Result<JsonHttpConnector, Error> {
-//!
 //!     let datasource = DataSource::from_str("http://localhost:8529")
 //!         .expect("invalid URL for datasource")
 //!         .with_basic_authentication("root", "s3cur3");
@@ -69,24 +68,18 @@
 //! [VelocyPack]: https://github.com/arangodb/velocypack
 
 #![doc(html_root_url = "https://docs.rs/rincon_connector/0.1.0")]
-
 #![warn(
-    missing_copy_implementations,
-    missing_debug_implementations,
-    missing_docs,
-    trivial_casts,
-    trivial_numeric_casts,
-    unsafe_code,
-    unstable_features,
-    unused_import_braces,
-    unused_qualifications,
+    missing_copy_implementations, missing_debug_implementations, missing_docs, trivial_casts,
+    trivial_numeric_casts, unsafe_code, unstable_features, unused_import_braces,
+    unused_qualifications
 )]
 
 extern crate futures;
 extern crate hyper;
 extern crate hyper_timeout;
 extern crate hyper_tls;
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate log;
 extern crate native_tls;
 extern crate serde;
 extern crate serde_json;

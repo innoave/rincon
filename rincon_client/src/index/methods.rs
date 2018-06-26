@@ -1,9 +1,8 @@
 //! Methods for managing indexes.
 
-use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use rincon_core::arango::protocol::{FIELD_CODE, FIELD_ID, PARAM_COLLECTION,
-    PATH_API_INDEX};
 use super::types::*;
+use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use rincon_core::arango::protocol::{FIELD_CODE, FIELD_ID, PARAM_COLLECTION, PATH_API_INDEX};
 
 /// Returns an `IndexList` with an attribute indexes containing an array of all
 /// index descriptions for the given collection.
@@ -17,7 +16,8 @@ pub struct GetIndexList {
 
 impl GetIndexList {
     pub fn new<C>(collection_name: C) -> Self
-        where C: Into<String>
+    where
+        C: Into<String>,
     {
         GetIndexList {
             collection_name: collection_name.into(),
@@ -25,7 +25,8 @@ impl GetIndexList {
     }
 
     pub fn of_collection<C>(collection_name: C) -> Self
-        where C: Into<String>
+    where
+        C: Into<String>,
     {
         GetIndexList::new(collection_name)
     }
@@ -77,9 +78,7 @@ pub struct GetIndex {
 
 impl GetIndex {
     pub fn new(index_id: IndexId) -> Self {
-        GetIndex {
-            index_id,
-        }
+        GetIndex { index_id }
     }
 
     pub fn index_id(&self) -> &IndexId {
@@ -104,8 +103,10 @@ impl Prepare for GetIndex {
 
     fn path(&self) -> String {
         String::from(PATH_API_INDEX)
-            + "/" + self.index_id.collection_name()
-            + "/" + self.index_id.index_key()
+            + "/"
+            + self.index_id.collection_name()
+            + "/"
+            + self.index_id.index_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -131,7 +132,9 @@ pub struct CreateIndex {
 
 impl CreateIndex {
     pub fn new<C, I>(collection_name: C, index: I) -> Self
-        where C: Into<String>, I: Into<NewIndex>
+    where
+        C: Into<String>,
+        I: Into<NewIndex>,
     {
         CreateIndex {
             collection_name: collection_name.into(),
@@ -190,9 +193,7 @@ pub struct DeleteIndex {
 
 impl DeleteIndex {
     pub fn new(index_id: IndexId) -> Self {
-        DeleteIndex {
-            index_id,
-        }
+        DeleteIndex { index_id }
     }
 
     pub fn index_id(&self) -> &IndexId {
@@ -217,8 +218,10 @@ impl Prepare for DeleteIndex {
 
     fn path(&self) -> String {
         String::from(PATH_API_INDEX)
-            + "/" + self.index_id.collection_name()
-            + "/" + self.index_id.index_key()
+            + "/"
+            + self.index_id.collection_name()
+            + "/"
+            + self.index_id.index_key()
     }
 
     fn parameters(&self) -> Parameters {

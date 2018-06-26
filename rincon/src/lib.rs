@@ -8,11 +8,15 @@
 //!
 //! The provided crates are:
 //!
-//! * [rincon_core] : Defines the common API for the driver and is used by the other crates.
+//! * [rincon_core] : Defines the common API for the driver and is used by the
+//!   other crates.
 //! * [rincon_connector] : Implements the communication layer of the driver.
-//! * [rincon_client] : Implements the methods of the REST API provided by [ArangoDB].
-//! * [rincon_session] : Provides a synchronous higher level API on top of [rincon_client].
-//! * [rincon_test_helper] : Provides utilities used in integration tests with an [ArangoDB] server.
+//! * [rincon_client] : Implements the methods of the REST API provided by
+//!   [ArangoDB].
+//! * [rincon_session] : Provides a synchronous higher level API on top of
+//!   [rincon_client].
+//! * [rincon_test_helper] : Provides utilities used in integration tests with
+//!   an [ArangoDB] server.
 //!
 //! This rincon crate is a meta crate that provides documentation on how to
 //! use the multiple crates provided by the Rincon ArangoDB driver. It does not
@@ -35,15 +39,8 @@
 //! [rincon_test_helper]: https://docs.rs/rincon_test_helper
 
 #![doc(html_root_url = "https://docs.rs/rincon/0.1.0")]
-
 #![warn(
-    missing_copy_implementations,
-    missing_debug_implementations,
-    missing_docs,
-    trivial_casts,
-    trivial_numeric_casts,
-    unsafe_code,
-    unstable_features,
-    unused_import_braces,
-    unused_qualifications,
+    missing_copy_implementations, missing_debug_implementations, missing_docs, trivial_casts,
+    trivial_numeric_casts, unsafe_code, unstable_features, unused_import_braces,
+    unused_qualifications
 )]

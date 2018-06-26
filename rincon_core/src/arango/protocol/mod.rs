@@ -17,79 +17,141 @@ use serde::ser::{Serialize, Serializer};
 
 use api::{self, method};
 
-#[allow(missing_docs)] pub const FIELD_CODE: &str = "code";
-#[allow(missing_docs)] pub const FIELD_COLLECTIONS: &str = "collections";
-#[allow(missing_docs)] pub const FIELD_EDGE: &str = "edge";
-#[allow(missing_docs)] pub const FIELD_EDGE_DEFINITIONS: &str = "edgeDefinitions";
-#[allow(missing_docs)] pub const FIELD_ENTITY_FROM: &str = "_from";
-#[allow(missing_docs)] pub const FIELD_ENTITY_ID: &str = "_id";
-#[allow(missing_docs)] pub const FIELD_ENTITY_KEY: &str = "_key";
-#[allow(missing_docs)] pub const FIELD_ENTITY_REVISION: &str = "_rev";
-#[allow(missing_docs)] pub const FIELD_ENTITY_NEW: &str = "new";
-#[allow(missing_docs)] pub const FIELD_ENTITY_OLD: &str = "old";
-#[allow(missing_docs)] pub const FIELD_ENTITY_OLD_REVISION: &str = "_oldRev";
-#[allow(missing_docs)] pub const FIELD_ENTITY_TO: &str = "_to";
-#[allow(missing_docs)] pub const FIELD_ERROR: &str = "error";
-#[allow(missing_docs)] pub const FIELD_ERROR_MESSAGE: &str = "errorMessage";
-#[allow(missing_docs)] pub const FIELD_ERROR_NUMBER: &str = "errorNum";
-#[allow(missing_docs)] pub const FIELD_GRAPH: &str = "graph";
-#[allow(missing_docs)] pub const FIELD_GRAPHS: &str = "graphs";
-#[allow(missing_docs)] pub const FIELD_ID: &str = "id";
-#[allow(missing_docs)] pub const FIELD_IS_SMART: &str = "isSmart";
-#[allow(missing_docs)] pub const FIELD_NAME: &str = "name";
-#[allow(missing_docs)] pub const FIELD_NUMBER_OF_SHARDS: &str = "numberOfShards";
-#[allow(missing_docs)] pub const FIELD_ORPHAN_COLLECTIONS: &str = "orphanCollections";
-#[allow(missing_docs)] pub const FIELD_REMOVED: &str = "removed";
-#[allow(missing_docs)] pub const FIELD_REPLICATION_FACTOR: &str = "replicationFactor";
-#[allow(missing_docs)] pub const FIELD_RESULT: &str = "result";
-#[allow(missing_docs)] pub const FIELD_SMART_GRAPH_ATTRIBUTE: &str = "smartGraphAttribute";
-#[allow(missing_docs)] pub const FIELD_VERTEX: &str = "vertex";
+#[allow(missing_docs)]
+pub const FIELD_CODE: &str = "code";
+#[allow(missing_docs)]
+pub const FIELD_COLLECTIONS: &str = "collections";
+#[allow(missing_docs)]
+pub const FIELD_EDGE: &str = "edge";
+#[allow(missing_docs)]
+pub const FIELD_EDGE_DEFINITIONS: &str = "edgeDefinitions";
+#[allow(missing_docs)]
+pub const FIELD_ENTITY_FROM: &str = "_from";
+#[allow(missing_docs)]
+pub const FIELD_ENTITY_ID: &str = "_id";
+#[allow(missing_docs)]
+pub const FIELD_ENTITY_KEY: &str = "_key";
+#[allow(missing_docs)]
+pub const FIELD_ENTITY_REVISION: &str = "_rev";
+#[allow(missing_docs)]
+pub const FIELD_ENTITY_NEW: &str = "new";
+#[allow(missing_docs)]
+pub const FIELD_ENTITY_OLD: &str = "old";
+#[allow(missing_docs)]
+pub const FIELD_ENTITY_OLD_REVISION: &str = "_oldRev";
+#[allow(missing_docs)]
+pub const FIELD_ENTITY_TO: &str = "_to";
+#[allow(missing_docs)]
+pub const FIELD_ERROR: &str = "error";
+#[allow(missing_docs)]
+pub const FIELD_ERROR_MESSAGE: &str = "errorMessage";
+#[allow(missing_docs)]
+pub const FIELD_ERROR_NUMBER: &str = "errorNum";
+#[allow(missing_docs)]
+pub const FIELD_GRAPH: &str = "graph";
+#[allow(missing_docs)]
+pub const FIELD_GRAPHS: &str = "graphs";
+#[allow(missing_docs)]
+pub const FIELD_ID: &str = "id";
+#[allow(missing_docs)]
+pub const FIELD_IS_SMART: &str = "isSmart";
+#[allow(missing_docs)]
+pub const FIELD_NAME: &str = "name";
+#[allow(missing_docs)]
+pub const FIELD_NUMBER_OF_SHARDS: &str = "numberOfShards";
+#[allow(missing_docs)]
+pub const FIELD_ORPHAN_COLLECTIONS: &str = "orphanCollections";
+#[allow(missing_docs)]
+pub const FIELD_REMOVED: &str = "removed";
+#[allow(missing_docs)]
+pub const FIELD_REPLICATION_FACTOR: &str = "replicationFactor";
+#[allow(missing_docs)]
+pub const FIELD_RESULT: &str = "result";
+#[allow(missing_docs)]
+pub const FIELD_SMART_GRAPH_ATTRIBUTE: &str = "smartGraphAttribute";
+#[allow(missing_docs)]
+pub const FIELD_VERTEX: &str = "vertex";
 
-#[allow(missing_docs)] pub const HEADER_IF_MATCH: &str = "If-Match";
-#[allow(missing_docs)] pub const HEADER_IF_NON_MATCH: &str = "If-None-Match";
+#[allow(missing_docs)]
+pub const HEADER_IF_MATCH: &str = "If-Match";
+#[allow(missing_docs)]
+pub const HEADER_IF_NON_MATCH: &str = "If-None-Match";
 
-#[allow(missing_docs)] pub const PARAM_COLLECTION: &str = "collection";
-#[allow(missing_docs)] pub const PARAM_DETAILS: &str = "details";
-#[allow(missing_docs)] pub const PARAM_EXCLUDE_SYSTEM: &str = "excludeSystem";
-#[allow(missing_docs)] pub const PARAM_IGNORE_REVISIONS: &str = "ignoreRevs";
-#[allow(missing_docs)] pub const PARAM_KEEP_NULL: &str = "keepNull";
-#[allow(missing_docs)] pub const PARAM_MERGE_OBJECTS: &str = "mergeObjects";
-#[allow(missing_docs)] pub const PARAM_ONLY_GET: &str = "onlyget";
-#[allow(missing_docs)] pub const PARAM_RETURN_NEW: &str = "returnNew";
-#[allow(missing_docs)] pub const PARAM_RETURN_OLD: &str = "returnOld";
-#[allow(missing_docs)] pub const PARAM_WAIT_FOR_SYNC: &str = "waitForSync";
-#[allow(missing_docs)] pub const PARAM_WAIT_FOR_SYNC_REPLICATION: &str = "waitForSyncReplication";
+#[allow(missing_docs)]
+pub const PARAM_COLLECTION: &str = "collection";
+#[allow(missing_docs)]
+pub const PARAM_DETAILS: &str = "details";
+#[allow(missing_docs)]
+pub const PARAM_EXCLUDE_SYSTEM: &str = "excludeSystem";
+#[allow(missing_docs)]
+pub const PARAM_IGNORE_REVISIONS: &str = "ignoreRevs";
+#[allow(missing_docs)]
+pub const PARAM_KEEP_NULL: &str = "keepNull";
+#[allow(missing_docs)]
+pub const PARAM_MERGE_OBJECTS: &str = "mergeObjects";
+#[allow(missing_docs)]
+pub const PARAM_ONLY_GET: &str = "onlyget";
+#[allow(missing_docs)]
+pub const PARAM_RETURN_NEW: &str = "returnNew";
+#[allow(missing_docs)]
+pub const PARAM_RETURN_OLD: &str = "returnOld";
+#[allow(missing_docs)]
+pub const PARAM_WAIT_FOR_SYNC: &str = "waitForSync";
+#[allow(missing_docs)]
+pub const PARAM_WAIT_FOR_SYNC_REPLICATION: &str = "waitForSyncReplication";
 
-#[allow(missing_docs)] pub const PATH_ADMIN: &str = "/_admin";
-#[allow(missing_docs)] pub const PATH_API_COLLECTION: &str = "/_api/collection";
-#[allow(missing_docs)] pub const PATH_API_CURSOR: &str = "/_api/cursor";
-#[allow(missing_docs)] pub const PATH_API_DATABASE: &str = "/_api/database";
-#[allow(missing_docs)] pub const PATH_API_DOCUMENT: &str = "/_api/document";
-#[allow(missing_docs)] pub const PATH_API_EXPLAIN: &str = "/_api/explain";
-#[allow(missing_docs)] pub const PATH_API_GHARIAL: &str = "/_api/gharial";
-#[allow(missing_docs)] pub const PATH_API_INDEX: &str = "/_api/index";
-#[allow(missing_docs)] pub const PATH_API_QUERY: &str = "/_api/query";
-#[allow(missing_docs)] pub const PATH_API_USER: &str = "/_api/user";
-#[allow(missing_docs)] pub const PATH_API_VERSION: &str = "/_api/version";
-#[allow(missing_docs)] pub const PATH_OPEN_AUTH: &str = "/_open/auth";
+#[allow(missing_docs)]
+pub const PATH_ADMIN: &str = "/_admin";
+#[allow(missing_docs)]
+pub const PATH_API_COLLECTION: &str = "/_api/collection";
+#[allow(missing_docs)]
+pub const PATH_API_CURSOR: &str = "/_api/cursor";
+#[allow(missing_docs)]
+pub const PATH_API_DATABASE: &str = "/_api/database";
+#[allow(missing_docs)]
+pub const PATH_API_DOCUMENT: &str = "/_api/document";
+#[allow(missing_docs)]
+pub const PATH_API_EXPLAIN: &str = "/_api/explain";
+#[allow(missing_docs)]
+pub const PATH_API_GHARIAL: &str = "/_api/gharial";
+#[allow(missing_docs)]
+pub const PATH_API_INDEX: &str = "/_api/index";
+#[allow(missing_docs)]
+pub const PATH_API_QUERY: &str = "/_api/query";
+#[allow(missing_docs)]
+pub const PATH_API_USER: &str = "/_api/user";
+#[allow(missing_docs)]
+pub const PATH_API_VERSION: &str = "/_api/version";
+#[allow(missing_docs)]
+pub const PATH_OPEN_AUTH: &str = "/_open/auth";
 
-#[allow(missing_docs)] pub const PATH_CURRENT: &str = "/current";
-#[allow(missing_docs)] pub const PATH_DATABASE: &str = "/database";
-#[allow(missing_docs)] pub const PATH_DB: &str = "/_db/";
-#[allow(missing_docs)] pub const PATH_EDGE: &str = "/edge";
-#[allow(missing_docs)] pub const PATH_PROPERTIES: &str = "/properties";
-#[allow(missing_docs)] pub const PATH_RENAME: &str = "/rename";
-#[allow(missing_docs)] pub const PATH_REVISION: &str = "/revision";
-#[allow(missing_docs)] pub const PATH_TARGET_VERSION: &str = "/target-version";
-#[allow(missing_docs)] pub const PATH_USER: &str = "/user";
-#[allow(missing_docs)] pub const PATH_VERTEX: &str = "/vertex";
+#[allow(missing_docs)]
+pub const PATH_CURRENT: &str = "/current";
+#[allow(missing_docs)]
+pub const PATH_DATABASE: &str = "/database";
+#[allow(missing_docs)]
+pub const PATH_DB: &str = "/_db/";
+#[allow(missing_docs)]
+pub const PATH_EDGE: &str = "/edge";
+#[allow(missing_docs)]
+pub const PATH_PROPERTIES: &str = "/properties";
+#[allow(missing_docs)]
+pub const PATH_RENAME: &str = "/rename";
+#[allow(missing_docs)]
+pub const PATH_REVISION: &str = "/revision";
+#[allow(missing_docs)]
+pub const PATH_TARGET_VERSION: &str = "/target-version";
+#[allow(missing_docs)]
+pub const PATH_USER: &str = "/user";
+#[allow(missing_docs)]
+pub const PATH_VERTEX: &str = "/vertex";
 
-#[allow(missing_docs)] pub const SYSTEM_DATABASE: &str = "_system";
+#[allow(missing_docs)]
+pub const SYSTEM_DATABASE: &str = "_system";
 
 const CAPTURE_CONTEXT_NAME: &str = "ctx";
 const CAPTURE_ELEMENT_KEY: &str = "key";
 const REGEX_ID_CAPTURE: &str = "^((?P<ctx>[^/]+)/)?(?P<key>[^/]+)$";
-
 
 /// A handle as used by the ArangoDB REST API for identifying entities like
 /// documents, indexes and cursors.
@@ -115,18 +177,18 @@ impl HandleOption {
     pub fn from_str(handle_name: &str, value: &str) -> Result<HandleOption, String> {
         let re = Regex::new(REGEX_ID_CAPTURE).unwrap();
         if let Some(caps) = re.captures(value) {
-            match (caps.name(CAPTURE_CONTEXT_NAME), caps.name(CAPTURE_ELEMENT_KEY)) {
-                (Some(context_name), Some(element_key)) =>
-                    Ok(HandleOption::Qualified(Handle {
-                        context: context_name.as_str().to_string(),
-                        key: element_key.as_str().to_string(),
-                    })),
-                (None, Some(element_key)) =>
-                    Ok(HandleOption::Local(HandleKey(
-                        element_key.as_str().to_string()
-                    ))),
-                (_, None) =>
-                    Err(format!("{} does not have a key: {:?}", handle_name, value)),
+            match (
+                caps.name(CAPTURE_CONTEXT_NAME),
+                caps.name(CAPTURE_ELEMENT_KEY),
+            ) {
+                (Some(context_name), Some(element_key)) => Ok(HandleOption::Qualified(Handle {
+                    context: context_name.as_str().to_string(),
+                    key: element_key.as_str().to_string(),
+                })),
+                (None, Some(element_key)) => Ok(HandleOption::Local(HandleKey(
+                    element_key.as_str().to_string(),
+                ))),
+                (_, None) => Err(format!("{} does not have a key: {:?}", handle_name, value)),
             }
         } else {
             Err(format!("Invalid {}: {:?}", handle_name, value))
@@ -136,7 +198,8 @@ impl HandleOption {
 
 impl Serialize for HandleOption {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         match *self {
             HandleOption::Qualified(ref handle) => handle.serialize(serializer),
@@ -147,7 +210,8 @@ impl Serialize for HandleOption {
 
 impl<'de> Deserialize<'de> for HandleOption {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;
@@ -169,16 +233,19 @@ impl Handle {
     pub fn from_str(handle_name: &str, value: &str) -> Result<Self, String> {
         let re = Regex::new(REGEX_ID_CAPTURE).unwrap();
         if let Some(caps) = re.captures(value) {
-            match (caps.name(CAPTURE_CONTEXT_NAME), caps.name(CAPTURE_ELEMENT_KEY)) {
-                (Some(context_name), Some(element_key)) =>
-                    Ok(Handle {
-                        context: context_name.as_str().to_string(),
-                        key: element_key.as_str().to_string(),
-                    }),
-                (None, _) =>
-                    Err(format!("{} does not have a context: {:?}", handle_name, value)),
-                (_, None) =>
-                    Err(format!("{} does not have a key: {:?}", handle_name, value)),
+            match (
+                caps.name(CAPTURE_CONTEXT_NAME),
+                caps.name(CAPTURE_ELEMENT_KEY),
+            ) {
+                (Some(context_name), Some(element_key)) => Ok(Handle {
+                    context: context_name.as_str().to_string(),
+                    key: element_key.as_str().to_string(),
+                }),
+                (None, _) => Err(format!(
+                    "{} does not have a context: {:?}",
+                    handle_name, value
+                )),
+                (_, None) => Err(format!("{} does not have a key: {:?}", handle_name, value)),
             }
         } else {
             Err(format!("Invalid {}: {:?}", handle_name, value))
@@ -204,7 +271,8 @@ impl From<Handle> for HandleOption {
 
 impl Serialize for Handle {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_str(&self.to_string())
     }
@@ -212,7 +280,8 @@ impl Serialize for Handle {
 
 impl<'de> Deserialize<'de> for Handle {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;
@@ -233,8 +302,10 @@ impl HandleKey {
     /// Tries to create a `HandleKey` from a handle name and value.
     pub fn from_string(handle_name: &str, value: String) -> Result<Self, String> {
         if value.contains('/') {
-            Err(format!("A {} key must not contain any '/' character, but got: {:?}",
-                handle_name, value))
+            Err(format!(
+                "A {} key must not contain any '/' character, but got: {:?}",
+                handle_name, value
+            ))
         } else {
             Ok(HandleKey(value))
         }
@@ -254,7 +325,8 @@ impl From<HandleKey> for HandleOption {
 
 impl Serialize for HandleKey {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_str(&self.0)
     }
@@ -262,7 +334,8 @@ impl Serialize for HandleKey {
 
 impl<'de> Deserialize<'de> for HandleKey {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;
@@ -271,13 +344,15 @@ impl<'de> Deserialize<'de> for HandleKey {
 }
 
 impl<'de, T> Deserialize<'de> for method::Result<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
-        use serde_json::{Map, Value, from_value};
+        use serde_json::{from_value, Map, Value};
 
         #[derive(Debug)]
         enum Field {
@@ -290,7 +365,8 @@ impl<'de, T> Deserialize<'de> for method::Result<T>
 
         impl<'de> Deserialize<'de> for Field {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                where D: Deserializer<'de>
+            where
+                D: Deserializer<'de>,
             {
                 struct FieldVisitor;
 
@@ -302,7 +378,8 @@ impl<'de, T> Deserialize<'de> for method::Result<T>
                     }
 
                     fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-                        where E: Error
+                    where
+                        E: Error,
                     {
                         Ok(match value {
                             FIELD_CODE => Field::Code,
@@ -321,7 +398,8 @@ impl<'de, T> Deserialize<'de> for method::Result<T>
         struct ResultVisitor<T>(PhantomData<T>);
 
         impl<'de, T> Visitor<'de> for ResultVisitor<T>
-            where T: DeserializeOwned
+        where
+            T: DeserializeOwned,
         {
             type Value = method::Result<T>;
 
@@ -330,7 +408,8 @@ impl<'de, T> Deserialize<'de> for method::Result<T>
             }
 
             fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
-                where A: MapAccess<'de>,
+            where
+                A: MapAccess<'de>,
             {
                 let mut error_code: Option<api::ErrorCode> = None;
                 let mut message: Option<String> = None;
@@ -362,7 +441,8 @@ impl<'de, T> Deserialize<'de> for method::Result<T>
                     },
                     (Some(_), None) => Err(A::Error::missing_field(FIELD_ERROR_MESSAGE)),
                     (None, _) => {
-                        let result_value = from_value(Value::Object(other)).map_err(A::Error::custom)?;
+                        let result_value =
+                            from_value(Value::Object(other)).map_err(A::Error::custom)?;
                         Ok(method::Result::Success(result_value))
                     },
                 }

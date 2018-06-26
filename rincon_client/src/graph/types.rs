@@ -8,13 +8,14 @@ use std::str::FromStr;
 use serde::de::{Deserialize, DeserializeOwned, Deserializer, MapAccess, Visitor};
 use serde::ser::{Serialize, Serializer};
 
-use rincon_core::arango::protocol::{FIELD_EDGE_DEFINITIONS, FIELD_ENTITY_FROM,
-    FIELD_ENTITY_ID, FIELD_ENTITY_KEY, FIELD_ENTITY_OLD_REVISION,
-    FIELD_ENTITY_REVISION, FIELD_ENTITY_TO, FIELD_NAME,
-    FIELD_ORPHAN_COLLECTIONS};
-use rincon_core::arango::protocol::{FIELD_NUMBER_OF_SHARDS, FIELD_REPLICATION_FACTOR};
-use rincon_core::arango::protocol::{FIELD_IS_SMART, FIELD_SMART_GRAPH_ATTRIBUTE};
 use document::types::{DocumentId, DocumentKey, Revision};
+use rincon_core::arango::protocol::{
+    FIELD_EDGE_DEFINITIONS, FIELD_ENTITY_FROM, FIELD_ENTITY_ID, FIELD_ENTITY_KEY,
+    FIELD_ENTITY_OLD_REVISION, FIELD_ENTITY_REVISION, FIELD_ENTITY_TO, FIELD_NAME,
+    FIELD_ORPHAN_COLLECTIONS,
+};
+use rincon_core::arango::protocol::{FIELD_IS_SMART, FIELD_SMART_GRAPH_ATTRIBUTE};
+use rincon_core::arango::protocol::{FIELD_NUMBER_OF_SHARDS, FIELD_REPLICATION_FACTOR};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Graph {
@@ -82,7 +83,8 @@ impl Graph {
 
 impl<'de> Deserialize<'de> for Graph {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         use serde_json::Value;
@@ -103,7 +105,8 @@ impl<'de> Deserialize<'de> for Graph {
 
         impl<'de> Deserialize<'de> for GraphField {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                where D: Deserializer<'de>,
+            where
+                D: Deserializer<'de>,
             {
                 use serde::de::Error;
 
@@ -117,7 +120,8 @@ impl<'de> Deserialize<'de> for Graph {
                     }
 
                     fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-                        where E: Error,
+                    where
+                        E: Error,
                     {
                         Ok(match value {
                             FIELD_ENTITY_ID => GraphField::Id,
@@ -149,7 +153,8 @@ impl<'de> Deserialize<'de> for Graph {
             }
 
             fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
-                where A: MapAccess<'de>,
+            where
+                A: MapAccess<'de>,
             {
                 let mut id: Option<String> = None;
                 let mut key: Option<String> = None;
@@ -227,15 +232,29 @@ impl<'de> Deserialize<'de> for Graph {
                 }
 
                 #[cfg(all(feature = "enterprise", feature = "cluster"))]
-                match (id, key, revision, name,
-                    edge_definitions, orphan_collections,
-                    smart, smart_graph_attribute,
-                    number_of_shards, replication_factor,
+                match (
+                    id,
+                    key,
+                    revision,
+                    name,
+                    edge_definitions,
+                    orphan_collections,
+                    smart,
+                    smart_graph_attribute,
+                    number_of_shards,
+                    replication_factor,
                 ) {
-                    (Some(id), _key, Some(revision), _name,
-                        Some(edge_definitions), Some(orphan_collections),
-                        Some(smart), Some(smart_graph_attribute),
-                        Some(number_of_shards), Some(replication_factor),
+                    (
+                        Some(id),
+                        _key,
+                        Some(revision),
+                        _name,
+                        Some(edge_definitions),
+                        Some(orphan_collections),
+                        Some(smart),
+                        Some(smart_graph_attribute),
+                        Some(number_of_shards),
+                        Some(replication_factor),
                     ) => {
                         let (key, name) = match (_key, _name) {
                             (Some(_key), Some(_name)) => (_key, _name),
@@ -259,22 +278,48 @@ impl<'de> Deserialize<'de> for Graph {
                             replication_factor,
                         })
                     },
-                    (None, _, _, _, _, _, _, _, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_ID)),
-                    (_, _, None, _, _, _, _, _, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_REVISION)),
-                    (_, _, _, _, None, _, _, _, _, _) => Err(A::Error::missing_field(FIELD_EDGE_DEFINITIONS)),
-                    (_, _, _, _, _, None, _, _, _, _) => Err(A::Error::missing_field(FIELD_ORPHAN_COLLECTIONS)),
-                    (_, _, _, _, _, _, None, _, _, _) => Err(A::Error::missing_field(FIELD_IS_SMART)),
-                    (_, _, _, _, _, _, _, None, _, _) => Err(A::Error::missing_field(FIELD_SMART_GRAPH_ATTRIBUTE)),
-                    (_, _, _, _, _, _, _, _, None, _) => Err(A::Error::missing_field(FIELD_NUMBER_OF_SHARDS)),
-                    (_, _, _, _, _, _, _, _, _, None) => Err(A::Error::missing_field(FIELD_REPLICATION_FACTOR)),
+                    (None, _, _, _, _, _, _, _, _, _) => {
+                        Err(A::Error::missing_field(FIELD_ENTITY_ID))
+                    },
+                    (_, _, None, _, _, _, _, _, _, _) => {
+                        Err(A::Error::missing_field(FIELD_ENTITY_REVISION))
+                    },
+                    (_, _, _, _, None, _, _, _, _, _) => {
+                        Err(A::Error::missing_field(FIELD_EDGE_DEFINITIONS))
+                    },
+                    (_, _, _, _, _, None, _, _, _, _) => {
+                        Err(A::Error::missing_field(FIELD_ORPHAN_COLLECTIONS))
+                    },
+                    (_, _, _, _, _, _, None, _, _, _) => {
+                        Err(A::Error::missing_field(FIELD_IS_SMART))
+                    },
+                    (_, _, _, _, _, _, _, None, _, _) => {
+                        Err(A::Error::missing_field(FIELD_SMART_GRAPH_ATTRIBUTE))
+                    },
+                    (_, _, _, _, _, _, _, _, None, _) => {
+                        Err(A::Error::missing_field(FIELD_NUMBER_OF_SHARDS))
+                    },
+                    (_, _, _, _, _, _, _, _, _, None) => {
+                        Err(A::Error::missing_field(FIELD_REPLICATION_FACTOR))
+                    },
                 }
 
                 #[cfg(not(any(feature = "enterprise", feature = "cluster")))]
-                match (id, key, revision, name,
-                    edge_definitions, orphan_collections,
+                match (
+                    id,
+                    key,
+                    revision,
+                    name,
+                    edge_definitions,
+                    orphan_collections,
                 ) {
-                    (Some(id), _key, Some(revision), _name,
-                        Some(edge_definitions), Some(orphan_collections),
+                    (
+                        Some(id),
+                        _key,
+                        Some(revision),
+                        _name,
+                        Some(edge_definitions),
+                        Some(orphan_collections),
                     ) => {
                         let (key, name) = match (_key, _name) {
                             (Some(_key), Some(_name)) => (_key, _name),
@@ -301,13 +346,25 @@ impl<'de> Deserialize<'de> for Graph {
                 }
 
                 #[cfg(all(feature = "enterprise", not(feature = "cluster")))]
-                    match (id, key, revision, name,
-                    edge_definitions, orphan_collections,
-                    smart, smart_graph_attribute,
+                match (
+                    id,
+                    key,
+                    revision,
+                    name,
+                    edge_definitions,
+                    orphan_collections,
+                    smart,
+                    smart_graph_attribute,
                 ) {
-                    (Some(id), _key, Some(revision), _name,
-                        Some(edge_definitions), Some(orphan_collections),
-                        Some(smart), Some(smart_graph_attribute),
+                    (
+                        Some(id),
+                        _key,
+                        Some(revision),
+                        _name,
+                        Some(edge_definitions),
+                        Some(orphan_collections),
+                        Some(smart),
+                        Some(smart_graph_attribute),
                     ) => {
                         let (key, name) = match (_key, _name) {
                             (Some(_key), Some(_name)) => (_key, _name),
@@ -330,21 +387,41 @@ impl<'de> Deserialize<'de> for Graph {
                         })
                     },
                     (None, _, _, _, _, _, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_ID)),
-                    (_, _, None, _, _, _, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_REVISION)),
-                    (_, _, _, _, None, _, _, _) => Err(A::Error::missing_field(FIELD_EDGE_DEFINITIONS)),
-                    (_, _, _, _, _, None, _, _) => Err(A::Error::missing_field(FIELD_ORPHAN_COLLECTIONS)),
+                    (_, _, None, _, _, _, _, _) => {
+                        Err(A::Error::missing_field(FIELD_ENTITY_REVISION))
+                    },
+                    (_, _, _, _, None, _, _, _) => {
+                        Err(A::Error::missing_field(FIELD_EDGE_DEFINITIONS))
+                    },
+                    (_, _, _, _, _, None, _, _) => {
+                        Err(A::Error::missing_field(FIELD_ORPHAN_COLLECTIONS))
+                    },
                     (_, _, _, _, _, _, None, _) => Err(A::Error::missing_field(FIELD_IS_SMART)),
-                    (_, _, _, _, _, _, _, None) => Err(A::Error::missing_field(FIELD_SMART_GRAPH_ATTRIBUTE)),
+                    (_, _, _, _, _, _, _, None) => {
+                        Err(A::Error::missing_field(FIELD_SMART_GRAPH_ATTRIBUTE))
+                    },
                 }
 
                 #[cfg(all(not(feature = "enterprise"), feature = "cluster"))]
-                    match (id, key, revision, name,
-                    edge_definitions, orphan_collections,
-                    number_of_shards, replication_factor,
+                match (
+                    id,
+                    key,
+                    revision,
+                    name,
+                    edge_definitions,
+                    orphan_collections,
+                    number_of_shards,
+                    replication_factor,
                 ) {
-                    (Some(id), _key, Some(revision), _name,
-                        Some(edge_definitions), Some(orphan_collections),
-                        Some(number_of_shards), Some(replication_factor),
+                    (
+                        Some(id),
+                        _key,
+                        Some(revision),
+                        _name,
+                        Some(edge_definitions),
+                        Some(orphan_collections),
+                        Some(number_of_shards),
+                        Some(replication_factor),
                     ) => {
                         let (key, name) = match (_key, _name) {
                             (Some(_key), Some(_name)) => (_key, _name),
@@ -367,11 +444,21 @@ impl<'de> Deserialize<'de> for Graph {
                         })
                     },
                     (None, _, _, _, _, _, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_ID)),
-                    (_, _, None, _, _, _, _, _) => Err(A::Error::missing_field(FIELD_ENTITY_REVISION)),
-                    (_, _, _, _, None, _, _, _) => Err(A::Error::missing_field(FIELD_EDGE_DEFINITIONS)),
-                    (_, _, _, _, _, None, _, _) => Err(A::Error::missing_field(FIELD_ORPHAN_COLLECTIONS)),
-                    (_, _, _, _, _, _, None, _) => Err(A::Error::missing_field(FIELD_NUMBER_OF_SHARDS)),
-                    (_, _, _, _, _, _, _, None) => Err(A::Error::missing_field(FIELD_REPLICATION_FACTOR)),
+                    (_, _, None, _, _, _, _, _) => {
+                        Err(A::Error::missing_field(FIELD_ENTITY_REVISION))
+                    },
+                    (_, _, _, _, None, _, _, _) => {
+                        Err(A::Error::missing_field(FIELD_EDGE_DEFINITIONS))
+                    },
+                    (_, _, _, _, _, None, _, _) => {
+                        Err(A::Error::missing_field(FIELD_ORPHAN_COLLECTIONS))
+                    },
+                    (_, _, _, _, _, _, None, _) => {
+                        Err(A::Error::missing_field(FIELD_NUMBER_OF_SHARDS))
+                    },
+                    (_, _, _, _, _, _, _, None) => {
+                        Err(A::Error::missing_field(FIELD_REPLICATION_FACTOR))
+                    },
                 }
             }
         }
@@ -398,9 +485,9 @@ pub struct NewGraph {
 impl NewGraph {
     #[cfg(not(feature = "enterprise"))]
     pub fn new<Name, Edges>(name: Name, edges: Edges) -> Self
-        where
-            Name: Into<String>,
-            Edges: IntoIterator<Item=EdgeDefinition>,
+    where
+        Name: Into<String>,
+        Edges: IntoIterator<Item = EdgeDefinition>,
     {
         NewGraph {
             name: name.into(),
@@ -413,9 +500,9 @@ impl NewGraph {
 
     #[cfg(feature = "enterprise")]
     pub fn new<Name, Edges>(name: Name, edges: Edges, smart: bool) -> Self
-        where
-            Name: Into<String>,
-            Edges: IntoIterator<Item=EdgeDefinition>,
+    where
+        Name: Into<String>,
+        Edges: IntoIterator<Item = EdgeDefinition>,
     {
         NewGraph {
             name: name.into(),
@@ -427,25 +514,30 @@ impl NewGraph {
     }
 
     pub fn with_name<Name>(name: Name) -> Self
-        where Name: Into<String>
+    where
+        Name: Into<String>,
     {
-        #[cfg(not(feature = "enterprise"))] {
+        #[cfg(not(feature = "enterprise"))]
+        {
             NewGraph::new(name, Vec::new())
         }
-        #[cfg(feature = "enterprise")] {
+        #[cfg(feature = "enterprise")]
+        {
             NewGraph::new(name, Vec::new(), false)
         }
     }
 
     pub fn with_edge_definitions<Edges>(mut self, edges: Edges) -> Self
-        where Edges: IntoIterator<Item=EdgeDefinition>
+    where
+        Edges: IntoIterator<Item = EdgeDefinition>,
     {
         self.edge_definitions = Vec::from_iter(edges.into_iter());
         self
     }
 
     pub fn with_orphan_collections<O>(mut self, orphan_collections: O) -> Self
-        where O: IntoIterator<Item=String>
+    where
+        O: IntoIterator<Item = String>,
     {
         self.orphan_collections = Vec::from_iter(orphan_collections.into_iter());
         self
@@ -523,21 +615,24 @@ impl GraphOptions {
 
     #[cfg(feature = "enterprise")]
     pub fn set_smart_graph_attribute<Attr>(&mut self, smart_graph_attribute: Attr)
-        where Attr: Into<Option<String>>
+    where
+        Attr: Into<Option<String>>,
     {
         self.smart_graph_attribute = smart_graph_attribute.into();
     }
 
     #[cfg(feature = "cluster")]
     pub fn set_number_of_shards<S>(&mut self, number_of_shards: S)
-        where S: Into<Option<u16>>
+    where
+        S: Into<Option<u16>>,
     {
         self.number_of_shards = number_of_shards.into();
     }
 
     #[cfg(feature = "cluster")]
     pub fn set_replication_factor<R>(&mut self, replication_factor: R)
-        where R: Into<Option<u64>>
+    where
+        R: Into<Option<u64>>,
     {
         self.replication_factor = replication_factor.into();
     }
@@ -572,7 +667,8 @@ pub struct VertexCollection {
 
 impl VertexCollection {
     pub fn new<Coll>(collection: Coll) -> Self
-        where Coll: Into<String>
+    where
+        Coll: Into<String>,
     {
         VertexCollection {
             collection: collection.into(),
@@ -591,7 +687,8 @@ pub struct EdgeCollection {
 
 impl EdgeCollection {
     pub fn new<Coll>(collection: Coll) -> Self
-        where Coll: Into<String>
+    where
+        Coll: Into<String>,
     {
         EdgeCollection {
             collection: collection.into(),
@@ -612,10 +709,10 @@ pub struct EdgeDefinition {
 
 impl EdgeDefinition {
     pub fn new<Coll, From, To>(collection: Coll, from: From, to: To) -> Self
-        where
-            Coll: Into<String>,
-            From: IntoIterator<Item=String>,
-            To: IntoIterator<Item=String>,
+    where
+        Coll: Into<String>,
+        From: IntoIterator<Item = String>,
+        To: IntoIterator<Item = String>,
     {
         EdgeDefinition {
             collection: collection.into(),
@@ -652,7 +749,8 @@ enum EdgeField {
 
 impl<'de> Deserialize<'de> for EdgeField {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
 
@@ -666,7 +764,8 @@ impl<'de> Deserialize<'de> for EdgeField {
             }
 
             fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-                where E: Error,
+            where
+                E: Error,
             {
                 Ok(match value {
                     FIELD_ENTITY_ID => EdgeField::Id,
@@ -725,18 +824,21 @@ impl<T> Edge<T> {
 }
 
 impl<'de, T> Deserialize<'de> for Edge<T>
-    where T: DeserializeOwned,
+where
+    T: DeserializeOwned,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
-        use serde_json::{Map, Value, from_value};
+        use serde_json::{from_value, Map, Value};
 
         struct EdgeVisitor<T>(PhantomData<T>);
 
         impl<'de, T> Visitor<'de> for EdgeVisitor<T>
-            where T: DeserializeOwned,
+        where
+            T: DeserializeOwned,
         {
             type Value = Edge<T>;
 
@@ -745,7 +847,8 @@ impl<'de, T> Deserialize<'de> for Edge<T>
             }
 
             fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
-                where A: MapAccess<'de>,
+            where
+                A: MapAccess<'de>,
             {
                 let mut id: Option<String> = None;
                 let mut key: Option<String> = None;
@@ -767,7 +870,8 @@ impl<'de, T> Deserialize<'de> for Edge<T>
                             revision = fields.next_value()?;
                         },
                         EdgeField::OldRevision => {
-                            other.insert(FIELD_ENTITY_OLD_REVISION.to_owned(), fields.next_value()?);
+                            other
+                                .insert(FIELD_ENTITY_OLD_REVISION.to_owned(), fields.next_value()?);
                         },
                         EdgeField::From => {
                             from = fields.next_value()?;
@@ -830,7 +934,8 @@ impl<T> NewEdge<T> {
     }
 
     pub fn with_key<Key>(mut self, key: Key) -> Self
-        where Key: Into<Option<DocumentKey>>
+    where
+        Key: Into<Option<DocumentKey>>,
     {
         self.key = key.into();
         self

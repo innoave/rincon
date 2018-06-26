@@ -507,5 +507,3 @@ error_code_enum! {
     QueueUnknown(21002, "Will be returned if a queue with this name does not exist."),
     QueueFull(21003, "Will be returned if a queue with this name is full."),
 }
-
-

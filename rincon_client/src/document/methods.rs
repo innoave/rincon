@@ -7,13 +7,13 @@ use std::marker::PhantomData;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
-use rincon_core::api::method::{Method, Operation, Parameters, Prepare,
-    ResultList, RpcReturnType};
-use rincon_core::arango::protocol::{FIELD_CODE, HEADER_IF_MATCH,
-    HEADER_IF_NON_MATCH, PARAM_IGNORE_REVISIONS, PARAM_KEEP_NULL,
-    PARAM_MERGE_OBJECTS, PARAM_ONLY_GET, PARAM_RETURN_NEW, PARAM_RETURN_OLD,
-    PARAM_WAIT_FOR_SYNC, PATH_API_DOCUMENT};
 use super::types::*;
+use rincon_core::api::method::{Method, Operation, Parameters, Prepare, ResultList, RpcReturnType};
+use rincon_core::arango::protocol::{
+    FIELD_CODE, HEADER_IF_MATCH, HEADER_IF_NON_MATCH, PARAM_IGNORE_REVISIONS, PARAM_KEEP_NULL,
+    PARAM_MERGE_OBJECTS, PARAM_ONLY_GET, PARAM_RETURN_NEW, PARAM_RETURN_OLD, PARAM_WAIT_FOR_SYNC,
+    PATH_API_DOCUMENT,
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct GetDocument<T> {
@@ -25,7 +25,8 @@ pub struct GetDocument<T> {
 
 impl<T> GetDocument<T> {
     pub fn new<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
-        where Coll: Into<String>
+    where
+        Coll: Into<String>,
     {
         GetDocument {
             id: DocumentId::new(collection_name, document_key.unwrap()),
@@ -36,7 +37,8 @@ impl<T> GetDocument<T> {
     }
 
     pub fn with_key<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
-        where Coll: Into<String>
+    where
+        Coll: Into<String>,
     {
         GetDocument::new(collection_name, document_key)
     }
@@ -51,14 +53,16 @@ impl<T> GetDocument<T> {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
     }
 
     pub fn with_if_non_match<IfNonMatch>(mut self, if_non_match: IfNonMatch) -> Self
-        where IfNonMatch: Into<String>
+    where
+        IfNonMatch: Into<String>,
     {
         self.if_non_match = Some(if_non_match.into());
         self
@@ -78,7 +82,8 @@ impl<T> GetDocument<T> {
 }
 
 impl<T> Method for GetDocument<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     type Result = Document<T>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -96,8 +101,10 @@ impl<T> Prepare for GetDocument<T> {
 
     fn path(&self) -> String {
         String::from(PATH_API_DOCUMENT)
-            + "/" + self.id.collection_name()
-            + "/" + self.id.document_key()
+            + "/"
+            + self.id.collection_name()
+            + "/"
+            + self.id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -131,7 +138,9 @@ pub struct GetDocuments<T> {
 
 impl<T> GetDocuments<T> {
     pub fn new<Coll, Selectors>(collection_name: Coll, selectors: Selectors) -> Self
-        where Coll: Into<String>, Selectors: IntoIterator<Item=DocumentSelector>
+    where
+        Coll: Into<String>,
+        Selectors: IntoIterator<Item = DocumentSelector>,
     {
         GetDocuments {
             collection_name: collection_name.into(),
@@ -143,28 +152,32 @@ impl<T> GetDocuments<T> {
     }
 
     pub fn with_ids<Coll, Ids>(collection_name: Coll, ids: Ids) -> Self
-        where Coll: Into<String>, Ids: IntoIterator<Item=DocumentId>
+    where
+        Coll: Into<String>,
+        Ids: IntoIterator<Item = DocumentId>,
     {
-        GetDocuments::new(collection_name, ids.into_iter()
-            .map(DocumentSelector::Id))
+        GetDocuments::new(collection_name, ids.into_iter().map(DocumentSelector::Id))
     }
 
     pub fn with_keys<Coll, Keys>(collection_name: Coll, keys: Keys) -> Self
-        where Coll: Into<String>, Keys: IntoIterator<Item=DocumentKey>
+    where
+        Coll: Into<String>,
+        Keys: IntoIterator<Item = DocumentKey>,
     {
-        GetDocuments::new(collection_name, keys.into_iter()
-            .map(DocumentSelector::Key))
+        GetDocuments::new(collection_name, keys.into_iter().map(DocumentSelector::Key))
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
     }
 
     pub fn with_if_non_match<IfNonMatch>(mut self, if_non_match: IfNonMatch) -> Self
-        where IfNonMatch: Into<String>
+    where
+        IfNonMatch: Into<String>,
     {
         self.if_non_match = Some(if_non_match.into());
         self
@@ -188,7 +201,8 @@ impl<T> GetDocuments<T> {
 }
 
 impl<T> Method for GetDocuments<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     type Result = ResultList<Document<T>>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -205,8 +219,7 @@ impl<T> Prepare for GetDocuments<T> {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_DOCUMENT)
-            + "/" + &self.collection_name
+        String::from(PATH_API_DOCUMENT) + "/" + &self.collection_name
     }
 
     fn parameters(&self) -> Parameters {
@@ -240,7 +253,8 @@ pub struct GetDocumentHeader {
 
 impl GetDocumentHeader {
     pub fn new<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
-        where Coll: Into<String>
+    where
+        Coll: Into<String>,
     {
         GetDocumentHeader {
             id: DocumentId::new(collection_name, document_key.unwrap()),
@@ -250,7 +264,8 @@ impl GetDocumentHeader {
     }
 
     pub fn with_key<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
-        where Coll: Into<String>
+    where
+        Coll: Into<String>,
     {
         GetDocumentHeader {
             id: DocumentId::new(collection_name, document_key.unwrap()),
@@ -268,14 +283,16 @@ impl GetDocumentHeader {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
     }
 
     pub fn with_if_non_match<IfNonMatch>(mut self, if_non_match: IfNonMatch) -> Self
-        where IfNonMatch: Into<String>
+    where
+        IfNonMatch: Into<String>,
     {
         self.if_non_match = Some(if_non_match.into());
         self
@@ -311,8 +328,10 @@ impl Prepare for GetDocumentHeader {
 
     fn path(&self) -> String {
         String::from(PATH_API_DOCUMENT)
-            + "/" + self.id.collection_name()
-            + "/" + self.id.document_key()
+            + "/"
+            + self.id.collection_name()
+            + "/"
+            + self.id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -344,7 +363,8 @@ pub struct InsertDocument<T> {
 
 impl<T> InsertDocument<T> {
     pub fn new<N>(collection_name: N, document: NewDocument<T>) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         InsertDocument {
             collection_name: collection_name.into(),
@@ -372,7 +392,8 @@ impl<T> InsertDocument<T> {
 }
 
 impl<T> Method for InsertDocument<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     type Result = DocumentHeader;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -382,7 +403,8 @@ impl<T> Method for InsertDocument<T>
 }
 
 impl<T> Prepare for InsertDocument<T>
-    where T: Serialize + Debug
+where
+    T: Serialize + Debug,
 {
     type Content = NewDocument<T>;
 
@@ -421,7 +443,8 @@ pub struct InsertDocumentReturnNew<T> {
 
 impl<T> InsertDocumentReturnNew<T> {
     pub fn new<N>(collection_name: N, document: NewDocument<T>) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         InsertDocumentReturnNew {
             collection_name: collection_name.into(),
@@ -449,7 +472,8 @@ impl<T> InsertDocumentReturnNew<T> {
 }
 
 impl<T> Method for InsertDocumentReturnNew<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     type Result = Document<T>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -459,7 +483,8 @@ impl<T> Method for InsertDocumentReturnNew<T>
 }
 
 impl<T> Prepare for InsertDocumentReturnNew<T>
-    where T: Serialize + Debug
+where
+    T: Serialize + Debug,
 {
     type Content = NewDocument<T>;
 
@@ -498,7 +523,9 @@ pub struct InsertDocuments<T> {
 
 impl<T> InsertDocuments<T> {
     pub fn new<N, Docs>(collection_name: N, documents: Docs) -> Self
-        where N: Into<String>, Docs: IntoIterator<Item=NewDocument<T>>
+    where
+        N: Into<String>,
+        Docs: IntoIterator<Item = NewDocument<T>>,
     {
         InsertDocuments {
             collection_name: collection_name.into(),
@@ -526,7 +553,8 @@ impl<T> InsertDocuments<T> {
 }
 
 impl<T> Method for InsertDocuments<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     type Result = ResultList<DocumentHeader>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -536,7 +564,8 @@ impl<T> Method for InsertDocuments<T>
 }
 
 impl<T> Prepare for InsertDocuments<T>
-    where T: Serialize + Debug
+where
+    T: Serialize + Debug,
 {
     type Content = Vec<NewDocument<T>>;
 
@@ -575,7 +604,9 @@ pub struct InsertDocumentsReturnNew<T> {
 
 impl<T> InsertDocumentsReturnNew<T> {
     pub fn new<Coll, Docs>(collection_name: Coll, documents: Docs) -> Self
-        where Coll: Into<String>, Docs: IntoIterator<Item=NewDocument<T>>
+    where
+        Coll: Into<String>,
+        Docs: IntoIterator<Item = NewDocument<T>>,
     {
         InsertDocumentsReturnNew {
             collection_name: collection_name.into(),
@@ -603,7 +634,8 @@ impl<T> InsertDocumentsReturnNew<T> {
 }
 
 impl<T> Method for InsertDocumentsReturnNew<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     type Result = ResultList<Document<T>>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -613,7 +645,8 @@ impl<T> Method for InsertDocumentsReturnNew<T>
 }
 
 impl<T> Prepare for InsertDocumentsReturnNew<T>
-    where T: Serialize + Debug
+where
+    T: Serialize + Debug,
 {
     type Content = Vec<NewDocument<T>>;
 
@@ -664,7 +697,8 @@ impl<Old, New> ReplaceDocument<Old, New> {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
@@ -693,7 +727,9 @@ impl<Old, New> ReplaceDocument<Old, New> {
 }
 
 impl<Old, New> Method for ReplaceDocument<Old, New>
-    where Old: DeserializeOwned, New: DeserializeOwned
+where
+    Old: DeserializeOwned,
+    New: DeserializeOwned,
 {
     type Result = UpdatedDocument<Old, New>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -703,7 +739,8 @@ impl<Old, New> Method for ReplaceDocument<Old, New>
 }
 
 impl<Old, New> Prepare for ReplaceDocument<Old, New>
-    where New: Serialize + Debug
+where
+    New: Serialize + Debug,
 {
     type Content = DocumentUpdate<New>;
 
@@ -713,8 +750,10 @@ impl<Old, New> Prepare for ReplaceDocument<Old, New>
 
     fn path(&self) -> String {
         String::from(PATH_API_DOCUMENT)
-            + "/" + self.document_id.collection_name()
-            + "/" + self.document_id.document_key()
+            + "/"
+            + self.document_id.collection_name()
+            + "/"
+            + self.document_id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -757,7 +796,9 @@ pub struct ReplaceDocuments<Old, New> {
 
 impl<Old, New> ReplaceDocuments<Old, New> {
     pub fn new<Coll, Docs>(collection_name: Coll, new_documents: Docs) -> Self
-        where Coll: Into<String>, Docs: IntoIterator<Item=DocumentUpdate<New>>
+    where
+        Coll: Into<String>,
+        Docs: IntoIterator<Item = DocumentUpdate<New>>,
     {
         ReplaceDocuments {
             collection_name: collection_name.into(),
@@ -786,7 +827,9 @@ impl<Old, New> ReplaceDocuments<Old, New> {
 }
 
 impl<Old, New> Method for ReplaceDocuments<Old, New>
-    where Old: DeserializeOwned, New: DeserializeOwned
+where
+    Old: DeserializeOwned,
+    New: DeserializeOwned,
 {
     type Result = ResultList<UpdatedDocument<Old, New>>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -796,7 +839,8 @@ impl<Old, New> Method for ReplaceDocuments<Old, New>
 }
 
 impl<Old, New> Prepare for ReplaceDocuments<Old, New>
-    where New: Serialize + Debug
+where
+    New: Serialize + Debug,
 {
     type Content = Vec<DocumentUpdate<New>>;
 
@@ -857,7 +901,8 @@ impl<Upd, Old, New> ModifyDocument<Upd, Old, New> {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
@@ -886,7 +931,9 @@ impl<Upd, Old, New> ModifyDocument<Upd, Old, New> {
 }
 
 impl<Upd, Old, New> Method for ModifyDocument<Upd, Old, New>
-    where Old: DeserializeOwned, New: DeserializeOwned
+where
+    Old: DeserializeOwned,
+    New: DeserializeOwned,
 {
     type Result = UpdatedDocument<Old, New>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -896,7 +943,8 @@ impl<Upd, Old, New> Method for ModifyDocument<Upd, Old, New>
 }
 
 impl<Upd, Old, New> Prepare for ModifyDocument<Upd, Old, New>
-    where Upd: Serialize + Debug
+where
+    Upd: Serialize + Debug,
 {
     type Content = DocumentUpdate<Upd>;
 
@@ -906,8 +954,10 @@ impl<Upd, Old, New> Prepare for ModifyDocument<Upd, Old, New>
 
     fn path(&self) -> String {
         String::from(PATH_API_DOCUMENT)
-            + "/" + self.document_id.collection_name()
-            + "/" + self.document_id.document_key()
+            + "/"
+            + self.document_id.collection_name()
+            + "/"
+            + self.document_id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -957,7 +1007,9 @@ pub struct ModifyDocuments<Upd, Old, New> {
 
 impl<Upd, Old, New> ModifyDocuments<Upd, Old, New> {
     pub fn new<Coll, Upds>(collection_name: Coll, updates: Upds) -> Self
-        where Coll: Into<String>, Upds: IntoIterator<Item=DocumentUpdate<Upd>>
+    where
+        Coll: Into<String>,
+        Upds: IntoIterator<Item = DocumentUpdate<Upd>>,
     {
         ModifyDocuments {
             collection_name: collection_name.into(),
@@ -987,7 +1039,9 @@ impl<Upd, Old, New> ModifyDocuments<Upd, Old, New> {
 }
 
 impl<Upd, Old, New> Method for ModifyDocuments<Upd, Old, New>
-    where Old: DeserializeOwned, New: DeserializeOwned
+where
+    Old: DeserializeOwned,
+    New: DeserializeOwned,
 {
     type Result = ResultList<UpdatedDocument<Old, New>>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -997,7 +1051,8 @@ impl<Upd, Old, New> Method for ModifyDocuments<Upd, Old, New>
 }
 
 impl<Upd, Old, New> Prepare for ModifyDocuments<Upd, Old, New>
-    where Upd: Serialize + Debug
+where
+    Upd: Serialize + Debug,
 {
     type Content = Vec<DocumentUpdate<Upd>>;
 
@@ -1050,16 +1105,15 @@ pub struct DeleteDocument {
 
 impl DeleteDocument {
     pub fn new<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
-        where Coll: Into<String>
+    where
+        Coll: Into<String>,
     {
-        DeleteDocument::with_id(DocumentId::new(
-            collection_name,
-            document_key.unwrap()
-        ))
+        DeleteDocument::with_id(DocumentId::new(collection_name, document_key.unwrap()))
     }
 
     pub fn with_key<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
-        where Coll: Into<String>
+    where
+        Coll: Into<String>,
     {
         DeleteDocument::new(collection_name, document_key)
     }
@@ -1078,7 +1132,8 @@ impl DeleteDocument {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
@@ -1114,8 +1169,10 @@ impl Prepare for DeleteDocument {
 
     fn path(&self) -> String {
         String::from(PATH_API_DOCUMENT)
-            + "/" + self.id.collection_name()
-            + "/" + self.id.document_key()
+            + "/"
+            + self.id.collection_name()
+            + "/"
+            + self.id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -1150,21 +1207,17 @@ pub struct DeleteDocumentReturnOld<T> {
 
 impl<T> DeleteDocumentReturnOld<T> {
     pub fn new<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
-        where Coll: Into<String>
+    where
+        Coll: Into<String>,
     {
-        DeleteDocumentReturnOld::with_id(DocumentId::new(
-            collection_name,
-            document_key.unwrap()
-        ))
+        DeleteDocumentReturnOld::with_id(DocumentId::new(collection_name, document_key.unwrap()))
     }
 
     pub fn with_key<Coll>(collection_name: Coll, document_key: DocumentKey) -> Self
-        where Coll: Into<String>
+    where
+        Coll: Into<String>,
     {
-        DeleteDocumentReturnOld::with_id(DocumentId::new(
-            collection_name,
-            document_key.unwrap()
-        ))
+        DeleteDocumentReturnOld::with_id(DocumentId::new(collection_name, document_key.unwrap()))
     }
 
     pub fn with_id(id: DocumentId) -> Self {
@@ -1182,7 +1235,8 @@ impl<T> DeleteDocumentReturnOld<T> {
     }
 
     pub fn with_if_match<IfMatch>(mut self, if_match: IfMatch) -> Self
-        where IfMatch: Into<String>
+    where
+        IfMatch: Into<String>,
     {
         self.if_match = Some(if_match.into());
         self
@@ -1202,7 +1256,8 @@ impl<T> DeleteDocumentReturnOld<T> {
 }
 
 impl<T> Method for DeleteDocumentReturnOld<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     type Result = Document<T>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -1220,8 +1275,10 @@ impl<T> Prepare for DeleteDocumentReturnOld<T> {
 
     fn path(&self) -> String {
         String::from(PATH_API_DOCUMENT)
-            + "/" + self.id.collection_name()
-            + "/" + self.id.document_key()
+            + "/"
+            + self.id.collection_name()
+            + "/"
+            + self.id.document_key()
     }
 
     fn parameters(&self) -> Parameters {
@@ -1256,7 +1313,9 @@ pub struct DeleteDocuments {
 
 impl DeleteDocuments {
     pub fn new<Coll, Selectors>(collection_name: Coll, selectors: Selectors) -> Self
-        where Coll: Into<String>, Selectors: IntoIterator<Item=DocumentSelector>
+    where
+        Coll: Into<String>,
+        Selectors: IntoIterator<Item = DocumentSelector>,
     {
         DeleteDocuments {
             collection_name: collection_name.into(),
@@ -1267,24 +1326,30 @@ impl DeleteDocuments {
     }
 
     pub fn with_ids<Coll, Ids>(collection_name: Coll, ids: Ids) -> Self
-        where Coll: Into<String>, Ids: IntoIterator<Item=DocumentId>
+    where
+        Coll: Into<String>,
+        Ids: IntoIterator<Item = DocumentId>,
     {
-        DeleteDocuments::new(collection_name, ids.into_iter()
-            .map(DocumentSelector::Id))
+        DeleteDocuments::new(collection_name, ids.into_iter().map(DocumentSelector::Id))
     }
 
     pub fn with_keys<Coll, Keys>(collection_name: Coll, keys: Keys) -> Self
-        where Coll: Into<String>, Keys: IntoIterator<Item=DocumentKey>
+    where
+        Coll: Into<String>,
+        Keys: IntoIterator<Item = DocumentKey>,
     {
-        DeleteDocuments::new(collection_name, keys.into_iter()
-            .map(DocumentSelector::Key))
+        DeleteDocuments::new(collection_name, keys.into_iter().map(DocumentSelector::Key))
     }
 
     pub fn with_headers<Coll, Headers>(collection_name: Coll, headers: Headers) -> Self
-        where Coll: Into<String>, Headers: IntoIterator<Item=DocumentHeader>
+    where
+        Coll: Into<String>,
+        Headers: IntoIterator<Item = DocumentHeader>,
     {
-        DeleteDocuments::new(collection_name, headers.into_iter()
-            .map(DocumentSelector::Header))
+        DeleteDocuments::new(
+            collection_name,
+            headers.into_iter().map(DocumentSelector::Header),
+        )
     }
 
     pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
@@ -1293,7 +1358,8 @@ impl DeleteDocuments {
     }
 
     pub fn with_ignore_revisions<R>(mut self, ignore_revisions: R) -> Self
-        where R: Into<Option<bool>>
+    where
+        R: Into<Option<bool>>,
     {
         self.ignore_revisions = ignore_revisions.into();
         self
@@ -1367,7 +1433,9 @@ pub struct DeleteDocumentsReturnOld<T> {
 
 impl<T> DeleteDocumentsReturnOld<T> {
     pub fn new<Coll, Selectors>(collection_name: Coll, selectors: Selectors) -> Self
-        where Coll: Into<String>, Selectors: IntoIterator<Item=DocumentSelector>
+    where
+        Coll: Into<String>,
+        Selectors: IntoIterator<Item = DocumentSelector>,
     {
         DeleteDocumentsReturnOld {
             collection_name: collection_name.into(),
@@ -1379,24 +1447,30 @@ impl<T> DeleteDocumentsReturnOld<T> {
     }
 
     pub fn with_ids<Coll, Ids>(collection_name: Coll, ids: Ids) -> Self
-        where Coll: Into<String>, Ids: IntoIterator<Item=DocumentId>
+    where
+        Coll: Into<String>,
+        Ids: IntoIterator<Item = DocumentId>,
     {
-        DeleteDocumentsReturnOld::new(collection_name, ids.into_iter()
-            .map(DocumentSelector::Id))
+        DeleteDocumentsReturnOld::new(collection_name, ids.into_iter().map(DocumentSelector::Id))
     }
 
     pub fn with_keys<Coll, Keys>(collection_name: Coll, keys: Keys) -> Self
-        where Coll: Into<String>, Keys: IntoIterator<Item=DocumentKey>
+    where
+        Coll: Into<String>,
+        Keys: IntoIterator<Item = DocumentKey>,
     {
-        DeleteDocumentsReturnOld::new(collection_name, keys.into_iter()
-            .map(DocumentSelector::Key))
+        DeleteDocumentsReturnOld::new(collection_name, keys.into_iter().map(DocumentSelector::Key))
     }
 
     pub fn with_headers<Coll, Headers>(collection_name: Coll, headers: Headers) -> Self
-        where Coll: Into<String>, Headers: IntoIterator<Item=DocumentHeader>
+    where
+        Coll: Into<String>,
+        Headers: IntoIterator<Item = DocumentHeader>,
     {
-        DeleteDocumentsReturnOld::new(collection_name, headers.into_iter()
-            .map(DocumentSelector::Header))
+        DeleteDocumentsReturnOld::new(
+            collection_name,
+            headers.into_iter().map(DocumentSelector::Header),
+        )
     }
 
     pub fn with_force_wait_for_sync(mut self, force_wait_for_sync: bool) -> Self {
@@ -1427,7 +1501,8 @@ impl<T> DeleteDocumentsReturnOld<T> {
 }
 
 impl<T> Method for DeleteDocumentsReturnOld<T>
-    where T: DeserializeOwned
+where
+    T: DeserializeOwned,
 {
     type Result = ResultList<Document<T>>;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {

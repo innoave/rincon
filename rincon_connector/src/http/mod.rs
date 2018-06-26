@@ -16,9 +16,9 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use futures::{future, Future, Stream};
-use hyper::{self, Client, HttpVersion, Request, StatusCode, Uri};
 use hyper::client::HttpConnector;
 use hyper::header::{self, Authorization, Basic, Bearer, ContentLength, ContentType};
+use hyper::{self, Client, HttpVersion, Request, StatusCode, Uri};
 use hyper_timeout::TimeoutConnector;
 use hyper_tls::HttpsConnector;
 use serde::ser::Serialize;
@@ -71,10 +71,7 @@ impl JsonHttpConnector {
     ///   used to connect to the database server.
     /// * `reactor` : a handle of a `reactor::Core` instance of the `tokio-core`
     ///   crate.
-    pub fn new(
-        datasource: DataSource,
-        reactor: &reactor::Handle
-    ) -> Result<Self, Error> {
+    pub fn new(datasource: DataSource, reactor: &reactor::Handle) -> Result<Self, Error> {
         let https_connector = HttpsConnector::new(4, reactor)
             .map_err(|cause| Error::Communication(cause.to_string()))?;
         let mut timeout_connector = TimeoutConnector::new(https_connector, reactor);
@@ -108,7 +105,7 @@ impl JsonHttpConnector {
     pub fn with_user_agent(
         user_agent: &'static UserAgent,
         datasource: DataSource,
-        reactor: &reactor::Handle
+        reactor: &reactor::Handle,
     ) -> Result<Self, Error> {
         let https_connector = HttpsConnector::new(4, reactor)
             .map_err(|cause| Error::Communication(cause.to_string()))?;
@@ -182,7 +179,9 @@ impl JsonHttpConnection {
     /// calls are executed against the system database if the actual method call
     /// does not specify a database.
     pub fn database(&self) -> Option<&String> {
-        self.database.as_ref().or_else(|| self.datasource.database_name())
+        self.database
+            .as_ref()
+            .or_else(|| self.datasource.database_name())
     }
 
     /// Returns the authentication token used by this connection.
@@ -192,7 +191,8 @@ impl JsonHttpConnection {
 
     /// Builds a HTTP-request for a concrete method call and returns it.
     pub fn prepare_request<'p, P>(&self, method: &'p P) -> Result<Request, Error>
-        where P: 'p + Prepare
+    where
+        P: 'p + Prepare,
     {
         let operation = method.operation();
         let http_method = http_method_for_operation(&operation);
@@ -203,26 +203,21 @@ impl JsonHttpConnection {
             let headers = request.headers_mut();
             headers.set(header_user_agent_for(self.user_agent));
             match *self.datasource.authentication() {
-                Authentication::Basic(ref credentials) => {
-                    headers.set(Authorization(Basic {
-                        username: credentials.username().to_owned(),
-                        password: Some(credentials.password().to_owned()),
-                    }))
-                },
-                Authentication::Jwt(_) => {
-                    match *self.token.as_ref() {
-                        Some(ref token) => {
-                            headers.set(Authorization(Bearer {
-                                token: token.to_owned(),
-                            }))
-                        },
-                        None => {
-                            return Err(Error::NotAuthenticated(
-                                "the client must be authenticated first, \
-                                 when using JWT authentication".into(),
-                            ));
-                        },
-                    }
+                Authentication::Basic(ref credentials) => headers.set(Authorization(Basic {
+                    username: credentials.username().to_owned(),
+                    password: Some(credentials.password().to_owned()),
+                })),
+                Authentication::Jwt(_) => match *self.token.as_ref() {
+                    Some(ref token) => headers.set(Authorization(Bearer {
+                        token: token.to_owned(),
+                    })),
+                    None => {
+                        return Err(Error::NotAuthenticated(
+                            "the client must be authenticated first, \
+                             when using JWT authentication"
+                                .into(),
+                        ));
+                    },
                 },
                 Authentication::None => {},
             }
@@ -243,44 +238,54 @@ impl JsonHttpConnection {
 
 impl Execute for JsonHttpConnection {
     fn execute<M>(&self, method: M) -> FutureResult<M>
-        where M: Method + Prepare + 'static
+    where
+        M: Method + Prepare + 'static,
     {
         match self.prepare_request(&method) {
             Ok(request) => {
                 debug!("Sending {:?}", &request);
-                Box::new(self.client.request(request)
-                    .map_err(|cause| Error::Communication(cause.to_string()))
-                    .and_then(move |response| {
-                        let status_code = response.status();
-                        response.body().concat2()
-                            .map_err(|cause| Error::Communication(cause.to_string()))
-                            .and_then(move |buffer|
-                                parse_return_type::<M>(&method.return_type(), status_code, &buffer))
-                    })
+                Box::new(
+                    self.client
+                        .request(request)
+                        .map_err(|cause| Error::Communication(cause.to_string()))
+                        .and_then(move |response| {
+                            let status_code = response.status();
+                            response
+                                .body()
+                                .concat2()
+                                .map_err(|cause| Error::Communication(cause.to_string()))
+                                .and_then(move |buffer| {
+                                    parse_return_type::<M>(
+                                        &method.return_type(),
+                                        status_code,
+                                        &buffer,
+                                    )
+                                })
+                        }),
                 )
             },
-            Err(error) =>
-                Box::new(future::err(error)),
+            Err(error) => Box::new(future::err(error)),
         }
     }
 }
 
-fn parse_return_type<M>(return_type: &RpcReturnType, status_code: StatusCode, payload: &[u8])
-    -> Result<<M as Method>::Result, Error>
-    where M: Method
+fn parse_return_type<M>(
+    return_type: &RpcReturnType,
+    status_code: StatusCode,
+    payload: &[u8],
+) -> Result<<M as Method>::Result, Error>
+where
+    M: Method,
 {
     debug!("Received response with code {:?}", status_code);
     if status_code.is_success() {
         let parse_result = match return_type.result_field {
             Some(result_field) => match serde_json::from_slice(payload) {
                 Ok(Value::Object(ref mut obj)) => match obj.remove(result_field) {
-                    Some(result_value) =>
-                        serde_json::from_value(result_value),
-                    None =>
-                        serde_json::from_slice(payload),
+                    Some(result_value) => serde_json::from_value(result_value),
+                    None => serde_json::from_slice(payload),
                 },
-                _ =>
-                    serde_json::from_slice(payload),
+                _ => serde_json::from_slice(payload),
             },
             None => serde_json::from_slice(payload),
         };
@@ -306,14 +311,20 @@ fn parse_return_type<M>(return_type: &RpcReturnType, status_code: StatusCode, pa
 }
 
 fn serialize_payload<T>(content: &T) -> Result<Vec<u8>, Error>
-    where T: Serialize
+where
+    T: Serialize,
 {
     serde_json::to_vec(content).map_err(|cause| Error::Serialization(cause.to_string()))
 }
 
 fn header_user_agent_for(agent: &UserAgent) -> header::UserAgent {
-    let agent_string = format!("Mozilla/5.0 (compatible; {}/{}.{}; +{})",
-        agent.name(), agent.version().major(), agent.version().minor(), agent.homepage());
+    let agent_string = format!(
+        "Mozilla/5.0 (compatible; {}/{}.{}; +{})",
+        agent.name(),
+        agent.version().major(),
+        agent.version().minor(),
+        agent.homepage()
+    );
     header::UserAgent::new(agent_string)
 }
 
@@ -329,12 +340,9 @@ fn http_method_for_operation(operation: &Operation) -> hyper::Method {
     }
 }
 
-fn build_request_uri<P>(
-    datasource: &DataSource,
-    database_name: Option<&String>,
-    prepare: &P
-) -> Uri
-    where P: Prepare
+fn build_request_uri<P>(datasource: &DataSource, database_name: Option<&String>, prepare: &P) -> Uri
+where
+    P: Prepare,
 {
     let mut request_uri = String::new();
     request_uri.push_str(datasource.protocol());

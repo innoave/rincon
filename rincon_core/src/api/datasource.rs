@@ -71,9 +71,7 @@ impl DataSource {
             host: host.to_owned(),
             port,
             database_name,
-            authentication: Authentication::Basic(Credentials::new(
-                username.to_owned(),
-                password)),
+            authentication: Authentication::Basic(Credentials::new(username.to_owned(), password)),
             timeout: Duration::from_secs(DEFAULT_TIMEOUT),
         }
     }
@@ -81,7 +79,8 @@ impl DataSource {
     /// Returns a new copy of this `DataSource` with the database parameter set
     /// to the given database name.
     pub fn use_database<DbName>(&self, database_name: DbName) -> Self
-        where DbName: Into<String>
+    where
+        DbName: Into<String>,
     {
         let database_name = database_name.into();
         let database_name = if database_name.is_empty() {
@@ -116,9 +115,8 @@ impl DataSource {
     /// Returns a new copy of this `DataSource` which uses basic authentication
     /// with the given username and password.
     pub fn with_basic_authentication(&self, username: &str, password: &str) -> Self {
-        let authentication = Authentication::Basic(
-            Credentials::new(username.to_owned(), password.to_owned())
-        );
+        let authentication =
+            Authentication::Basic(Credentials::new(username.to_owned(), password.to_owned()));
         DataSource {
             protocol: self.protocol.clone(),
             host: self.host.clone(),
@@ -158,7 +156,8 @@ impl DataSource {
     /// Returns a new copy of this `DataSource` but with the timeout for method
     /// calls set to the given value.
     pub fn with_timeout<D>(&self, timeout: D) -> Self
-        where D: Into<Duration>
+    where
+        D: Into<Duration>,
     {
         DataSource {
             protocol: self.protocol.clone(),
@@ -209,7 +208,8 @@ impl Default for DataSource {
             port: DEFAULT_PORT,
             authentication: Authentication::Basic(Credentials::new(
                 DEFAULT_USERNAME.to_owned(),
-                DEFAULT_PASSWORD.to_owned())),
+                DEFAULT_PASSWORD.to_owned(),
+            )),
             database_name: None,
             timeout: Duration::from_secs(DEFAULT_TIMEOUT),
         }

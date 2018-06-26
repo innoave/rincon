@@ -1,22 +1,21 @@
-
 extern crate dotenv;
 extern crate hyper;
 extern crate tokio_core;
 
-extern crate rincon_core;
 extern crate rincon_connector;
+extern crate rincon_core;
 
 use std::str::FromStr;
 use std::time::Duration;
 
 use tokio_core::reactor::Core;
 
+use rincon_connector::http::JsonHttpConnector;
 use rincon_core::api::connector::{Connector, Error, Execute};
+use rincon_core::api::datasource::DataSource;
 use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use rincon_core::api::types::JsonValue;
-use rincon_core::api::datasource::DataSource;
 use rincon_core::arango::protocol::{PARAM_DETAILS, PATH_API_VERSION};
-use rincon_connector::http::JsonHttpConnector;
 
 #[allow(missing_copy_implementations)]
 #[derive(Debug, Clone, PartialEq)]
@@ -66,7 +65,8 @@ fn establish_connection_timeout() {
     dotenv::dotenv().ok();
     let mut core = Core::new().unwrap();
     // 10.255.255.1 is a not a routable IP address
-    let datasource = DataSource::from_str("http://10.255.255.1:8529").unwrap()
+    let datasource = DataSource::from_str("http://10.255.255.1:8529")
+        .unwrap()
         .with_timeout(Duration::from_millis(500));
     let connector = JsonHttpConnector::new(datasource, &core.handle()).unwrap();
     let conn = connector.system_connection();
@@ -77,7 +77,7 @@ fn establish_connection_timeout() {
     match core.run(work) {
         Err(Error::Timeout(reason)) => {
             assert_eq!("", reason);
-        }
+        },
         e => panic!("Expected timeout error, got {:?}", e),
     }
 }

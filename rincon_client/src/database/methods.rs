@@ -2,10 +2,11 @@
 
 use serde::ser::Serialize;
 
-use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use rincon_core::arango::protocol::{FIELD_CODE, FIELD_RESULT,
-    PATH_API_DATABASE, PATH_CURRENT, PATH_USER};
 use super::types::*;
+use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
+use rincon_core::arango::protocol::{
+    FIELD_CODE, FIELD_RESULT, PATH_API_DATABASE, PATH_CURRENT, PATH_USER,
+};
 use user::types::{NewUser, UserExtra};
 
 /// Retrieves information about the current database.
@@ -155,20 +156,20 @@ impl Prepare for ListAccessibleDatabases {
 /// database.
 #[derive(Debug, Clone, PartialEq)]
 pub struct CreateDatabase<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     database: NewDatabase<E>,
 }
 
 impl<E> CreateDatabase<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// Constructs a new `CreateDatabase` method with the parameters specified
     /// in the given `NewDatabase` struct.
     pub fn new(database: NewDatabase<E>) -> Self {
-        CreateDatabase {
-            database,
-        }
+        CreateDatabase { database }
     }
 
     /// Constructs a new `CreateDatabase` method with the given name used as
@@ -176,7 +177,8 @@ impl<E> CreateDatabase<E>
     ///
     /// All other parameters are left to their defaults.
     pub fn with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         CreateDatabase {
             database: NewDatabase::with_name(name),
@@ -189,7 +191,8 @@ impl<E> CreateDatabase<E>
     ///
     /// All other parameters are left to their defaults.
     pub fn with_name_for_users<N>(name: N, users: Vec<NewUser<E>>) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         CreateDatabase {
             database: NewDatabase::new(name, users),
@@ -204,7 +207,8 @@ impl<E> CreateDatabase<E>
 }
 
 impl<E> Method for CreateDatabase<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     type Result = bool;
     const RETURN_TYPE: RpcReturnType = RpcReturnType {
@@ -214,7 +218,8 @@ impl<E> Method for CreateDatabase<E>
 }
 
 impl<E> Prepare for CreateDatabase<E>
-    where E: UserExtra + Serialize
+where
+    E: UserExtra + Serialize,
 {
     type Content = NewDatabase<E>;
 
@@ -251,17 +256,15 @@ pub struct DropDatabase {
 impl DropDatabase {
     /// Constructs a new `DropDatabase` method with the given name of the
     /// database to be dropped.
-    pub fn new(database_name: String) -> Self
-    {
-        DropDatabase {
-            database_name,
-        }
+    pub fn new(database_name: String) -> Self {
+        DropDatabase { database_name }
     }
 
     /// Constructs a new `DropDatabase` method with the given name of the
     /// database to be dropped.
     pub fn with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         DropDatabase {
             database_name: name.into(),

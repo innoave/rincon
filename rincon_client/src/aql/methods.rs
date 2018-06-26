@@ -1,9 +1,9 @@
 //! Methods related to AQL queries.
 
+use super::types::*;
 use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
 use rincon_core::api::query::Query;
 use rincon_core::arango::protocol::{FIELD_CODE, PATH_API_EXPLAIN, PATH_API_QUERY};
-use super::types::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ParseQuery {
@@ -12,9 +12,7 @@ pub struct ParseQuery {
 
 impl ParseQuery {
     pub fn new(options: NewParseQuery) -> Self {
-        ParseQuery {
-            options,
-        }
+        ParseQuery { options }
     }
 
     pub fn from_query(query: String) -> Self {
@@ -65,9 +63,7 @@ pub struct ExplainQuery {
 
 impl ExplainQuery {
     pub fn new(query_options: NewExplainQuery) -> Self {
-        ExplainQuery {
-            query_options,
-        }
+        ExplainQuery { query_options }
     }
 
     pub fn with_defaults(query: Query) -> Self {

@@ -1,10 +1,9 @@
-
 use serde_json;
 
+use super::*;
+use aql::types::OptimizerRule;
 use rincon_core::api::query::Query;
 use rincon_core::api::types::Value;
-use aql::types::OptimizerRule;
-use super::*;
 
 #[test]
 fn convert_query_into_new_cursor_to_be_created() {
@@ -14,8 +13,14 @@ fn convert_query_into_new_cursor_to_be_created() {
 
     let new_cursor: NewCursor = query.into();
 
-    assert_eq!("FOR u IN users FILTER u.name = @name RETURN u.name", new_cursor.query());
-    assert_eq!(Some(&Value::String("simone".to_owned())), new_cursor.bind_vars().get("name"));
+    assert_eq!(
+        "FOR u IN users FILTER u.name = @name RETURN u.name",
+        new_cursor.query()
+    );
+    assert_eq!(
+        Some(&Value::String("simone".to_owned())),
+        new_cursor.bind_vars().get("name")
+    );
 }
 
 #[test]
@@ -27,7 +32,10 @@ fn set_optimizer_rule_cursor_option_on_a_newly_initialized_new_cursor() {
     let mut new_cursor = NewCursor::from(query);
     assert!(new_cursor.options().is_none());
 
-    new_cursor.options_mut().optimizer_mut().rules_mut()
+    new_cursor
+        .options_mut()
+        .optimizer_mut()
+        .rules_mut()
         .include(OptimizerRule::UseIndexes)
         .exclude(OptimizerRule::MoveFiltersUp);
     let new_cursor = new_cursor;
@@ -56,10 +64,12 @@ fn set_cursor_options_on_newly_initialized_new_cursor() {
         cursor_options.set_max_warning_count(None);
         cursor_options.set_max_plans(5);
 
-        #[cfg(feature = "rocksdb")] {
+        #[cfg(feature = "rocksdb")]
+        {
             cursor_options.set_intermediate_commit_count(1);
         }
-        #[cfg(feature = "enterprise")] {
+        #[cfg(feature = "enterprise")]
+        {
             cursor_options.set_satellite_sync_wait(false);
         }
     }
@@ -73,12 +83,14 @@ fn set_cursor_options_on_newly_initialized_new_cursor() {
     assert_eq!(Some(false), cursor_options.is_full_count());
     assert_eq!(Some(5), cursor_options.max_plans());
 
-    #[cfg(feature = "rocksdb")] {
+    #[cfg(feature = "rocksdb")]
+    {
         assert_eq!(Some(1), cursor_options.intermediate_commit_count());
         assert_eq!(None, cursor_options.intermediate_commit_size());
         assert_eq!(None, cursor_options.max_transaction_size());
     }
-    #[cfg(feature = "enterprise")] {
+    #[cfg(feature = "enterprise")]
+    {
         assert_eq!(Some(false), cursor_options.satellite_sync_wait());
     }
 }
@@ -120,10 +132,12 @@ fn serialize_new_cursor_with_cursor_options_set() {
         cursor_options.set_max_warning_count(None);
         cursor_options.set_max_plans(5);
 
-        #[cfg(feature = "rocksdb")] {
+        #[cfg(feature = "rocksdb")]
+        {
             cursor_options.set_intermediate_commit_count(1);
         }
-        #[cfg(feature = "enterprise")] {
+        #[cfg(feature = "enterprise")]
+        {
             cursor_options.set_satellite_sync_wait(false);
         }
     }
@@ -131,16 +145,20 @@ fn serialize_new_cursor_with_cursor_options_set() {
 
     let json_cursor = serde_json::to_string(&new_cursor).unwrap();
 
-    #[cfg(all(not(feature = "rocksdb"), not(feature = "enterprise")))] {
+    #[cfg(all(not(feature = "rocksdb"), not(feature = "enterprise")))]
+    {
         assert_eq!(r#"{"query":"FOR u IN users FILTER u.name = @name RETURN u.name","bindVars":{"name":"simone"},"options":{"failOnWarning":true,"fullCount":false,"maxPlans":5}}"#, &json_cursor);
     }
-    #[cfg(all(feature = "rocksdb", not(feature = "enterprise")))] {
+    #[cfg(all(feature = "rocksdb", not(feature = "enterprise")))]
+    {
         assert_eq!(r#"{"query":"FOR u IN users FILTER u.name = @name RETURN u.name","bindVars":{"name":"simone"},"options":{"failOnWarning":true,"fullCount":false,"maxPlans":5,"intermediateCommitCount":1}}"#, &json_cursor);
     }
-    #[cfg(all(not(feature = "rocksdb"), feature = "enterprise"))] {
+    #[cfg(all(not(feature = "rocksdb"), feature = "enterprise"))]
+    {
         assert_eq!(r#"{"query":"FOR u IN users FILTER u.name = @name RETURN u.name","bindVars":{"name":"simone"},"options":{"failOnWarning":true,"fullCount":false,"maxPlans":5,"satelliteSyncWait":false}}"#, &json_cursor);
     }
-    #[cfg(all(feature = "rocksdb", feature = "enterprise"))] {
+    #[cfg(all(feature = "rocksdb", feature = "enterprise"))]
+    {
         assert_eq!(r#"{"query":"FOR u IN users FILTER u.name = @name RETURN u.name","bindVars":{"name":"simone"},"options":{"failOnWarning":true,"fullCount":false,"maxPlans":5,"intermediateCommitCount":1,"satelliteSyncWait":false}}"#, &json_cursor);
     }
 }
@@ -154,12 +172,14 @@ fn serialize_new_cursor_with_optimizer_rules_set() {
     let mut new_cursor = NewCursor::from(query);
     assert!(new_cursor.options().is_none());
 
-    new_cursor.options_mut().optimizer_mut().rules_mut()
+    new_cursor
+        .options_mut()
+        .optimizer_mut()
+        .rules_mut()
         .exclude(OptimizerRule::All)
         .exclude(OptimizerRule::MoveFiltersUp)
         .include(OptimizerRule::UseIndexForSort)
-        .include(OptimizerRule::InlineSubQueries)
-    ;
+        .include(OptimizerRule::InlineSubQueries);
     let new_cursor = new_cursor;
 
     let json_cursor = serde_json::to_string(&new_cursor).unwrap();

@@ -9,7 +9,7 @@ mod tests;
 use std::collections::HashMap;
 use std::fmt;
 
-use api::types::{Value, UnwrapValue};
+use api::types::{UnwrapValue, Value};
 
 /// Represents a database query within the rincon driver.
 ///
@@ -24,7 +24,8 @@ pub struct Query {
 impl Query {
     /// Constructs a new `Query` with the given query string.
     pub fn new<Q>(query_string: Q) -> Self
-        where Q: Into<String>
+    where
+        Q: Into<String>,
     {
         Query {
             string: query_string.into(),
@@ -47,14 +48,17 @@ impl Query {
 
     /// Sets the value of a named parameter.
     pub fn set_parameter<N, T>(&mut self, name: N, value: T)
-        where N: Into<String>, T: Into<Value>
+    where
+        N: Into<String>,
+        T: Into<Value>,
     {
         self.params.insert(name.into(), value.into());
     }
 
     /// Returns the value of a named parameter.
     pub fn parameter<T>(&self, name: &str) -> Option<&T>
-        where T: UnwrapValue
+    where
+        T: UnwrapValue,
     {
         self.params.get(name).map(UnwrapValue::unwrap)
     }

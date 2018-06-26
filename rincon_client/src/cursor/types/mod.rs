@@ -6,9 +6,9 @@ mod tests;
 use std::collections::HashMap;
 use std::mem;
 
+use aql::types::Optimizer;
 use rincon_core::api::query::Query;
 use rincon_core::api::types::{JsonValue, Value};
-use aql::types::Optimizer;
 
 /// A temporary cursor for retrieving query results.
 ///
@@ -295,7 +295,8 @@ impl NewCursor {
     /// some queries in the future so this option is turned off by default, and
     /// 'count' is only returned when requested.
     pub fn set_count<C>(&mut self, count: C)
-        where C: Into<Option<bool>>
+    where
+        C: Into<Option<bool>>,
     {
         self.count = count.into();
     }
@@ -312,7 +313,8 @@ impl NewCursor {
     /// If this attribute is not set, a server-controlled default value will be
     /// used. A batchSize value of 0 is disallowed.
     pub fn set_batch_size<S>(&mut self, batch_size: S)
-        where S: Into<Option<u32>>
+    where
+        S: Into<Option<u32>>,
     {
         self.batch_size = batch_size.into();
     }
@@ -329,7 +331,8 @@ impl NewCursor {
     /// query. If set to true, it will lead to the query cache being checked
     /// for the query if the query cache mode is either on or demand.
     pub fn set_cache<C>(&mut self, cache: C)
-        where C: Into<Option<bool>>
+    where
+        C: Into<Option<bool>>,
     {
         self.cache = cache.into();
     }
@@ -346,7 +349,8 @@ impl NewCursor {
     /// in case it allocates too much memory. A value of 0 indicates that there
     /// is no memory limit.
     pub fn set_memory_limit<L>(&mut self, memory_limit: L)
-        where L: Into<Option<u64>>
+    where
+        L: Into<Option<u64>>,
     {
         self.memory_limit = memory_limit.into();
     }
@@ -364,7 +368,8 @@ impl NewCursor {
     /// of cursors that are not fully fetched by clients. If not set, a
     /// server-defined value will be used.
     pub fn set_ttl<T>(&mut self, ttl: T)
-        where T: Into<Option<u32>>
+    where
+        T: Into<Option<u32>>,
     {
         self.ttl = ttl.into();
     }
@@ -498,7 +503,8 @@ impl CursorOptions {
     /// `--query.fail-on-warning` for setting the default value for
     /// `fail_on_warning` so it does not need to be set on a per-query level.
     pub fn set_fail_on_warning<W>(&mut self, fail_on_warning: W)
-        where W: Into<Option<bool>>
+    where
+        W: Into<Option<bool>>,
     {
         self.fail_on_warning = fail_on_warning.into();
     }
@@ -515,7 +521,8 @@ impl CursorOptions {
     /// be returned in the sub-attribute profile of the extra return attribute
     /// if the query result is not served from the query cache.
     pub fn set_profile<P>(&mut self, profile: P)
-        where P: Into<Option<bool>>
+    where
+        P: Into<Option<bool>>,
     {
         self.profile = profile.into();
     }
@@ -531,7 +538,8 @@ impl CursorOptions {
     /// The number of warnings a query will return is limited to 10 by default,
     /// but that number can be increased or decreased by setting this attribute.
     pub fn set_max_warning_count<C>(&mut self, max_warning_count: C)
-        where C: Into<Option<u32>>
+    where
+        C: Into<Option<u32>>,
     {
         self.max_warning_count = max_warning_count.into();
     }
@@ -556,7 +564,8 @@ impl CursorOptions {
     /// only be present in the result if the query has a LIMIT clause and the
     /// LIMIT clause is actually used in the query.
     pub fn set_full_count<C>(&mut self, full_count: C)
-        where C: Into<Option<bool>>
+    where
+        C: Into<Option<bool>>,
     {
         self.full_count = full_count.into();
     }
@@ -569,7 +578,8 @@ impl CursorOptions {
     /// Sets the maximum number of plans that are created by the AQL query
     /// optimizer.
     pub fn set_max_plans<P>(&mut self, max_plans: P)
-        where P: Into<Option<u32>>
+    where
+        P: Into<Option<u32>>,
     {
         self.max_plans = max_plans.into();
     }
@@ -602,7 +612,8 @@ impl CursorOptions {
     ///
     /// Honored by the RocksDB storage engine only.
     pub fn set_intermediate_commit_count<C>(&mut self, intermediate_commit_count: C)
-        where C: Into<Option<u32>>
+    where
+        C: Into<Option<u32>>,
     {
         self.intermediate_commit_count = intermediate_commit_count.into();
     }
@@ -622,7 +633,8 @@ impl CursorOptions {
     ///
     /// Honored by the RocksDB storage engine only.
     pub fn set_intermediate_commit_size<S>(&mut self, intermediate_commit_size: S)
-        where S: Into<Option<u32>>
+    where
+        S: Into<Option<u32>>,
     {
         self.intermediate_commit_size = intermediate_commit_size.into();
     }
@@ -641,7 +653,8 @@ impl CursorOptions {
     ///
     /// Honored by the RocksDB storage engine only.
     pub fn set_max_transaction_size<S>(&mut self, max_transaction_size: S)
-        where S: Into<Option<u32>>
+    where
+        S: Into<Option<u32>>,
     {
         self.max_transaction_size = max_transaction_size.into();
     }
@@ -662,7 +675,8 @@ impl CursorOptions {
     /// The default value is 60.0 (seconds). When the max time has been reached
     /// the query will be stopped.
     pub fn set_satellite_sync_wait<W>(&mut self, satellite_sync_wait: W)
-        where W: Into<Option<bool>>
+    where
+        W: Into<Option<bool>>,
     {
         self.satellite_sync_wait = satellite_sync_wait.into();
     }

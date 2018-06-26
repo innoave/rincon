@@ -11,8 +11,8 @@ use std::str::FromStr;
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
-use rincon_core::api::types::{Empty, JsonValue};
 use super::DEFAULT_ROOT_PASSWORD;
+use rincon_core::api::types::{Empty, JsonValue};
 
 const PERMISSION_READ_WRITE: &str = "rw";
 const PERMISSION_READ_ONLY: &str = "ro";
@@ -26,7 +26,8 @@ const PERMISSION_NONE: &str = "none";
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct User<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// The name of the user as a string.
     user: String,
@@ -37,7 +38,8 @@ pub struct User<E>
 }
 
 impl<E> User<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// Returns the name of the user.
     pub fn name(&self) -> &str {
@@ -74,17 +76,20 @@ impl UserExtra for JsonValue {}
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NewUser<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// The name of the user as a string. This is mandatory.
     user: String,
 
-    /// The user password as a string. If no password is specified, the empty string will be used.
+    /// The user password as a string. If no password is specified, the empty
+    /// string will be used.
     ///
-    /// If you pass the special value ARANGODB_DEFAULT_ROOT_PASSWORD, then the password will be set
-    /// the value stored in the environment variable ARANGODB_DEFAULT_ROOT_PASSWORD. This can be
-    /// used to pass an instance variable into ArangoDB. For example, the instance identifier from
-    /// Amazon.
+    /// If you pass the special value ARANGODB_DEFAULT_ROOT_PASSWORD, then the
+    /// password will be set the value stored in the environment variable
+    /// ARANGODB_DEFAULT_ROOT_PASSWORD. This can be used to pass an
+    /// instance variable into ArangoDB. For example, the instance identifier
+    /// from Amazon.
     #[serde(skip_serializing_if = "Option::is_none")]
     passwd: Option<String>,
 
@@ -99,12 +104,17 @@ pub struct NewUser<E>
 }
 
 impl<E> NewUser<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// Constructs an new instance of `NewUser` with all attributes explicitly
     /// set.
     pub fn new<N, P, A, O>(name: N, password: P, active: A, extra: O) -> Self
-        where N: Into<String>, P: Into<Option<String>>, A: Into<Option<bool>>, O: Into<Option<E>>
+    where
+        N: Into<String>,
+        P: Into<Option<String>>,
+        A: Into<Option<bool>>,
+        O: Into<Option<E>>,
     {
         NewUser {
             user: name.into(),
@@ -119,7 +129,9 @@ impl<E> NewUser<E>
     /// The user will be active by default and will not have any extra data
     /// assigned.
     pub fn with_name<N, P>(name: N, password: P) -> Self
-        where N: Into<String>, P: Into<String>
+    where
+        N: Into<String>,
+        P: Into<String>,
     {
         NewUser {
             user: name.into(),
@@ -135,7 +147,8 @@ impl<E> NewUser<E>
     /// The user will be active by default and will not have any extra data
     /// assigned.
     pub fn with_default_root_password<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         NewUser {
             user: name.into(),
@@ -147,14 +160,16 @@ impl<E> NewUser<E>
 
     /// Sets the extra data for this `NewUser`.
     pub fn set_extra<O>(&mut self, extra: O)
-        where O: Into<Option<E>>
+    where
+        O: Into<Option<E>>,
     {
         self.extra = extra.into();
     }
 
     /// Sets the active flag for this `NewUser`.
     pub fn set_active<A>(&mut self, active: A)
-        where A: Into<Option<bool>>
+    where
+        A: Into<Option<bool>>,
     {
         self.active = active.into();
     }
@@ -190,7 +205,8 @@ impl<E> NewUser<E>
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserUpdate<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// An optional password as a string if the password shall be changed.
     ///
@@ -209,12 +225,16 @@ pub struct UserUpdate<E>
 }
 
 impl<E> UserUpdate<E>
-    where E: UserExtra
+where
+    E: UserExtra,
 {
     /// Constructs an new instance of `UserUpdate` with all attributes
     /// explicitly set.
     pub fn new<P, A, O>(password: P, active: A, extra: O) -> Self
-        where P: Into<Option<String>>, A: Into<Option<bool>>, O: Into<Option<E>>
+    where
+        P: Into<Option<String>>,
+        A: Into<Option<bool>>,
+        O: Into<Option<E>>,
     {
         UserUpdate {
             passwd: password.into(),
@@ -234,21 +254,24 @@ impl<E> UserUpdate<E>
 
     /// Sets the password for this `UserUpdate`.
     pub fn set_password<P>(&mut self, password: P)
-        where P: Into<Option<String>>
+    where
+        P: Into<Option<String>>,
     {
         self.passwd = password.into();
     }
 
     /// Sets the extra data for this `UserUpdate`.
     pub fn set_extra<O>(&mut self, extra: O)
-        where O: Into<Option<E>>
+    where
+        O: Into<Option<E>>,
     {
         self.extra = extra.into();
     }
 
     /// Sets the active flag for this `UserUpdate`.
     pub fn set_active<A>(&mut self, active: A)
-        where A: Into<Option<bool>>
+    where
+        A: Into<Option<bool>>,
     {
         self.active = active.into();
     }
@@ -271,7 +294,8 @@ impl<E> UserUpdate<E>
 }
 
 impl<E> From<User<E>> for UserUpdate<E>
-    where E: UserExtra + Clone
+where
+    E: UserExtra + Clone,
 {
     fn from(user: User<E>) -> Self {
         UserUpdate {
@@ -293,9 +317,7 @@ pub struct NewAccessLevel {
 impl NewAccessLevel {
     /// Constructs a new instance of `NewAccessLevel`.
     pub fn new(grant: Permission) -> Self {
-        NewAccessLevel {
-            grant,
-        }
+        NewAccessLevel { grant }
     }
 
     /// Returns the access level to be granted.
@@ -346,15 +368,16 @@ impl Display for Permission {
         use self::Permission::*;
         f.write_str(match *self {
             ReadWrite => "Read/Write",
-            ReadOnly  => "Read Only",
-            None      => "No access",
+            ReadOnly => "Read Only",
+            None => "No access",
         })
     }
 }
 
 impl Serialize for Permission {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_str(self.as_str())
     }
@@ -362,7 +385,8 @@ impl Serialize for Permission {
 
 impl<'de> Deserialize<'de> for Permission {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let value = String::deserialize(deserializer)?;

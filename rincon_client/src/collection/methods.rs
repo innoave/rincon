@@ -1,19 +1,20 @@
 //! Methods for managing collections.
 
+use super::types::*;
 use rincon_core::api::method::{Method, Operation, Parameters, Prepare, RpcReturnType};
-use rincon_core::arango::protocol::{FIELD_CODE, FIELD_ID, FIELD_RESULT,
-    PARAM_EXCLUDE_SYSTEM, PATH_API_COLLECTION, PATH_PROPERTIES, PATH_RENAME,
-    PATH_REVISION};
 #[cfg(feature = "cluster")]
 use rincon_core::arango::protocol::PARAM_WAIT_FOR_SYNC_REPLICATION;
-use super::types::*;
+use rincon_core::arango::protocol::{
+    FIELD_CODE, FIELD_ID, FIELD_RESULT, PARAM_EXCLUDE_SYSTEM, PATH_API_COLLECTION, PATH_PROPERTIES,
+    PATH_RENAME, PATH_REVISION,
+};
 
 /// Retrieves a list of existing collections.
 #[allow(missing_copy_implementations)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct ListCollections {
     /// Whether or not to exclude system collections from the response.
-    exclude_system: bool
+    exclude_system: bool,
 }
 
 #[cfg_attr(feature = "cargo-clippy", allow(new_without_default_derive))]
@@ -107,7 +108,8 @@ impl CreateCollection {
     ///
     /// All other parameters will be set to their default values.
     pub fn with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         CreateCollection {
             collection: NewCollection::with_name(name),
@@ -121,7 +123,8 @@ impl CreateCollection {
     ///
     /// All other parameters will be set to their default values.
     pub fn documents_with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         CreateCollection {
             collection: NewCollection::documents_with_name(name),
@@ -135,7 +138,8 @@ impl CreateCollection {
     ///
     /// All other parameters will be set to their default values.
     pub fn edges_with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         CreateCollection {
             collection: NewCollection::edges_with_name(name),
@@ -227,7 +231,8 @@ impl DropCollection {
     /// is_system property to `true` explicitly by calling the function
     /// `DropCollection::set_system`.
     pub fn with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         DropCollection {
             name: name.into(),
@@ -244,7 +249,8 @@ impl DropCollection {
     /// is_system property to `false` explicitly by calling the function
     /// `DropCollection::set_system`.
     pub fn system_with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         DropCollection {
             name: name.into(),
@@ -287,8 +293,7 @@ impl Prepare for DropCollection {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_COLLECTION)
-            + "/" + &self.name
+        String::from(PATH_API_COLLECTION) + "/" + &self.name
     }
 
     fn parameters(&self) -> Parameters {
@@ -313,19 +318,16 @@ pub struct GetCollection {
 impl GetCollection {
     /// Constructs a new instance of the `GetCollection` method.
     pub fn new(name: String) -> Self {
-        GetCollection {
-            name,
-        }
+        GetCollection { name }
     }
 
     /// Constructs a new instance of the `GetCollection` method to get
     /// information about the collection with the given name.
     pub fn with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
-        GetCollection {
-            name: name.into(),
-        }
+        GetCollection { name: name.into() }
     }
 
     /// Returns the name of the collection for which the information shall
@@ -351,8 +353,7 @@ impl Prepare for GetCollection {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_COLLECTION)
-            + "/" + &self.name
+        String::from(PATH_API_COLLECTION) + "/" + &self.name
     }
 
     fn parameters(&self) -> Parameters {
@@ -377,19 +378,16 @@ pub struct GetCollectionRevision {
 impl GetCollectionRevision {
     /// Constructs a new instance of the `GetCollectionRevision` method.
     pub fn new(name: String) -> Self {
-        GetCollectionRevision {
-            name,
-        }
+        GetCollectionRevision { name }
     }
 
     /// Constructs a new instance of the `GetCollectionRevision` method to
     /// get the revision of the collection with the given name.
     pub fn with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
-        GetCollectionRevision {
-            name: name.into(),
-        }
+        GetCollectionRevision { name: name.into() }
     }
 
     /// Returns the name of the collection for which the revision shall
@@ -415,8 +413,7 @@ impl Prepare for GetCollectionRevision {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_COLLECTION)
-            + "/" + &self.name + PATH_REVISION
+        String::from(PATH_API_COLLECTION) + "/" + &self.name + PATH_REVISION
     }
 
     fn parameters(&self) -> Parameters {
@@ -441,19 +438,16 @@ pub struct GetCollectionProperties {
 impl GetCollectionProperties {
     /// Constructs a new instance of the `GetCollectionProperties` method.
     pub fn new(name: String) -> Self {
-        GetCollectionProperties {
-            name,
-        }
+        GetCollectionProperties { name }
     }
 
     /// Constructs a new instance of the `GetCollectionProperties` method to
     /// get properties about the collection with the given name.
     pub fn with_name<N>(name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
-        GetCollectionProperties {
-            name: name.into(),
-        }
+        GetCollectionProperties { name: name.into() }
     }
 
     /// Returns the name of the collection for which the properties shall
@@ -479,8 +473,7 @@ impl Prepare for GetCollectionProperties {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_COLLECTION)
-            + "/" + &self.name + PATH_PROPERTIES
+        String::from(PATH_API_COLLECTION) + "/" + &self.name + PATH_PROPERTIES
     }
 
     fn parameters(&self) -> Parameters {
@@ -519,10 +512,7 @@ impl ChangeCollectionProperties {
     /// the properties shall be changed. The `updates` parameter contains the
     /// actual changes that shall be applied.
     pub fn new(name: String, updates: CollectionPropertiesUpdate) -> Self {
-        ChangeCollectionProperties {
-            name,
-            updates,
-        }
+        ChangeCollectionProperties { name, updates }
     }
 
     /// Returns the name of the collection for which the properties shall be
@@ -554,8 +544,7 @@ impl Prepare for ChangeCollectionProperties {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_COLLECTION)
-            + "/" + &self.name + PATH_PROPERTIES
+        String::from(PATH_API_COLLECTION) + "/" + &self.name + PATH_PROPERTIES
     }
 
     fn parameters(&self) -> Parameters {
@@ -584,16 +573,14 @@ impl RenameCollection {
     /// Constructs a new instance of the `RenameCollection` method with all
     /// parameters specified.
     pub fn new(name: String, rename_to: RenameTo) -> Self {
-        RenameCollection {
-            name,
-            rename_to,
-        }
+        RenameCollection { name, rename_to }
     }
 
     /// Returns a builder to construct a new instance of the `RenameCollection`
     /// method that will rename the collection identified by the given name.
     pub fn with_name<N>(name: N) -> RenameCollectionBuilder
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         RenameCollectionBuilder {
             collection_name: name.into(),
@@ -617,9 +604,7 @@ impl Prepare for RenameCollection {
     }
 
     fn path(&self) -> String {
-        String::from(PATH_API_COLLECTION)
-            + "/" + &self.name
-            + PATH_RENAME
+        String::from(PATH_API_COLLECTION) + "/" + &self.name + PATH_RENAME
     }
 
     fn parameters(&self) -> Parameters {
@@ -648,7 +633,8 @@ impl RenameCollectionBuilder {
     /// Constructs a new instance of the `RenameCollection` method for the
     /// collection name of this builder and the given new name.
     pub fn to_name<N>(self, name: N) -> RenameCollection
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         RenameCollection {
             name: self.collection_name,

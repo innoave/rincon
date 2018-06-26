@@ -1,6 +1,4 @@
-
 #![doc(html_root_url = "https://docs.rs/rincon_session_async/0.1.0")]
-
 #![warn(
     missing_copy_implementations,
     missing_debug_implementations,
@@ -16,8 +14,8 @@
 extern crate futures;
 extern crate serde;
 
-extern crate rincon_core;
 extern crate rincon_client;
+extern crate rincon_core;
 
 mod async;
 pub use self::async::*;

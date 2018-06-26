@@ -24,7 +24,8 @@ pub struct Credentials {
 impl Credentials {
     /// Constructs new `Credentials` with the given username and password.
     pub fn new<S>(username: S, password: S) -> Self
-        where S: Into<String>
+    where
+        S: Into<String>,
     {
         Credentials {
             username: username.into(),

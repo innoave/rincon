@@ -1,4 +1,3 @@
-
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::rc::Rc;
@@ -7,8 +6,9 @@ use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 use tokio_core::reactor::Core;
 
-use rincon_client::document::types::{Document, DocumentHeader, DocumentKey, DocumentId,
-    NewDocument, UpdatedDocumentHeader};
+use rincon_client::document::types::{
+    Document, DocumentHeader, DocumentId, DocumentKey, NewDocument, UpdatedDocumentHeader,
+};
 use rincon_client::graph::methods::*;
 use rincon_client::graph::types::{Graph, VertexCollection};
 use rincon_core::api::connector::{Connector, Execute};
@@ -27,7 +27,8 @@ pub struct VertexCollectionSession<C> {
 }
 
 impl<C> VertexCollectionSession<C>
-    where C: 'static + Connector
+where
+    C: 'static + Connector,
 {
     /// Instantiates a new `VertexCollectionSession` for the given vertex
     /// collection entity.
@@ -49,11 +50,13 @@ impl<C> VertexCollectionSession<C>
 
     /// Executes an API method applied to the database of this session.
     fn execute<M>(&self, method: M) -> Result<<M as Method>::Result>
-        where M: 'static + Method + Prepare
+    where
+        M: 'static + Method + Prepare,
     {
         self.core.borrow_mut().run(
-            self.connector.connection(&self.database_name)
-                .execute(method)
+            self.connector
+                .connection(&self.database_name)
+                .execute(method),
         )
     }
 
@@ -96,51 +99,66 @@ impl<C> VertexCollectionSession<C>
 
     /// Creates a new vertex in this collection.
     pub fn insert_vertex<V, T>(&self, vertex: V) -> Result<DocumentHeader>
-        where
-            V: Into<NewDocument<T>>,
-            T: 'static + Serialize + Debug,
+    where
+        V: Into<NewDocument<T>>,
+        T: 'static + Serialize + Debug,
     {
-        self.execute(InsertVertex::new(self.graph_name(), self.name(), vertex.into()))
+        self.execute(InsertVertex::new(
+            self.graph_name(),
+            self.name(),
+            vertex.into(),
+        ))
     }
 
     /// Creates a new vertex in this collection and waits until the changes are
     /// written to disk.
     pub fn insert_vertex_synced<V, T>(&self, vertex: V) -> Result<DocumentHeader>
-        where
-            V: Into<NewDocument<T>>,
-            T: 'static + Serialize + Debug,
+    where
+        V: Into<NewDocument<T>>,
+        T: 'static + Serialize + Debug,
     {
-        self.execute(InsertVertex::new(self.graph_name(), self.name(), vertex.into())
-            .with_force_wait_for_sync(true))
+        self.execute(
+            InsertVertex::new(self.graph_name(), self.name(), vertex.into())
+                .with_force_wait_for_sync(true),
+        )
     }
 
     /// Fetches the vertex with the given key from this collection.
     pub fn get_vertex<T>(&self, key: DocumentKey) -> Result<Document<T>>
-        where T: 'static + DeserializeOwned
+    where
+        T: 'static + DeserializeOwned,
     {
         self.execute(GetVertex::new(self.graph_name(), self.name(), key))
     }
 
     /// Fetches the vertex with the given key from this collection if the
     /// revision matches the given predicate.
-    pub fn get_vertex_if_match<IfMatch, T>(&self, key: DocumentKey, if_match: IfMatch) -> Result<Document<T>>
-        where
-            IfMatch: Into<String>,
-            T: 'static + DeserializeOwned,
+    pub fn get_vertex_if_match<IfMatch, T>(
+        &self,
+        key: DocumentKey,
+        if_match: IfMatch,
+    ) -> Result<Document<T>>
+    where
+        IfMatch: Into<String>,
+        T: 'static + DeserializeOwned,
     {
-        self.execute(GetVertex::new(self.graph_name(), self.name(), key)
-            .with_if_match(if_match))
+        self.execute(GetVertex::new(self.graph_name(), self.name(), key).with_if_match(if_match))
     }
 
     /// Fetches the vertex with the given key from this collection if the
     /// revision does not match the given predicate.
-    pub fn get_vertex_if_non_match<IfNonMatch, T>(&self, key: DocumentKey, if_non_match: IfNonMatch) -> Result<Document<T>>
-        where
-            IfNonMatch: Into<String>,
-            T: 'static + DeserializeOwned,
+    pub fn get_vertex_if_non_match<IfNonMatch, T>(
+        &self,
+        key: DocumentKey,
+        if_non_match: IfNonMatch,
+    ) -> Result<Document<T>>
+    where
+        IfNonMatch: Into<String>,
+        T: 'static + DeserializeOwned,
     {
-        self.execute(GetVertex::new(self.graph_name(), self.name(), key)
-            .with_if_non_match(if_non_match))
+        self.execute(
+            GetVertex::new(self.graph_name(), self.name(), key).with_if_non_match(if_non_match),
+        )
     }
 
     /// Replaces an existing vertex with a new vertex.
@@ -154,12 +172,16 @@ impl<C> VertexCollectionSession<C>
         key: DocumentKey,
         new_vertex: V,
     ) -> Result<UpdatedDocumentHeader>
-        where
-            New: 'static + Serialize + Debug,
-            V: Into<NewDocument<New>>,
+    where
+        New: 'static + Serialize + Debug,
+        V: Into<NewDocument<New>>,
     {
         let vertex_id = DocumentId::new(self.name(), key.unwrap());
-        self.execute(ReplaceVertex::new(self.graph_name(), vertex_id, new_vertex.into()))
+        self.execute(ReplaceVertex::new(
+            self.graph_name(),
+            vertex_id,
+            new_vertex.into(),
+        ))
     }
 
     /// Replaces an existing vertex with a new vertex if the match condition
@@ -176,14 +198,15 @@ impl<C> VertexCollectionSession<C>
         new_vertex: V,
         if_match: IfMatch,
     ) -> Result<UpdatedDocumentHeader>
-        where
-            IfMatch: Into<String>,
-            New: 'static + Serialize + Debug,
-            V: Into<NewDocument<New>>,
+    where
+        IfMatch: Into<String>,
+        New: 'static + Serialize + Debug,
+        V: Into<NewDocument<New>>,
     {
         let vertex_id = DocumentId::new(self.name(), key.unwrap());
-        self.execute(ReplaceVertex::new(self.graph_name(), vertex_id, new_vertex.into())
-            .with_if_match(if_match)
+        self.execute(
+            ReplaceVertex::new(self.graph_name(), vertex_id, new_vertex.into())
+                .with_if_match(if_match),
         )
     }
 
@@ -201,15 +224,16 @@ impl<C> VertexCollectionSession<C>
         new_vertex: V,
         if_match: IfMatch,
     ) -> Result<UpdatedDocumentHeader>
-        where
-            IfMatch: Into<String>,
-            New: 'static + Serialize + Debug,
-            V: Into<NewDocument<New>>,
+    where
+        IfMatch: Into<String>,
+        New: 'static + Serialize + Debug,
+        V: Into<NewDocument<New>>,
     {
         let vertex_id = DocumentId::new(self.name(), key.unwrap());
-        self.execute(ReplaceVertex::new(self.graph_name(), vertex_id, new_vertex.into())
-            .with_if_match(if_match)
-            .with_force_wait_for_sync(true)
+        self.execute(
+            ReplaceVertex::new(self.graph_name(), vertex_id, new_vertex.into())
+                .with_if_match(if_match)
+                .with_force_wait_for_sync(true),
         )
     }
 
@@ -225,13 +249,14 @@ impl<C> VertexCollectionSession<C>
         key: DocumentKey,
         new_vertex: V,
     ) -> Result<UpdatedDocumentHeader>
-        where
-            New: 'static + Serialize + Debug,
-            V: Into<NewDocument<New>>,
+    where
+        New: 'static + Serialize + Debug,
+        V: Into<NewDocument<New>>,
     {
         let vertex_id = DocumentId::new(self.name(), key.unwrap());
-        self.execute(ReplaceVertex::new(self.graph_name(), vertex_id, new_vertex.into())
-            .with_force_wait_for_sync(true)
+        self.execute(
+            ReplaceVertex::new(self.graph_name(), vertex_id, new_vertex.into())
+                .with_force_wait_for_sync(true),
         )
     }
 
@@ -254,13 +279,12 @@ impl<C> VertexCollectionSession<C>
         update: Upd,
         keep_none: Option<bool>,
     ) -> Result<UpdatedDocumentHeader>
-        where
-            Upd: 'static + Serialize + Debug,
+    where
+        Upd: 'static + Serialize + Debug,
     {
         let vertex_id = DocumentId::new(self.name(), key.unwrap());
         let modify_vertex = if let Some(keep_none) = keep_none {
-            ModifyVertex::new(self.graph_name(), vertex_id, update)
-                .with_keep_none(keep_none)
+            ModifyVertex::new(self.graph_name(), vertex_id, update).with_keep_none(keep_none)
         } else {
             ModifyVertex::new(self.graph_name(), vertex_id, update)
         };
@@ -288,14 +312,13 @@ impl<C> VertexCollectionSession<C>
         if_match: IfMatch,
         keep_none: Option<bool>,
     ) -> Result<UpdatedDocumentHeader>
-        where
-            IfMatch: Into<String>,
-            Upd: 'static + Serialize + Debug,
+    where
+        IfMatch: Into<String>,
+        Upd: 'static + Serialize + Debug,
     {
         let vertex_id = DocumentId::new(self.name(), key.unwrap());
         let modify_vertex = if let Some(keep_none) = keep_none {
-            ModifyVertex::new(self.graph_name(), vertex_id, update)
-                .with_keep_none(keep_none)
+            ModifyVertex::new(self.graph_name(), vertex_id, update).with_keep_none(keep_none)
         } else {
             ModifyVertex::new(self.graph_name(), vertex_id, update)
         };
@@ -324,20 +347,20 @@ impl<C> VertexCollectionSession<C>
         if_match: IfMatch,
         keep_none: Option<bool>,
     ) -> Result<UpdatedDocumentHeader>
-        where
-            IfMatch: Into<String>,
-            Upd: 'static + Serialize + Debug,
+    where
+        IfMatch: Into<String>,
+        Upd: 'static + Serialize + Debug,
     {
         let vertex_id = DocumentId::new(self.name(), key.unwrap());
         let modify_vertex = if let Some(keep_none) = keep_none {
-            ModifyVertex::new(self.graph_name(), vertex_id, update)
-                .with_keep_none(keep_none)
+            ModifyVertex::new(self.graph_name(), vertex_id, update).with_keep_none(keep_none)
         } else {
             ModifyVertex::new(self.graph_name(), vertex_id, update)
         };
-        self.execute(modify_vertex
-            .with_if_match(if_match)
-            .with_force_wait_for_sync(true)
+        self.execute(
+            modify_vertex
+                .with_if_match(if_match)
+                .with_force_wait_for_sync(true),
         )
     }
 
@@ -361,13 +384,12 @@ impl<C> VertexCollectionSession<C>
         update: Upd,
         keep_none: Option<bool>,
     ) -> Result<UpdatedDocumentHeader>
-        where
-            Upd: 'static + Serialize + Debug,
+    where
+        Upd: 'static + Serialize + Debug,
     {
         let vertex_id = DocumentId::new(self.name(), key.unwrap());
         let modify_vertex = if let Some(keep_none) = keep_none {
-            ModifyVertex::new(self.graph_name(), vertex_id, update)
-                .with_keep_none(keep_none)
+            ModifyVertex::new(self.graph_name(), vertex_id, update).with_keep_none(keep_none)
         } else {
             ModifyVertex::new(self.graph_name(), vertex_id, update)
         };
@@ -387,11 +409,15 @@ impl<C> VertexCollectionSession<C>
     /// * `key` : The key of the document to be deleted
     /// * `if_match` : The match condition that must be met to remove the
     ///   vertex
-    pub fn remove_vertex_if_match<IfMatch>(&self, key: DocumentKey, if_match: IfMatch) -> Result<bool>
-        where IfMatch: Into<String>
+    pub fn remove_vertex_if_match<IfMatch>(
+        &self,
+        key: DocumentKey,
+        if_match: IfMatch,
+    ) -> Result<bool>
+    where
+        IfMatch: Into<String>,
     {
-        self.execute(RemoveVertex::new(self.graph_name(), self.name(), key)
-            .with_if_match(if_match))
+        self.execute(RemoveVertex::new(self.graph_name(), self.name(), key).with_if_match(if_match))
     }
 
     /// Removes the vertex with the given key from this collection if the match
@@ -402,18 +428,26 @@ impl<C> VertexCollectionSession<C>
     /// * `key` : The key of the document to be deleted
     /// * `if_match` : The match condition that must be met to remove the
     ///   vertex
-    pub fn remove_vertex_if_match_synced<IfMatch>(&self, key: DocumentKey, if_match: IfMatch) -> Result<bool>
-        where IfMatch: Into<String>
+    pub fn remove_vertex_if_match_synced<IfMatch>(
+        &self,
+        key: DocumentKey,
+        if_match: IfMatch,
+    ) -> Result<bool>
+    where
+        IfMatch: Into<String>,
     {
-        self.execute(RemoveVertex::new(self.graph_name(), self.name(), key)
-            .with_if_match(if_match)
-            .with_force_wait_for_sync(true))
+        self.execute(
+            RemoveVertex::new(self.graph_name(), self.name(), key)
+                .with_if_match(if_match)
+                .with_force_wait_for_sync(true),
+        )
     }
 
     /// Removes the vertex with the given key from this collection and waits
     /// until the changes are written to disk.
     pub fn remove_vertex_synced(&self, key: DocumentKey) -> Result<bool> {
-        self.execute(RemoveVertex::new(self.graph_name(), self.name(), key)
-            .with_force_wait_for_sync(true))
+        self.execute(
+            RemoveVertex::new(self.graph_name(), self.name(), key).with_force_wait_for_sync(true),
+        )
     }
 }

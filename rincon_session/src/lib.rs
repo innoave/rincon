@@ -40,7 +40,10 @@
 //!     age: u16,
 //! }
 //!
-//! let person = Person { name: "herbert".to_string(), age: 42 };
+//! let person = Person {
+//!     name: "herbert".to_string(),
+//!     age: 42,
+//! };
 //!
 //! let friendsbook = session.use_database_with_name("friendsbook");
 //! let people = friendsbook.create_collection("people")?;
@@ -108,10 +111,10 @@
 //! # extern crate rincon_core;
 //! # extern crate rincon_connector;
 //! # extern crate tokio_core;
-//! use rincon_core::api::datasource::DataSource;
 //! use rincon_connector::http::JsonHttpConnector;
-//! use tokio_core::reactor::Core;
+//! use rincon_core::api::datasource::DataSource;
 //! use std::str::FromStr;
+//! use tokio_core::reactor::Core;
 //!
 //! fn main() {
 //!     let datasource = DataSource::from_str("http://localhost:8529")
@@ -135,11 +138,11 @@
 //! # extern crate rincon_connector;
 //! # extern crate rincon_session;
 //! # extern crate tokio_core;
-//! use rincon_core::api::datasource::DataSource;
 //! use rincon_connector::http::JsonHttpConnector;
+//! use rincon_core::api::datasource::DataSource;
 //! use rincon_session::ArangoSession;
-//! use tokio_core::reactor::Core;
 //! use std::str::FromStr;
+//! use tokio_core::reactor::Core;
 //!
 //! fn main() {
 //!     let datasource = DataSource::from_str("http://localhost:8529")
@@ -160,25 +163,18 @@
 //! [ArangoDB]: https://www.arangodb.com
 
 #![doc(html_root_url = "https://docs.rs/rincon_session/0.1.0")]
-
 #![warn(
-    missing_copy_implementations,
-    missing_debug_implementations,
-    missing_docs,
-    trivial_casts,
-    trivial_numeric_casts,
-    unsafe_code,
-    unstable_features,
-    unused_import_braces,
-    unused_qualifications,
+    missing_copy_implementations, missing_debug_implementations, missing_docs, trivial_casts,
+    trivial_numeric_casts, unsafe_code, unstable_features, unused_import_braces,
+    unused_qualifications
 )]
 
 extern crate futures;
 extern crate serde;
 extern crate tokio_core;
 
-extern crate rincon_core;
 extern crate rincon_client;
+extern crate rincon_core;
 
 mod arango_session;
 mod collection_session;
@@ -201,20 +197,22 @@ pub mod client {
     //! public API of this crate.
 
     pub use rincon_client::admin::types::{ServerVersion, TargetVersion};
-    pub use rincon_client::aql::types::{ExplainedQuery, ExplainOptions, ParsedQuery};
-    pub use rincon_client::collection::types::{Collection, CollectionProperties,
-        CollectionPropertiesUpdate, CollectionRevision, CollectionStatus,
-        CollectionType, NewCollection, RenameTo};
-    pub use rincon_client::cursor::types::{Cursor, CursorStatistics, NewCursor,
-        Warning};
+    pub use rincon_client::aql::types::{ExplainOptions, ExplainedQuery, ParsedQuery};
+    pub use rincon_client::collection::types::{
+        Collection, CollectionProperties, CollectionPropertiesUpdate, CollectionRevision,
+        CollectionStatus, CollectionType, NewCollection, RenameTo,
+    };
+    pub use rincon_client::cursor::types::{Cursor, CursorStatistics, NewCursor, Warning};
     pub use rincon_client::database::types::{Database, NewDatabase};
-    pub use rincon_client::document::types::{Document, DocumentHeader, DocumentId,
-        DocumentKey, DocumentModifyOptions, DocumentReplaceOptions, DocumentUpdate,
-        NewDocument, UpdatedDocument, UpdatedDocumentHeader};
-    pub use rincon_client::graph::types::{EdgeCollection, EdgeDefinition, Graph, NewEdge, NewGraph,
-        VertexCollection};
-    pub use rincon_client::user::types::{NewUser, Permission, User, UserExtra,
-        UserUpdate};
+    pub use rincon_client::document::types::{
+        Document, DocumentHeader, DocumentId, DocumentKey, DocumentModifyOptions,
+        DocumentReplaceOptions, DocumentUpdate, NewDocument, UpdatedDocument,
+        UpdatedDocumentHeader,
+    };
+    pub use rincon_client::graph::types::{
+        EdgeCollection, EdgeDefinition, Graph, NewEdge, NewGraph, VertexCollection,
+    };
+    pub use rincon_client::user::types::{NewUser, Permission, User, UserExtra, UserUpdate};
 }
 
 use rincon_core::api::connector::Error;

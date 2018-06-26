@@ -1,28 +1,25 @@
-
 #![cfg_attr(feature = "cargo-clippy", allow(cyclomatic_complexity))]
 
 extern crate tokio_core;
 
-extern crate rincon_core;
-extern crate rincon_connector;
 extern crate rincon_client;
+extern crate rincon_connector;
+extern crate rincon_core;
 extern crate rincon_test_helper;
 
-use rincon_core::api::ErrorCode;
-use rincon_core::api::connector::{Error, Execute};
-use rincon_core::api::query::Query;
-use rincon_core::api::types::{EMPTY, Empty, JsonValue};
 use rincon_client::aql::types::OptimizerRule;
 use rincon_client::cursor::methods::*;
 use rincon_client::cursor::types::*;
+use rincon_core::api::connector::{Error, Execute};
+use rincon_core::api::query::Query;
+use rincon_core::api::types::{Empty, JsonValue, EMPTY};
+use rincon_core::api::ErrorCode;
 
 use rincon_test_helper::*;
-
 
 #[test]
 fn query_returns_cursor_with_no_results() {
     arango_test_with_document_collection("cursor_customers01", |conn, ref mut core| {
-
         let query = Query::new("FOR c IN cursor_customers01 RETURN c");
 
         let method = CreateCursor::<JsonValue>::from_query(query);
@@ -38,14 +35,13 @@ fn query_returns_cursor_with_no_results() {
 #[test]
 fn insert_documents_and_return_their_names() {
     arango_test_with_document_collection("cursor_customers02", |conn, ref mut core| {
-
         let query = Query::new(
             "FOR i IN 1..10 \
-              INSERT { \
-                name: CONCAT('No.', i), \
-                age: i + 21 \
-              } IN cursor_customers02 \
-              RETURN NEW.name"
+             INSERT { \
+             name: CONCAT('No.', i), \
+             age: i + 21 \
+             } IN cursor_customers02 \
+             RETURN NEW.name",
         );
 
         let method = CreateCursor::<String>::from_query(query);
@@ -72,21 +68,21 @@ fn insert_documents_and_return_their_names() {
 #[test]
 fn query_reads_from_cursor_in_batches_of_5_results() {
     arango_test_with_document_collection("cursor_customers03", |conn, ref mut core| {
-
         let inserts = Query::new(
             "FOR i IN 1..21 \
-              INSERT { \
-                name: CONCAT('No.', i), \
-                age: i + 21 \
-              } IN cursor_customers03"
+             INSERT { \
+             name: CONCAT('No.', i), \
+             age: i + 21 \
+             } IN cursor_customers03",
         );
-        core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
+        core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts)))
+            .unwrap();
 
         let query = Query::new(
             "FOR c IN cursor_customers03 \
-              FILTER c.age <= 37 \
-              SORT c.name \
-              RETURN c.name"
+             FILTER c.age <= 37 \
+             SORT c.name \
+             RETURN c.name",
         );
         let mut new_cursor = NewCursor::from(query);
         new_cursor.set_batch_size(5);
@@ -149,21 +145,21 @@ fn query_reads_from_cursor_in_batches_of_5_results() {
 #[test]
 fn delete_cursor_before_fetching_all_results() {
     arango_test_with_document_collection("cursor_customers04", |conn, ref mut core| {
-
         let inserts = Query::new(
             "FOR i IN 1..21 \
-              INSERT { \
-                name: CONCAT('No.', i), \
-                age: i + 21 \
-              } IN cursor_customers04"
+             INSERT { \
+             name: CONCAT('No.', i), \
+             age: i + 21 \
+             } IN cursor_customers04",
         );
-        core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts))).unwrap();
+        core.run(conn.execute(CreateCursor::<Empty>::from_query(inserts)))
+            .unwrap();
 
         let query = Query::new(
             "FOR c IN cursor_customers04 \
-              FILTER c.age <= 37 \
-              SORT c.name \
-              RETURN c.name"
+             FILTER c.age <= 37 \
+             SORT c.name \
+             RETURN c.name",
         );
         let mut new_cursor = NewCursor::from(query);
         new_cursor.set_batch_size(5);
@@ -219,18 +215,19 @@ fn delete_cursor_before_fetching_all_results() {
 #[test]
 fn query_with_optimizer_rules() {
     arango_test_with_document_collection("cursor_customers05", |conn, ref mut core| {
-
         let query = Query::new("FOR c IN cursor_customers05 RETURN c");
 
         let mut new_cursor = NewCursor::from(query);
 
-            new_cursor.options_mut().optimizer_mut().rules_mut()
-                .exclude(OptimizerRule::All)
-                .include(OptimizerRule::InterchangeAdjacentEnumerations)
-                .include(OptimizerRule::InlineSubQueries)
-                .include(OptimizerRule::MoveFiltersUp)
-                .exclude(OptimizerRule::PropagateConstantAttributes)
-            ;
+        new_cursor
+            .options_mut()
+            .optimizer_mut()
+            .rules_mut()
+            .exclude(OptimizerRule::All)
+            .include(OptimizerRule::InterchangeAdjacentEnumerations)
+            .include(OptimizerRule::InlineSubQueries)
+            .include(OptimizerRule::MoveFiltersUp)
+            .exclude(OptimizerRule::PropagateConstantAttributes);
 
         let method = CreateCursor::<JsonValue>::new(new_cursor);
         let cursor = core.run(conn.execute(method)).unwrap();

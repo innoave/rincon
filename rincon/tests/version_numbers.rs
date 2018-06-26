@@ -1,5 +1,5 @@
-
-#[macro_use] extern crate version_sync;
+#[macro_use]
+extern crate version_sync;
 
 // Does not work when [dependencies] sections in README.md do not contain the
 // own crate!!!

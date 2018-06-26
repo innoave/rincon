@@ -1,10 +1,9 @@
-
 use std::collections::HashMap;
 
 use serde_json;
 
-use rincon_core::api::types::JsonString;
 use super::*;
+use rincon_core::api::types::JsonString;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct MyContent {
@@ -32,8 +31,7 @@ fn serialize_struct_document_with_key() {
         b: 42,
     };
 
-    let new_document = NewDocument::from_content(content)
-        .with_key(DocumentKey::new("29384"));
+    let new_document = NewDocument::from_content(content).with_key(DocumentKey::new("29384"));
     let json = serde_json::to_string(&new_document).unwrap();
 
     assert_eq!(r#"{"_key":"29384","a":"Hugo","b":42}"#, &json);
@@ -49,9 +47,7 @@ fn serialize_hashmap_document_without_key() {
     let new_document = NewDocument::from_content(content);
     let json = serde_json::to_string(&new_document).unwrap();
 
-    assert!(r#"{"a":"Hugo","b":42}"# == &json
-        || r#"{"b":42,"a":"Hugo"}"# == &json
-    );
+    assert!(r#"{"a":"Hugo","b":42}"# == &json || r#"{"b":42,"a":"Hugo"}"# == &json);
 }
 
 #[test]
@@ -61,12 +57,12 @@ fn serialize_hashmap_document_with_key() {
     content.insert("b", json!(42));
     let content = content;
 
-    let new_document = NewDocument::from_content(content)
-        .with_key(DocumentKey::new("29384"));
+    let new_document = NewDocument::from_content(content).with_key(DocumentKey::new("29384"));
     let json = serde_json::to_string(&new_document).unwrap();
 
-    assert!(r#"{"_key":"29384","a":"Hugo","b":42}"# == &json
-        || r#"{"_key":"29384","b":42,"a":"Hugo"}"# == &json
+    assert!(
+        r#"{"_key":"29384","a":"Hugo","b":42}"# == &json
+            || r#"{"_key":"29384","b":42,"a":"Hugo"}"# == &json
     );
 }
 
@@ -84,8 +80,7 @@ fn serialize_raw_json_document_without_key() {
 fn serialize_raw_json_document_with_key() {
     let content = JsonString::from_str_unchecked(r#"{"a":"Hugo","b":42}"#);
 
-    let new_document = NewDocument::from_content(content)
-        .with_key(DocumentKey::new("29384"));
+    let new_document = NewDocument::from_content(content).with_key(DocumentKey::new("29384"));
     let json = serde_json::to_string(&new_document).unwrap();
 
     assert_eq!(r#"{"_key":"29384","a":"Hugo","b":42}"#, &json);
@@ -105,8 +100,7 @@ fn serialize_primitive_content_document_without_key() {
 fn serialize_primitive_content_document_with_key() {
     let content = 42;
 
-    let new_document = NewDocument::from_content(content)
-        .with_key(DocumentKey::new("29384"));
+    let new_document = NewDocument::from_content(content).with_key(DocumentKey::new("29384"));
     let result = serde_json::to_string(&new_document);
 
     if let Err(error) = result {
@@ -118,7 +112,8 @@ fn serialize_primitive_content_document_with_key() {
 
 #[test]
 fn deserialize_struct_document() {
-    let json_string = r#"{"_id":"customers/29384","_key":"29384","_rev":"aOIey283aew","a":"Hugo","b":42}"#;
+    let json_string =
+        r#"{"_id":"customers/29384","_key":"29384","_rev":"aOIey283aew","a":"Hugo","b":42}"#;
 
     let document = serde_json::from_str(json_string).unwrap();
 
@@ -180,18 +175,20 @@ fn deserialize_json_document_just_inserted() {
 
     let document = serde_json::from_str(json_string).unwrap();
 
-    let expected = JsonString::from_str_unchecked("{\
-            \"_id\":\"customers/29384\",\
-            \"_key\":\"29384\",\
-            \"_rev\":\"aOIey283aew\",\
-            \"new\":{\
-                \"_id\":\"customers/29384\",\
-                \"_key\":\"29384\",\
-                \"_rev\":\"aOIey283aew\",\
-                \"a\":\"Hugo\",\
-                \"b\":42\
-            }\
-        }");
+    let expected = JsonString::from_str_unchecked(
+        "{\
+         \"_id\":\"customers/29384\",\
+         \"_key\":\"29384\",\
+         \"_rev\":\"aOIey283aew\",\
+         \"new\":{\
+         \"_id\":\"customers/29384\",\
+         \"_key\":\"29384\",\
+         \"_rev\":\"aOIey283aew\",\
+         \"a\":\"Hugo\",\
+         \"b\":42\
+         }\
+         }",
+    );
     assert_eq!(expected, document);
 }
 
@@ -219,5 +216,8 @@ fn serialize_struct_document_update_with_revision() {
         .with_revision(Revision::new("_WkyoIaj--_"));
     let json = serde_json::to_string(&new_document).unwrap();
 
-    assert_eq!(r#"{"_key":"770815","_rev":"_WkyoIaj--_","a":"Hugo","b":42}"#, &json);
+    assert_eq!(
+        r#"{"_key":"770815","_rev":"_WkyoIaj--_","a":"Hugo","b":42}"#,
+        &json
+    );
 }

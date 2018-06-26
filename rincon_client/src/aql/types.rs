@@ -1,17 +1,17 @@
 //! Types used in methods related to AQL queries.
 
 use std::cmp::Ordering;
-use std::collections::HashMap;
 use std::collections::hash_map::{IntoIter, Iter};
-use std::iter::{FromIterator, ExactSizeIterator, IntoIterator, Iterator};
+use std::collections::HashMap;
+use std::iter::{ExactSizeIterator, FromIterator, IntoIterator, Iterator};
 use std::mem;
 
 use serde::de::{Deserialize, Deserializer};
 use serde::ser::{Serialize, Serializer};
 
+use index::types::Index;
 use rincon_core::api::query::Query;
 use rincon_core::api::types::{JsonValue, Value};
-use index::types::Index;
 
 const COLLECT_METHOD_SORTED: &str = "sorted";
 const COLLECT_METHOD_HASH: &str = "hash";
@@ -57,7 +57,8 @@ const OPTIMIZER_RULE_REPLACE_OR_WITH_IN: &str = "replace-or-with-in";
 const OPTIMIZER_RULE_REMOVE_REDUNDANT_OR: &str = "remove-redundant-or";
 const OPTIMIZER_RULE_USE_INDEXES: &str = "use-indexes";
 const OPTIMIZER_RULE_REMOVE_FILTER_COVERED_BY_INDEX: &str = "remove-filter-covered-by-index";
-const OPTIMIZER_RULE_REMOVE_FILTER_COVERED_BY_TRAVERSAL: &str = "remove-filter-covered-by-traversal";
+const OPTIMIZER_RULE_REMOVE_FILTER_COVERED_BY_TRAVERSAL: &str =
+    "remove-filter-covered-by-traversal";
 const OPTIMIZER_RULE_USE_INDEX_FOR_SORT: &str = "use-index-for-sort";
 const OPTIMIZER_RULE_MOVE_CALCULATIONS_DOWN: &str = "move-calculations-down";
 const OPTIMIZER_RULE_PATCH_UPDATE_STATEMENTS: &str = "patch-update-statements";
@@ -77,7 +78,8 @@ const OPTIMIZER_RULE_DISTRIBUTE_SORT_TO_CLUSTER: &str = "distribute-sort-to-clus
 #[cfg(feature = "cluster")]
 const OPTIMIZER_RULE_REMOVE_UNNECESSARY_REMOTE_SCATTER: &str = "remove-unnecessary-remote-scatter";
 #[cfg(feature = "cluster")]
-const OPTIMIZER_RULE_UNDISTRIBUTE_REMOVE_AFTER_ENUM_COLL: &str = "undistribute-remove-after-enum-coll";
+const OPTIMIZER_RULE_UNDISTRIBUTE_REMOVE_AFTER_ENUM_COLL: &str =
+    "undistribute-remove-after-enum-coll";
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -88,17 +90,13 @@ pub struct ParsedQuery {
 }
 
 impl ParsedQuery {
-    pub fn new<C, CI, B, BI, A>(
-        collections: C,
-        bind_vars: B,
-        ast: A,
-    ) -> Self
-        where
-            C: IntoIterator<Item=CI>,
-            B: IntoIterator<Item=BI>,
-            A: IntoIterator<Item=ParsedAstNode>,
-            CI: Into<String>,
-            BI: Into<String>,
+    pub fn new<C, CI, B, BI, A>(collections: C, bind_vars: B, ast: A) -> Self
+    where
+        C: IntoIterator<Item = CI>,
+        B: IntoIterator<Item = BI>,
+        A: IntoIterator<Item = ParsedAstNode>,
+        CI: Into<String>,
+        BI: Into<String>,
     {
         ParsedQuery {
             collections: Vec::from_iter(collections.into_iter().map(|i| i.into())),
@@ -133,19 +131,13 @@ pub struct ParsedAstNode {
 }
 
 impl ParsedAstNode {
-    pub fn new<K, N, I, V, S>(
-        kind: K,
-        name: N,
-        id: I,
-        value: V,
-        sub_nodes: S,
-    ) -> Self
-        where
-            K: Into<String>,
-            N: Into<Option<String>>,
-            I: Into<Option<AstNodeId>>,
-            V: Into<Option<JsonValue>>,
-            S: IntoIterator<Item=ParsedAstNode>,
+    pub fn new<K, N, I, V, S>(kind: K, name: N, id: I, value: V, sub_nodes: S) -> Self
+    where
+        K: Into<String>,
+        N: Into<Option<String>>,
+        I: Into<Option<AstNodeId>>,
+        V: Into<Option<JsonValue>>,
+        S: IntoIterator<Item = ParsedAstNode>,
     {
         ParsedAstNode {
             kind: kind.into(),
@@ -198,11 +190,11 @@ impl ExplainedQuery {
         stats: ExecutionStats,
         cacheable: Cch,
     ) -> Self
-        where
-            Pln: Into<Option<ExecutionPlan>>,
-            Wrns: IntoIterator<Item=Wrn>,
-            Wrn: Into<String>,
-            Cch: Into<Option<bool>>,
+    where
+        Pln: Into<Option<ExecutionPlan>>,
+        Wrns: IntoIterator<Item = Wrn>,
+        Wrn: Into<String>,
+        Cch: Into<Option<bool>>,
     {
         ExplainedQuery {
             plan: plan.into(),
@@ -218,10 +210,10 @@ impl ExplainedQuery {
         warnings: Wrns,
         stats: ExecutionStats,
     ) -> Self
-        where
-            Plns: IntoIterator<Item=ExecutionPlan>,
-            Wrns: IntoIterator<Item=Wrn>,
-            Wrn: Into<String>
+    where
+        Plns: IntoIterator<Item = ExecutionPlan>,
+        Wrns: IntoIterator<Item = Wrn>,
+        Wrn: Into<String>,
     {
         ExplainedQuery {
             plan: None,
@@ -273,12 +265,12 @@ impl ExecutionPlan {
         estimated_cost: f64,
         estimated_nr_items: u64,
     ) -> Self
-        where
-            Nds: IntoIterator<Item=ExecutionNode>,
-            Rls: IntoIterator<Item=Rl>,
-            Rl: Into<String>,
-            Cols: IntoIterator<Item=ExecutionCollection>,
-            Vars: IntoIterator<Item=ExecutionVariable>,
+    where
+        Nds: IntoIterator<Item = ExecutionNode>,
+        Rls: IntoIterator<Item = Rl>,
+        Rl: Into<String>,
+        Cols: IntoIterator<Item = ExecutionCollection>,
+        Vars: IntoIterator<Item = ExecutionVariable>,
     {
         ExecutionPlan {
             nodes: Vec::from_iter(nodes.into_iter()),
@@ -407,8 +399,8 @@ pub enum ExecutionNode {
     Unlisted(Box<GenericExecutionNode>),
 }
 
-/// The purpose of a `SingletonNode` is to produce an empty document that is used
-/// as input for other processing steps. Each execution plan will contain
+/// The purpose of a `SingletonNode` is to produce an empty document that is
+/// used as input for other processing steps. Each execution plan will contain
 /// exactly one `SingletonNode` as its top node.
 #[derive(Debug, Clone, PartialEq)]
 pub struct SingletonNode {
@@ -423,10 +415,10 @@ impl SingletonNode {
         id: ExecutionNodeId,
         dependencies: Deps,
         estimated_cost: f64,
-        estimated_nr_items: u64
+        estimated_nr_items: u64,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
     {
         SingletonNode {
             id,
@@ -463,10 +455,10 @@ impl EnumerateCollectionNode {
         out_variable: ExecutionVariable,
         random: bool,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
-            Db: Into<String>,
-            Col: Into<String>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
+        Db: Into<String>,
+        Col: Into<String>,
     {
         EnumerateCollectionNode {
             id,
@@ -512,11 +504,11 @@ impl IndexNode {
         condition: ExecutionExpression,
         reverse: bool,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
-            Db: Into<String>,
-            Col: Into<String>,
-            Idxs: IntoIterator<Item=Index>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
+        Db: Into<String>,
+        Col: Into<String>,
+        Idxs: IntoIterator<Item = Index>,
     {
         IndexNode {
             id,
@@ -553,8 +545,8 @@ impl EnumerateListNode {
         in_variable: ExecutionVariable,
         out_variable: ExecutionVariable,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
     {
         EnumerateListNode {
             id,
@@ -586,8 +578,8 @@ impl FilterNode {
         estimated_nr_items: u64,
         in_variable: ExecutionVariable,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
     {
         FilterNode {
             id,
@@ -622,8 +614,8 @@ impl LimitNode {
         limit: u64,
         full_count: bool,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
     {
         LimitNode {
             id,
@@ -663,9 +655,9 @@ impl CalculationNode {
         expression: ExecutionExpression,
         can_throw: bool,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
-            Etp: Into<String>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
+        Etp: Into<String>,
     {
         CalculationNode {
             id,
@@ -702,8 +694,8 @@ impl SubQueryNode {
         out_variable: ExecutionVariable,
         is_const: bool,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
     {
         SubQueryNode {
             id,
@@ -733,8 +725,8 @@ impl SortNode {
         estimated_cost: f64,
         estimated_nr_items: u64,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
     {
         SortNode {
             id,
@@ -771,9 +763,9 @@ impl AggregateNode {
         aggregates: Vec<ExecutionAggregate>,
         collect_options: CollectOptions,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
-            Out: Into<Option<ExecutionVariable>>
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
+        Out: Into<Option<ExecutionVariable>>,
     {
         AggregateNode {
             id,
@@ -807,8 +799,8 @@ impl ReturnNode {
         estimated_nr_items: u64,
         in_variable: ExecutionVariable,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
     {
         ReturnNode {
             id,
@@ -848,11 +840,11 @@ impl InsertNode {
         out_variable_new: OvN,
         modification_flags: ModificationOptions,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
-            Db: Into<String>,
-            Cll: Into<String>,
-            OvN: Into<Option<ExecutionVariable>>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
+        Db: Into<String>,
+        Cll: Into<String>,
+        OvN: Into<Option<ExecutionVariable>>,
     {
         InsertNode {
             id,
@@ -896,11 +888,11 @@ impl RemoveNode {
         out_variable_old: OvO,
         modification_flags: ModificationOptions,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
-            Db: Into<String>,
-            Cll: Into<String>,
-            OvO: Into<Option<ExecutionVariable>>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
+        Db: Into<String>,
+        Cll: Into<String>,
+        OvO: Into<Option<ExecutionVariable>>,
     {
         RemoveNode {
             id,
@@ -948,13 +940,13 @@ impl ReplaceNode {
         out_variable_new: OvN,
         modification_flags: ModificationOptions,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
-            Db: Into<String>,
-            Cll: Into<String>,
-            IkV: Into<Option<ExecutionVariable>>,
-            OvO: Into<Option<ExecutionVariable>>,
-            OvN: Into<Option<ExecutionVariable>>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
+        Db: Into<String>,
+        Cll: Into<String>,
+        IkV: Into<Option<ExecutionVariable>>,
+        OvO: Into<Option<ExecutionVariable>>,
+        OvN: Into<Option<ExecutionVariable>>,
     {
         ReplaceNode {
             id,
@@ -1004,13 +996,13 @@ impl UpdateNode {
         out_variable_new: OvN,
         modification_flags: ModificationOptions,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
-            Db: Into<String>,
-            Cll: Into<String>,
-            IkV: Into<Option<ExecutionVariable>>,
-            OvO: Into<Option<ExecutionVariable>>,
-            OvN: Into<Option<ExecutionVariable>>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
+        Db: Into<String>,
+        Cll: Into<String>,
+        IkV: Into<Option<ExecutionVariable>>,
+        OvO: Into<Option<ExecutionVariable>>,
+        OvN: Into<Option<ExecutionVariable>>,
     {
         UpdateNode {
             id,
@@ -1062,11 +1054,11 @@ impl UpsertNode {
         is_replace: bool,
         modification_flags: ModificationOptions,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
-            Db: Into<String>,
-            Cll: Into<String>,
-            IkV: Into<Option<ExecutionVariable>>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
+        Db: Into<String>,
+        Cll: Into<String>,
+        IkV: Into<Option<ExecutionVariable>>,
     {
         UpsertNode {
             id,
@@ -1100,10 +1092,10 @@ impl NoResultsNode {
         id: ExecutionNodeId,
         dependencies: Deps,
         estimated_cost: f64,
-        estimated_nr_items: u64
+        estimated_nr_items: u64,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
     {
         NoResultsNode {
             id,
@@ -1123,7 +1115,6 @@ pub struct ScatterNode {
     dependencies: Vec<ExecutionNodeId>,
     estimated_cost: f64,
     estimated_nr_items: u64,
-
 }
 
 #[cfg(feature = "cluster")]
@@ -1134,8 +1125,8 @@ impl ScatterNode {
         estimated_cost: f64,
         estimated_nr_items: u64,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
     {
         ScatterNode {
             id,
@@ -1156,7 +1147,6 @@ pub struct GatherNode {
     dependencies: Vec<ExecutionNodeId>,
     estimated_cost: f64,
     estimated_nr_items: u64,
-
 }
 
 #[cfg(feature = "cluster")]
@@ -1167,8 +1157,8 @@ impl GatherNode {
         estimated_cost: f64,
         estimated_nr_items: u64,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
     {
         GatherNode {
             id,
@@ -1189,7 +1179,6 @@ pub struct DistributeNode {
     dependencies: Vec<ExecutionNodeId>,
     estimated_cost: f64,
     estimated_nr_items: u64,
-
 }
 
 #[cfg(feature = "cluster")]
@@ -1200,8 +1189,8 @@ impl DistributeNode {
         estimated_cost: f64,
         estimated_nr_items: u64,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
     {
         DistributeNode {
             id,
@@ -1227,7 +1216,6 @@ pub struct RemoteNode {
     dependencies: Vec<ExecutionNodeId>,
     estimated_cost: f64,
     estimated_nr_items: u64,
-
 }
 
 #[cfg(feature = "cluster")]
@@ -1238,8 +1226,8 @@ impl RemoteNode {
         estimated_cost: f64,
         estimated_nr_items: u64,
     ) -> Self
-        where
-            Deps: IntoIterator<Item=ExecutionNodeId>,
+    where
+        Deps: IntoIterator<Item = ExecutionNodeId>,
     {
         RemoteNode {
             id,
@@ -1506,10 +1494,11 @@ impl GenericExecutionNode {
 
 impl<'de> Deserialize<'de> for ExecutionNode {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
-        use serde::de::Error;
         use self::ExecutionNode::*;
+        use serde::de::Error;
         let GenericExecutionNode {
             kind,
             id,
@@ -1547,82 +1536,99 @@ impl<'de> Deserialize<'de> for ExecutionNode {
             is_replace,
         } = GenericExecutionNode::deserialize(deserializer)?;
         match kind {
-            ExecutionNodeType::SingletonNode =>
-                Ok(Singleton(SingletonNode {
+            ExecutionNodeType::SingletonNode => Ok(Singleton(SingletonNode {
+                id,
+                dependencies,
+                estimated_cost,
+                estimated_nr_items,
+            })),
+            ExecutionNodeType::EnumerateCollectionNode => {
+                match (database, collection, out_variable, random) {
+                    (Some(database), Some(collection), Some(out_variable), Some(random)) => {
+                        Ok(EnumerateCollection(EnumerateCollectionNode {
+                            id,
+                            dependencies,
+                            estimated_cost,
+                            estimated_nr_items,
+                            database,
+                            collection,
+                            out_variable,
+                            random,
+                        }))
+                    },
+                    _ => Err(D::Error::custom("Unsupported type/fields combination")),
+                }
+            },
+            ExecutionNodeType::IndexNode => match (
+                database,
+                collection,
+                out_variable,
+                indexes,
+                condition,
+                reverse,
+            ) {
+                (
+                    Some(database),
+                    Some(collection),
+                    Some(out_variable),
+                    Some(indexes),
+                    Some(condition),
+                    Some(reverse),
+                ) => Ok(Index(IndexNode {
                     id,
                     dependencies,
                     estimated_cost,
                     estimated_nr_items,
+                    database,
+                    collection,
+                    out_variable,
+                    indexes,
+                    condition,
+                    reverse,
                 })),
-            ExecutionNodeType::EnumerateCollectionNode => match (database, collection, out_variable, random) {
-                (Some(database), Some(collection), Some(out_variable), Some(random)) =>
-                    Ok(EnumerateCollection(EnumerateCollectionNode {
-                        id,
-                        dependencies,
-                        estimated_cost,
-                        estimated_nr_items,
-                        database,
-                        collection,
-                        out_variable,
-                        random,
-                    })),
-                _ => Err(D::Error::custom("Unsupported type/fields combination")),
-            },
-            ExecutionNodeType::IndexNode => match (database, collection, out_variable, indexes, condition, reverse) {
-                (Some(database), Some(collection), Some(out_variable), Some(indexes), Some(condition), Some(reverse)) =>
-                    Ok(Index(IndexNode {
-                        id,
-                        dependencies,
-                        estimated_cost,
-                        estimated_nr_items,
-                        database,
-                        collection,
-                        out_variable,
-                        indexes,
-                        condition,
-                        reverse,
-                    })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
             ExecutionNodeType::EnumerateListNode => match (in_variable, out_variable) {
-                (Some(in_variable), Some(out_variable)) =>
-                    Ok(EnumerateList(EnumerateListNode {
-                        id,
-                        dependencies,
-                        estimated_cost,
-                        estimated_nr_items,
-                        in_variable,
-                        out_variable,
-                    })),
+                (Some(in_variable), Some(out_variable)) => Ok(EnumerateList(EnumerateListNode {
+                    id,
+                    dependencies,
+                    estimated_cost,
+                    estimated_nr_items,
+                    in_variable,
+                    out_variable,
+                })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
             ExecutionNodeType::FilterNode => match in_variable {
-                Some(in_variable) =>
-                    Ok(Filter(FilterNode {
-                        id,
-                        dependencies,
-                        estimated_cost,
-                        estimated_nr_items,
-                        in_variable,
-                    })),
+                Some(in_variable) => Ok(Filter(FilterNode {
+                    id,
+                    dependencies,
+                    estimated_cost,
+                    estimated_nr_items,
+                    in_variable,
+                })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
             ExecutionNodeType::LimitNode => match (offset, limit, full_count) {
-                (Some(offset), Some(limit), Some(full_count)) =>
-                    Ok(Limit(LimitNode {
-                        id,
-                        dependencies,
-                        estimated_cost,
-                        estimated_nr_items,
-                        offset,
-                        limit,
-                        full_count,
-                    })),
+                (Some(offset), Some(limit), Some(full_count)) => Ok(Limit(LimitNode {
+                    id,
+                    dependencies,
+                    estimated_cost,
+                    estimated_nr_items,
+                    offset,
+                    limit,
+                    full_count,
+                })),
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
-            ExecutionNodeType::CalculationNode => match (out_variable, expression_type, expression, can_throw) {
-                (Some(out_variable), Some(expression_type), Some(expression), Some(can_throw)) =>
-                    Ok(Calculation(CalculationNode {
+            ExecutionNodeType::CalculationNode => {
+                match (out_variable, expression_type, expression, can_throw) {
+                    (
+                        Some(out_variable),
+                        Some(expression_type),
+                        Some(expression),
+                        Some(can_throw),
+                    ) => Ok(Calculation(CalculationNode {
                         id,
                         dependencies,
                         estimated_cost,
@@ -1632,10 +1638,11 @@ impl<'de> Deserialize<'de> for ExecutionNode {
                         expression,
                         can_throw,
                     })),
-                _ => Err(D::Error::custom("Unsupported type/fields combination")),
+                    _ => Err(D::Error::custom("Unsupported type/fields combination")),
+                }
             },
             ExecutionNodeType::SubQueryNode => match (sub_query, out_variable, is_const) {
-                (Some(sub_query), Some(out_variable), Some(is_const)) =>
+                (Some(sub_query), Some(out_variable), Some(is_const)) => {
                     Ok(SubQuery(SubQueryNode {
                         id,
                         dependencies,
@@ -1644,18 +1651,18 @@ impl<'de> Deserialize<'de> for ExecutionNode {
                         sub_query,
                         out_variable,
                         is_const,
-                    })),
+                    }))
+                },
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
             },
-            ExecutionNodeType::SortNode =>
-                Ok(Sort(SortNode {
-                    id,
-                    dependencies,
-                    estimated_cost,
-                    estimated_nr_items,
-                })),
+            ExecutionNodeType::SortNode => Ok(Sort(SortNode {
+                id,
+                dependencies,
+                estimated_cost,
+                estimated_nr_items,
+            })),
             ExecutionNodeType::AggregateNode => match (groups, aggregates, collect_options) {
-                (Some(groups), Some(aggregates), Some(collect_options)) =>
+                (Some(groups), Some(aggregates), Some(collect_options)) => {
                     Ok(Aggregate(AggregateNode {
                         id,
                         dependencies,
@@ -1665,147 +1672,184 @@ impl<'de> Deserialize<'de> for ExecutionNode {
                         groups,
                         aggregates,
                         collect_options,
-                    })),
+                    }))
+                },
                 _ => Err(D::Error::custom("Unsupported type/fields combination")),
-            }
+            },
             ExecutionNodeType::ReturnNode => match in_variable {
-                Some(in_variable) =>
-                    Ok(Return(ReturnNode {
-                        id,
-                        dependencies,
-                        estimated_cost,
-                        estimated_nr_items,
-                        in_variable,
-                    })),
-                _ => Err(D::Error::custom("Unsupported type/fields combination")),
-            },
-            ExecutionNodeType::InsertNode => match (database, collection, in_variable, modification_flags) {
-                (Some(database), Some(collection), Some(in_variable), Some(modification_flags)) =>
-                    Ok(Insert(InsertNode {
-                        id,
-                        dependencies,
-                        estimated_cost,
-                        estimated_nr_items,
-                        database,
-                        collection,
-                        in_variable,
-                        out_variable_new,
-                        modification_flags,
-                    })),
-                _ => Err(D::Error::custom("Unsupported type/fields combination")),
-            },
-            ExecutionNodeType::RemoveNode => match (database, collection, in_variable, modification_flags) {
-                (Some(database), Some(collection), Some(in_variable), Some(modification_flags)) =>
-                    Ok(Remove(RemoveNode {
-                        id,
-                        dependencies,
-                        estimated_cost,
-                        estimated_nr_items,
-                        database,
-                        collection,
-                        in_variable,
-                        out_variable_old,
-                        modification_flags,
-                    })),
-                _ => Err(D::Error::custom("Unsupported type/fields combination")),
-            },
-            ExecutionNodeType::ReplaceNode => match (database, collection, in_doc_variable, modification_flags) {
-                (Some(database), Some(collection), Some(in_doc_variable), Some(modification_flags)) =>
-                    Ok(Replace(ReplaceNode {
-                        id,
-                        dependencies,
-                        estimated_cost,
-                        estimated_nr_items,
-                        database,
-                        collection,
-                        in_doc_variable,
-                        in_key_variable,
-                        out_variable_old,
-                        out_variable_new,
-                        modification_flags,
-                    })),
-                _ => Err(D::Error::custom("Unsupported type/fields combination")),
-            },
-            ExecutionNodeType::UpdateNode => match (database, collection, in_doc_variable, modification_flags) {
-                (Some(database), Some(collection), Some(in_doc_variable), Some(modification_flags)) =>
-                    Ok(Update(UpdateNode {
-                        id,
-                        dependencies,
-                        estimated_cost,
-                        estimated_nr_items,
-                        database,
-                        collection,
-                        in_doc_variable,
-                        in_key_variable,
-                        out_variable_old,
-                        out_variable_new,
-                        modification_flags,
-                    })),
-                _ => Err(D::Error::custom("Unsupported type/fields combination")),
-            },
-            ExecutionNodeType::UpsertNode => match (database, collection, in_doc_variable, insert_variable, update_variable, is_replace, modification_flags) {
-                (Some(database), Some(collection), Some(in_doc_variable), Some(insert_variable), Some(update_variable), Some(is_replace), Some(modification_flags)) =>
-                    Ok(Upsert(UpsertNode {
-                        id,
-                        dependencies,
-                        estimated_cost,
-                        estimated_nr_items,
-                        database,
-                        collection,
-                        in_doc_variable,
-                        in_key_variable,
-                        insert_variable,
-                        update_variable,
-                        is_replace,
-                        modification_flags,
-                    })),
-                _ => Err(D::Error::custom("Unsupported type/fields combination")),
-            },
-            ExecutionNodeType::NoResultsNode =>
-                Ok(NoResults(NoResultsNode {
+                Some(in_variable) => Ok(Return(ReturnNode {
                     id,
                     dependencies,
                     estimated_cost,
                     estimated_nr_items,
+                    in_variable,
                 })),
-            //ExecutionNodeType::Unlisted(_) =>
-            _ =>
-                Ok(Unlisted(Box::new(GenericExecutionNode {
-                    kind,
+                _ => Err(D::Error::custom("Unsupported type/fields combination")),
+            },
+            ExecutionNodeType::InsertNode => {
+                match (database, collection, in_variable, modification_flags) {
+                    (
+                        Some(database),
+                        Some(collection),
+                        Some(in_variable),
+                        Some(modification_flags),
+                    ) => Ok(Insert(InsertNode {
+                        id,
+                        dependencies,
+                        estimated_cost,
+                        estimated_nr_items,
+                        database,
+                        collection,
+                        in_variable,
+                        out_variable_new,
+                        modification_flags,
+                    })),
+                    _ => Err(D::Error::custom("Unsupported type/fields combination")),
+                }
+            },
+            ExecutionNodeType::RemoveNode => {
+                match (database, collection, in_variable, modification_flags) {
+                    (
+                        Some(database),
+                        Some(collection),
+                        Some(in_variable),
+                        Some(modification_flags),
+                    ) => Ok(Remove(RemoveNode {
+                        id,
+                        dependencies,
+                        estimated_cost,
+                        estimated_nr_items,
+                        database,
+                        collection,
+                        in_variable,
+                        out_variable_old,
+                        modification_flags,
+                    })),
+                    _ => Err(D::Error::custom("Unsupported type/fields combination")),
+                }
+            },
+            ExecutionNodeType::ReplaceNode => {
+                match (database, collection, in_doc_variable, modification_flags) {
+                    (
+                        Some(database),
+                        Some(collection),
+                        Some(in_doc_variable),
+                        Some(modification_flags),
+                    ) => Ok(Replace(ReplaceNode {
+                        id,
+                        dependencies,
+                        estimated_cost,
+                        estimated_nr_items,
+                        database,
+                        collection,
+                        in_doc_variable,
+                        in_key_variable,
+                        out_variable_old,
+                        out_variable_new,
+                        modification_flags,
+                    })),
+                    _ => Err(D::Error::custom("Unsupported type/fields combination")),
+                }
+            },
+            ExecutionNodeType::UpdateNode => {
+                match (database, collection, in_doc_variable, modification_flags) {
+                    (
+                        Some(database),
+                        Some(collection),
+                        Some(in_doc_variable),
+                        Some(modification_flags),
+                    ) => Ok(Update(UpdateNode {
+                        id,
+                        dependencies,
+                        estimated_cost,
+                        estimated_nr_items,
+                        database,
+                        collection,
+                        in_doc_variable,
+                        in_key_variable,
+                        out_variable_old,
+                        out_variable_new,
+                        modification_flags,
+                    })),
+                    _ => Err(D::Error::custom("Unsupported type/fields combination")),
+                }
+            },
+            ExecutionNodeType::UpsertNode => match (
+                database,
+                collection,
+                in_doc_variable,
+                insert_variable,
+                update_variable,
+                is_replace,
+                modification_flags,
+            ) {
+                (
+                    Some(database),
+                    Some(collection),
+                    Some(in_doc_variable),
+                    Some(insert_variable),
+                    Some(update_variable),
+                    Some(is_replace),
+                    Some(modification_flags),
+                ) => Ok(Upsert(UpsertNode {
                     id,
                     dependencies,
                     estimated_cost,
                     estimated_nr_items,
-                    depth,
                     database,
                     collection,
-                    in_variable,
-                    out_variable,
-                    condition_variable,
-                    random,
-                    offset,
-                    limit,
-                    full_count,
-                    sub_query,
-                    is_const,
-                    can_throw,
-                    expression_type,
-                    indexes,
-                    expression,
-                    condition,
-                    reverse,
-                    groups,
-                    aggregates,
-                    collect_options,
-                    modification_flags,
                     in_doc_variable,
                     in_key_variable,
-                    out_variable_old,
-                    out_variable_new,
                     insert_variable,
                     update_variable,
                     is_replace,
-                }))),
+                    modification_flags,
+                })),
+                _ => Err(D::Error::custom("Unsupported type/fields combination")),
+            },
+            ExecutionNodeType::NoResultsNode => Ok(NoResults(NoResultsNode {
+                id,
+                dependencies,
+                estimated_cost,
+                estimated_nr_items,
+            })),
+            //ExecutionNodeType::Unlisted(_) =>
+            _ => Ok(Unlisted(Box::new(GenericExecutionNode {
+                kind,
+                id,
+                dependencies,
+                estimated_cost,
+                estimated_nr_items,
+                depth,
+                database,
+                collection,
+                in_variable,
+                out_variable,
+                condition_variable,
+                random,
+                offset,
+                limit,
+                full_count,
+                sub_query,
+                is_const,
+                can_throw,
+                expression_type,
+                indexes,
+                expression,
+                condition,
+                reverse,
+                groups,
+                aggregates,
+                collect_options,
+                modification_flags,
+                in_doc_variable,
+                in_key_variable,
+                out_variable_old,
+                out_variable_new,
+                insert_variable,
+                update_variable,
+                is_replace,
+            }))),
         }
     }
 }
@@ -1821,53 +1865,84 @@ impl<'de> Deserialize<'de> for ExecutionNode {
 /// Last update: 10/08/2017
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ExecutionNodeType {
-    /// the purpose of a SingletonNode is to produce an empty document that is used as input for other processing steps. Each execution plan will contain exactly one SingletonNode as its top node.
+    /// the purpose of a SingletonNode is to produce an empty document that is
+    /// used as input for other processing steps. Each execution plan will
+    /// contain exactly one SingletonNode as its top node.
     SingletonNode,
-    /// enumeration over documents of a collection (given in its collection attribute) without using an index.
+    /// enumeration over documents of a collection (given in its collection
+    /// attribute) without using an index.
     EnumerateCollectionNode,
-    /// enumeration over one or many indexes (given in its indexes attribute) of a collection. The index ranges are specified in the condition attribute of the node.
+    /// enumeration over one or many indexes (given in its indexes attribute)
+    /// of a collection. The index ranges are specified in the condition
+    /// attribute of the node.
     IndexNode,
     /// enumeration over a list of (non-collection) values.
     EnumerateListNode,
-    /// only lets values pass that satisfy a filter condition. Will appear once per FILTER statement.
+    /// only lets values pass that satisfy a filter condition. Will appear once
+    /// per FILTER statement.
     FilterNode,
-    /// limits the number of results passed to other processing steps. Will appear once per LIMIT statement.
+    /// limits the number of results passed to other processing steps. Will
+    /// appear once per LIMIT statement.
     LimitNode,
-    /// evaluates an expression. The expression result may be used by other nodes, e.g. FilterNode, EnumerateListNode, SortNode etc.
+    /// evaluates an expression. The expression result may be used by other
+    /// nodes, e.g. FilterNode, EnumerateListNode, SortNode etc.
     CalculationNode,
     /// executes a sub-query.
     SubQueryNode,
     /// performs a sort of its input values.
     SortNode,
-    /// aggregates its input and produces new output variables. This will appear once per COLLECT statement.
+    /// aggregates its input and produces new output variables. This will
+    /// appear once per COLLECT statement.
     AggregateNode,
-    /// returns data to the caller. Will appear in each read-only query at least once. Sub-queries will also contain ReturnNodes.
+    /// returns data to the caller. Will appear in each read-only query at
+    /// least once. Sub-queries will also contain ReturnNodes.
     ReturnNode,
-    /// inserts documents into a collection (given in its collection attribute).Will appear exactly once in a query that contains an INSERT statement.
+    /// inserts documents into a collection (given in its collection
+    /// attribute).Will appear exactly once in a query that contains an INSERT
+    /// statement.
     InsertNode,
-    /// removes documents from a collection (given in its collection attribute).Will appear exactly once in a query that contains a REMOVE statement.
+    /// removes documents from a collection (given in its collection
+    /// attribute).Will appear exactly once in a query that contains a REMOVE
+    /// statement.
     RemoveNode,
-    /// replaces documents in a collection (given in its collection attribute).Will appear exactly once in a query that contains a REPLACE statement.
+    /// replaces documents in a collection (given in its collection
+    /// attribute).Will appear exactly once in a query that contains a REPLACE
+    /// statement.
     ReplaceNode,
-    /// updates documents in a collection (given in its collection attribute).Will appear exactly once in a query that contains an UPDATE statement.
+    /// updates documents in a collection (given in its collection
+    /// attribute).Will appear exactly once in a query that contains an UPDATE
+    /// statement.
     UpdateNode,
-    /// upserts documents in a collection (given in its collection attribute).Will appear exactly once in a query that contains an UPSERT statement.
+    /// upserts documents in a collection (given in its collection
+    /// attribute).Will appear exactly once in a query that contains an UPSERT
+    /// statement.
     UpsertNode,
-    /// will be inserted if FILTER statements turn out to be never satisfiable. The NoResultsNode will pass an empty result set into the processing pipeline.
+    /// will be inserted if FILTER statements turn out to be never satisfiable.
+    /// The NoResultsNode will pass an empty result set into the processing
+    /// pipeline.
     NoResultsNode,
     #[cfg(feature = "cluster")]
     /// used on a coordinator to fan-out data to one or multiple shards.
     ScatterNode,
     #[cfg(feature = "cluster")]
-    /// used on a coordinator to aggregate results from one or many shards into a combined stream of results.
+    /// used on a coordinator to aggregate results from one or many shards into
+    /// a combined stream of results.
     GatherNode,
     #[cfg(feature = "cluster")]
-    /// used on a coordinator to fan-out data to one or multiple shards, taking into account a collection's shard key.
+    /// used on a coordinator to fan-out data to one or multiple shards, taking
+    /// into account a collection's shard key.
     DistributeNode,
     #[cfg(feature = "cluster")]
-    /// a RemoteNode will perform communication with another ArangoDB instances in the cluster. For example, the cluster coordinator will need to communicate with other servers to fetch the actual data from the shards. It will do so via RemoteNodes. The data servers themselves might again pull further data from the coordinator, and thus might also employ RemoteNodes. So, all of the above cluster relevant nodes will be accompanied by a RemoteNode.
+    /// a RemoteNode will perform communication with another ArangoDB instances
+    /// in the cluster. For example, the cluster coordinator will need to
+    /// communicate with other servers to fetch the actual data from the
+    /// shards. It will do so via RemoteNodes. The data servers themselves
+    /// might again pull further data from the coordinator, and thus might also
+    /// employ RemoteNodes. So, all of the above cluster relevant nodes will be
+    /// accompanied by a RemoteNode.
     RemoteNode,
-    /// Can be used to specify an execution node that has not been added to this enum yet.
+    /// Can be used to specify an execution node that has not been added to
+    /// this enum yet.
     Unlisted(String),
 }
 
@@ -1943,7 +2018,8 @@ impl ExecutionNodeType {
 
 impl<'de> Deserialize<'de> for ExecutionNodeType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         let value = String::deserialize(deserializer)?;
         Ok(ExecutionNodeType::from_api_str(&value))
@@ -1957,12 +2033,8 @@ pub struct ExplainedSubQuery {
 }
 
 impl ExplainedSubQuery {
-    pub fn new(
-        nodes: Vec<ExecutionNode>,
-    ) -> Self {
-        ExplainedSubQuery {
-            nodes,
-        }
+    pub fn new(nodes: Vec<ExecutionNode>) -> Self {
+        ExplainedSubQuery { nodes }
     }
 
     pub fn nodes(&self) -> &[ExecutionNode] {
@@ -1982,7 +2054,8 @@ pub struct ExecutionVariable {
 
 impl ExecutionVariable {
     pub fn new<N>(id: ExecutionVariableId, name: N) -> Self
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         ExecutionVariable {
             id,
@@ -2012,7 +2085,9 @@ pub struct ExecutionCollection {
 
 impl ExecutionCollection {
     pub fn new<K, N>(kind: K, name: N) -> Self
-        where K: Into<String>, N: Into<String>
+    where
+        K: Into<String>,
+        N: Into<String>,
     {
         ExecutionCollection {
             kind: kind.into(),
@@ -2057,15 +2132,15 @@ impl ExecutionExpression {
         levels: Levs,
         sub_nodes: Subs,
     ) -> Self
-        where
-            Kd: Into<String>,
-            Nm: Into<Option<String>>,
-            Id: Into<Option<ExecutionExpressionId>>,
-            Val: Into<Option<JsonValue>>,
-            Srt: Into<Option<bool>>,
-            Qnt: Into<Option<String>>,
-            Levs: IntoIterator<Item=u64>,
-            Subs: IntoIterator<Item=ExecutionExpression>,
+    where
+        Kd: Into<String>,
+        Nm: Into<Option<String>>,
+        Id: Into<Option<ExecutionExpressionId>>,
+        Val: Into<Option<JsonValue>>,
+        Srt: Into<Option<bool>>,
+        Qnt: Into<Option<String>>,
+        Levs: IntoIterator<Item = u64>,
+        Subs: IntoIterator<Item = ExecutionExpression>,
     {
         ExecutionExpression {
             kind: kind.into(),
@@ -2125,11 +2200,7 @@ pub struct ExecutionStats {
 }
 
 impl ExecutionStats {
-    pub fn new(
-        rules_executed: u32,
-        rules_skipped: u32,
-        plans_created: u32,
-    ) -> Self {
+    pub fn new(rules_executed: u32, rules_skipped: u32, plans_created: u32) -> Self {
         ExecutionStats {
             rules_executed,
             rules_skipped,
@@ -2158,10 +2229,7 @@ pub struct ExecutionGroup {
 }
 
 impl ExecutionGroup {
-    pub fn new(
-        in_variable: ExecutionVariable,
-        out_variable: ExecutionVariable,
-    ) -> Self {
+    pub fn new(in_variable: ExecutionVariable, out_variable: ExecutionVariable) -> Self {
         ExecutionGroup {
             in_variable,
             out_variable,
@@ -2192,8 +2260,8 @@ impl ExecutionAggregate {
         in_variable: ExecutionVariable,
         out_variable: ExecutionVariable,
     ) -> Self
-        where
-            Knd: Into<String>,
+    where
+        Knd: Into<String>,
     {
         ExecutionAggregate {
             kind: kind.into(),
@@ -2223,9 +2291,7 @@ pub struct CollectOptions {
 
 impl CollectOptions {
     pub fn new(method: CollectMethod) -> Self {
-        CollectOptions {
-            method,
-        }
+        CollectOptions { method }
     }
 
     pub fn method(&self) -> &CollectMethod {
@@ -2262,7 +2328,8 @@ impl CollectMethod {
 
 impl Serialize for CollectMethod {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         self.as_api_str().serialize(serializer)
     }
@@ -2270,7 +2337,8 @@ impl Serialize for CollectMethod {
 
 impl<'de> Deserialize<'de> for CollectMethod {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         let value = String::deserialize(deserializer)?;
         Ok(CollectMethod::from_api_str(&value))
@@ -2356,7 +2424,8 @@ pub struct NewParseQuery {
 
 impl NewParseQuery {
     pub fn new<Q>(query: Q) -> Self
-        where Q: Into<String>
+    where
+        Q: Into<String>,
     {
         NewParseQuery {
             query: query.into(),
@@ -2467,7 +2536,8 @@ impl ExplainOptions {
     }
 
     pub fn set_all_plans<A>(&mut self, all_plans: A)
-        where A: Into<Option<bool>>
+    where
+        A: Into<Option<bool>>,
     {
         self.all_plans = all_plans.into();
     }
@@ -2477,7 +2547,8 @@ impl ExplainOptions {
     }
 
     pub fn set_max_number_of_plans<M>(&mut self, max_number_of_plans: M)
-        where M: Into<Option<u32>>
+    where
+        M: Into<Option<u32>>,
     {
         self.max_number_of_plans = max_number_of_plans.into();
     }
@@ -2533,7 +2604,7 @@ impl Optimizer {
 impl Default for Optimizer {
     fn default() -> Self {
         Optimizer {
-            rules: OptimizerRuleSet::default()
+            rules: OptimizerRuleSet::default(),
         }
     }
 }
@@ -2571,11 +2642,15 @@ impl OptimizerRuleSet {
     }
 
     pub fn includes(&self, rule: &OptimizerRule) -> bool {
-        self.rules_map.get(rule).map_or(false, |x| x == &IncludedExcluded::Included)
+        self.rules_map
+            .get(rule)
+            .map_or(false, |x| x == &IncludedExcluded::Included)
     }
 
     pub fn excludes(&self, rule: &OptimizerRule) -> bool {
-        self.rules_map.get(rule).map_or(false, |x| x == &IncludedExcluded::Excluded)
+        self.rules_map
+            .get(rule)
+            .map_or(false, |x| x == &IncludedExcluded::Excluded)
     }
 
     pub fn contains(&self, rule: &OptimizerRule) -> bool {
@@ -2603,10 +2678,13 @@ impl Default for OptimizerRuleSet {
 
 impl Serialize for OptimizerRuleSet {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use self::IncludedExcluded::*;
-        let mut rules_list: Vec<String> = self.rules_map.iter()
+        let mut rules_list: Vec<String> = self
+            .rules_map
+            .iter()
             .map(|(rule, inex)| {
                 let prefix = match *inex {
                     Included => String::from("+"),
@@ -2615,7 +2693,7 @@ impl Serialize for OptimizerRuleSet {
                 prefix + rule.as_api_str()
             })
             .collect();
-        rules_list.sort_unstable_by(|a, b|
+        rules_list.sort_unstable_by(|a, b| {
             if a.starts_with('-') {
                 Ordering::Less
             } else if b.starts_with('-') {
@@ -2623,7 +2701,7 @@ impl Serialize for OptimizerRuleSet {
             } else {
                 Ordering::Equal
             }
-        );
+        });
         rules_list.serialize(serializer)
     }
 }
@@ -2685,69 +2763,131 @@ pub enum IncludedExcluded {
 pub enum OptimizerRule {
     /// Pseudo-rule that matches all rules.
     All,
-    /// will appear if a CalculationNode was moved up in a plan. The intention of this rule is to move calculations up in the processing pipeline as far as possible (ideally out of enumerations) so they are not executed in loops if not required. It is also quite common that this rule enables further optimizations to kick in.
+    /// will appear if a CalculationNode was moved up in a plan. The intention
+    /// of this rule is to move calculations up in the processing pipeline as
+    /// far as possible (ideally out of enumerations) so they are not executed
+    /// in loops if not required. It is also quite common that this rule
+    /// enables further optimizations to kick in.
     MoveCalculationsUp,
-    /// will appear if a FilterNode was moved up in a plan. The intention of this rule is to move filters up in the processing pipeline as far as possible (ideally out of inner loops) so they filter results as early as possible.
+    /// will appear if a FilterNode was moved up in a plan. The intention of
+    /// this rule is to move filters up in the processing pipeline as far as
+    /// possible (ideally out of inner loops) so they filter results as early
+    /// as possible.
     MoveFiltersUp,
-    /// will appear when the values used as right-hand side of an IN operator will be pre-sorted using an extra function call. Pre-sorting the comparison array allows using a binary search in-list lookup with a logarithmic complexity instead of the default linear complexity in-list lookup.
+    /// will appear when the values used as right-hand side of an IN operator
+    /// will be pre-sorted using an extra function call. Pre-sorting the
+    /// comparison array allows using a binary search in-list lookup with a
+    /// logarithmic complexity instead of the default linear complexity in-list
+    /// lookup.
     SortInValues,
-    /// will appear if a FilterNode was removed or replaced. FilterNodes whose filter condition will always evaluate to true will be removed from the plan, whereas FilterNode that will never let any results pass will be replaced with a NoResultsNode.
+    /// will appear if a FilterNode was removed or replaced. FilterNodes whose
+    /// filter condition will always evaluate to true will be removed from the
+    /// plan, whereas FilterNode that will never let any results pass will be
+    /// replaced with a NoResultsNode.
     RemoveUnnecessaryFilters,
-    /// will appear if redundant calculations (expressions with the exact same result) were found in the query. The optimizer rule will then replace references to the redundant expressions with a single reference, allowing other optimizer rules to remove the then-unneeded CalculationNodes.
+    /// will appear if redundant calculations (expressions with the exact same
+    /// result) were found in the query. The optimizer rule will then replace
+    /// references to the redundant expressions with a single reference,
+    /// allowing other optimizer rules to remove the then-unneeded
+    /// CalculationNodes.
     RemoveRedundantCalculations,
-    /// will appear if CalculationNodes were removed from the query. The rule will removed all calculations whose result is not referenced in the query (note that this may be a consequence of applying other optimizations).
+    /// will appear if CalculationNodes were removed from the query. The rule
+    /// will removed all calculations whose result is not referenced in the
+    /// query (note that this may be a consequence of applying other
+    /// optimizations).
     RemoveUnnecessaryCalculations,
     /// will appear if multiple SORT statements can be merged into fewer sorts.
     RemoveRedundantSorts,
-    /// will appear if a query contains multiple FOR statements whose order were permuted. Permutation of FOR statements is performed because it may enable further optimizations by other rules.
+    /// will appear if a query contains multiple FOR statements whose order
+    /// were permuted. Permutation of FOR statements is performed because it
+    /// may enable further optimizations by other rules.
     InterchangeAdjacentEnumerations,
-    /// will appear if an INTO clause was removed from a COLLECT statement because the result of INTO is not used. May also appear if a result of a COLLECT statement's AGGREGATE variables is not used.
+    /// will appear if an INTO clause was removed from a COLLECT statement
+    /// because the result of INTO is not used. May also appear if a result of
+    /// a COLLECT statement's AGGREGATE variables is not used.
     RemoveCollectVariables,
-    /// will appear when a constant value was inserted into a filter condition, replacing a dynamic attribute value.
+    /// will appear when a constant value was inserted into a filter condition,
+    /// replacing a dynamic attribute value.
     PropagateConstantAttributes,
-    /// will appear if multiple OR-combined equality conditions on the same variable or attribute were replaced with an IN condition.
+    /// will appear if multiple OR-combined equality conditions on the same
+    /// variable or attribute were replaced with an IN condition.
     ReplaceOrWithIn,
-    /// will appear if multiple OR conditions for the same variable or attribute were combined into a single condition.
+    /// will appear if multiple OR conditions for the same variable or
+    /// attribute were combined into a single condition.
     RemoveRedundantOr,
-    /// will appear when an index is used to iterate over a collection. As a consequence, an EnumerateCollectionNode was replaced with an IndexNode in the plan.
+    /// will appear when an index is used to iterate over a collection. As a
+    /// consequence, an EnumerateCollectionNode was replaced with an IndexNode
+    /// in the plan.
     UseIndexes,
-    /// will appear if a FilterNode was removed or replaced because the filter condition is already covered by an IndexNode.
+    /// will appear if a FilterNode was removed or replaced because the filter
+    /// condition is already covered by an IndexNode.
     RemoveFilterCoveredByIndex,
-    /// will appear if a FilterNode was removed or replaced because the filter condition is already covered by an TraversalNode.
+    /// will appear if a FilterNode was removed or replaced because the filter
+    /// condition is already covered by an TraversalNode.
     RemoveFilterCoveredByTraversal,
-    /// will appear if an index can be used to avoid a SORT operation. If the rule was applied, a SortNode was removed from the plan.
+    /// will appear if an index can be used to avoid a SORT operation. If the
+    /// rule was applied, a SortNode was removed from the plan.
     UseIndexForSort,
-    /// will appear if a CalculationNode was moved down in a plan. The intention of this rule is to move calculations down in the processing pipeline as far as possible (below FILTER, LIMIT and SUBQUERY nodes) so they are executed as late as possible and not before their results are required.
+    /// will appear if a CalculationNode was moved down in a plan. The
+    /// intention of this rule is to move calculations down in the processing
+    /// pipeline as far as possible (below FILTER, LIMIT and SUBQUERY nodes) so
+    /// they are executed as late as possible and not before their results are
+    /// required.
     MoveCalculationsDown,
-    /// will appear if an UpdateNode was patched to not buffer its input completely, but to process it in smaller batches. The rule will fire for an UPDATE query that is fed by a full collection scan, and that does not use any other indexes and sub-queries.
+    /// will appear if an UpdateNode was patched to not buffer its input
+    /// completely, but to process it in smaller batches. The rule will fire
+    /// for an UPDATE query that is fed by a full collection scan, and that
+    /// does not use any other indexes and sub-queries.
     PatchUpdateStatements,
-    /// will appear if either the edge or path output variable in an AQL traversal was optimized away, or if a FILTER condition from the query was moved in the TraversalNode for early pruning of results.
+    /// will appear if either the edge or path output variable in an AQL
+    /// traversal was optimized away, or if a FILTER condition from the query
+    /// was moved in the TraversalNode for early pruning of results.
     OptimizeTraversals,
-    /// will appear when a sub query was pulled out in its surrounding scope, e.g. FOR x IN (FOR y IN collection FILTER y.value >= 5 RETURN y.test) RETURN x.a would become FOR tmp IN collection FILTER tmp.value >= 5 LET x = tmp.test RETURN x.a
+    /// will appear when a sub query was pulled out in its surrounding scope,
+    /// e.g. FOR x IN (FOR y IN collection FILTER y.value >= 5 RETURN y.test)
+    /// RETURN x.a would become FOR tmp IN collection FILTER tmp.value >= 5 LET
+    /// x = tmp.test RETURN x.a
     InlineSubQueries,
     /// will appear when a geo index is utilized.
     GeoIndexOptimizer,
-    /// will appear when a SORT RAND() expression is removed by moving the random iteration into an EnumerateCollectionNode. This optimizer rule is specific for the MMFiles storage engine.
+    /// will appear when a SORT RAND() expression is removed by moving the
+    /// random iteration into an EnumerateCollectionNode. This optimizer rule
+    /// is specific for the MMFiles storage engine.
     RemoveSortRand,
-    /// will appear when an EnumerationCollectionNode that would have extracted an entire document was modified to return only a projection of each document. This optimizer rule is specific for the RocksDB storage engine.
+    /// will appear when an EnumerationCollectionNode that would have extracted
+    /// an entire document was modified to return only a projection of each
+    /// document. This optimizer rule is specific for the RocksDB storage
+    /// engine.
     ReduceExtractionToProjection,
     #[cfg(feature = "cluster")]
-    /// will appear when query parts get distributed in a cluster. This is not an optimization rule, and it cannot be turned off.
+    /// will appear when query parts get distributed in a cluster. This is not
+    /// an optimization rule, and it cannot be turned off.
     DistributeInCluster,
     #[cfg(feature = "cluster")]
-    /// will appear when scatter, gather, and remote nodes are inserted into a distributed query. This is not an optimization rule, and it cannot be turned off.
+    /// will appear when scatter, gather, and remote nodes are inserted into a
+    /// distributed query. This is not an optimization rule, and it cannot be
+    /// turned off.
     ScatterInCluster,
     #[cfg(feature = "cluster")]
-    /// will appear when filters are moved up in a distributed execution plan. Filters are moved as far up in the plan as possible to make result sets as small as possible as early as possible.
+    /// will appear when filters are moved up in a distributed execution plan.
+    /// Filters are moved as far up in the plan as possible to make result sets
+    /// as small as possible as early as possible.
     DistributeFilterCalcToCluster,
     #[cfg(feature = "cluster")]
-    /// will appear if sorts are moved up in a distributed query. Sorts are moved as far up in the plan as possible to make result sets as small as possible as early as possible.
+    /// will appear if sorts are moved up in a distributed query. Sorts are
+    /// moved as far up in the plan as possible to make result sets as small as
+    /// possible as early as possible.
     DistributeSortToCluster,
     #[cfg(feature = "cluster")]
-    /// will appear if a RemoteNode is followed by a ScatterNode, and the ScatterNode is only followed by calculations or the SingletonNode. In this case, there is no need to distribute the calculation, and it will be handled centrally.
+    /// will appear if a RemoteNode is followed by a ScatterNode, and the
+    /// ScatterNode is only followed by calculations or the SingletonNode. In
+    /// this case, there is no need to distribute the calculation, and it will
+    /// be handled centrally.
     RemoveUnnecessaryRemoteScatter,
     #[cfg(feature = "cluster")]
-    /// will appear if a RemoveNode can be pushed into the same query part that enumerates over the documents of a collection. This saves inter-cluster round-trips between the EnumerateCollectionNode and the RemoveNode.
+    /// will appear if a RemoveNode can be pushed into the same query part that
+    /// enumerates over the documents of a collection. This saves inter-cluster
+    /// round-trips between the EnumerateCollectionNode and the RemoveNode.
     UnDistributeRemoveAfterEnumColl,
     /// Can be used to specify a rule that has not been added to this enum yet.
     Custom(String),

@@ -6,7 +6,7 @@ mod tests;
 use std::fmt;
 
 use serde::de::{Deserialize, Deserializer};
-use serde::ser::{Serialize, Serializer, SerializeSeq};
+use serde::ser::{Serialize, SerializeSeq, Serializer};
 use serde_json;
 
 /// The `Url` type used by this crate.
@@ -51,7 +51,8 @@ impl JsonString {
     ///
     /// The given value should convert into a valid JSON string.
     pub fn new<J>(value: J) -> Self
-        where J: Into<String>
+    where
+        J: Into<String>,
     {
         JsonString(value.into())
     }
@@ -93,7 +94,8 @@ impl fmt::Display for JsonString {
 
 impl Serialize for JsonString {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use serde::ser::Error;
         let json_value: JsonValue = serde_json::from_str(&self.0).map_err(S::Error::custom)?;
@@ -103,7 +105,8 @@ impl Serialize for JsonString {
 
 impl<'de> Deserialize<'de> for JsonString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let json_value = JsonValue::deserialize(deserializer).map_err(D::Error::custom)?;
@@ -203,7 +206,8 @@ pub enum Value {
 impl Value {
     /// Unwraps the value of the underlying type out of this `Value`.
     pub fn unwrap<T>(&self) -> &T
-        where T: UnwrapValue
+    where
+        T: UnwrapValue,
     {
         UnwrapValue::unwrap(self)
     }
@@ -695,13 +699,15 @@ impl fmt::Display for Value {
 }
 
 fn format_value<T>(value: &T, f: &mut fmt::Formatter) -> fmt::Result
-    where T: ToString
+where
+    T: ToString,
 {
     f.write_str(&value.to_string())
 }
 
 fn format_value_list<T>(values: &[T], f: &mut fmt::Formatter) -> fmt::Result
-    where T: ToString
+where
+    T: ToString,
 {
     let mut iter = values.iter();
     f.write_str("[")?;
@@ -718,7 +724,8 @@ fn format_value_list<T>(values: &[T], f: &mut fmt::Formatter) -> fmt::Result
 
 impl Serialize for Value {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         use self::Value::*;
         match *self {
@@ -755,7 +762,9 @@ impl Serialize for Value {
 }
 
 fn serialize_slice<T, S>(value: &[T], serializer: S) -> Result<S::Ok, S::Error>
-    where T: Serialize, S: Serializer
+where
+    T: Serialize,
+    S: Serializer,
 {
     let mut seq = serializer.serialize_seq(Some(value.len()))?;
     for element in value {

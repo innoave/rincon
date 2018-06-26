@@ -1,25 +1,24 @@
-
 use std::rc::Rc;
 
 use futures::Future;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 
-pub use rincon_core::api::connector::Error;
-pub use rincon_core::api::query::Query;
-pub use rincon_core::api::types::Empty;
 pub use rincon_client::cursor::types::{Cursor, NewCursor};
 pub use rincon_client::database::types::{Database, NewDatabase};
 pub use rincon_client::graph::types::{EdgeDefinition, Graph, NewGraph};
 pub use rincon_client::user::types::{NewUser, UserExtra};
+pub use rincon_core::api::connector::Error;
+pub use rincon_core::api::query::Query;
+pub use rincon_core::api::types::Empty;
 
-use rincon_core::api::connector::{Connector, Execute};
-use rincon_core::arango::protocol::SYSTEM_DATABASE;
 use rincon_client::cursor::methods::CreateCursor;
 use rincon_client::database::methods::{CreateDatabase, DropDatabase};
 use rincon_client::graph::methods::CreateGraph;
+use rincon_core::api::connector::{Connector, Execute};
+use rincon_core::arango::protocol::SYSTEM_DATABASE;
 
-pub type FutureResult<T> = Box<Future<Item=T, Error=Error>>;
+pub type FutureResult<T> = Box<Future<Item = T, Error = Error>>;
 
 #[derive(Debug)]
 pub struct ArangoSession<C> {
@@ -27,7 +26,8 @@ pub struct ArangoSession<C> {
 }
 
 impl<C> ArangoSession<C>
-    where C: 'static + Connector
+where
+    C: 'static + Connector,
 {
     pub fn new(connector: C) -> Self {
         ArangoSession {
@@ -44,19 +44,26 @@ impl<C> ArangoSession<C>
     }
 
     pub fn use_database<DbName>(&self, database_name: DbName) -> DatabaseSession<C>
-        where DbName: Into<String>
+    where
+        DbName: Into<String>,
     {
         DatabaseSession::new(database_name.into(), self.connector.clone())
     }
 
-    pub fn create_database<UserInfo>(&self, new_database: NewDatabase<UserInfo>) -> FutureResult<DatabaseSession<C>>
-        where UserInfo: UserExtra + Serialize + 'static
+    pub fn create_database<UserInfo>(
+        &self,
+        new_database: NewDatabase<UserInfo>,
+    ) -> FutureResult<DatabaseSession<C>>
+    where
+        UserInfo: UserExtra + Serialize + 'static,
     {
         let connector = self.connector.clone();
         let database_name = new_database.name().to_owned();
-        Box::new(self.connector.system_connection()
-            .execute(CreateDatabase::new(new_database))
-                .map(move |_| DatabaseSession::new(database_name, connector))
+        Box::new(
+            self.connector
+                .system_connection()
+                .execute(CreateDatabase::new(new_database))
+                .map(move |_| DatabaseSession::new(database_name, connector)),
         )
     }
 }
@@ -68,7 +75,8 @@ pub struct DatabaseSession<C> {
 }
 
 impl<C> DatabaseSession<C>
-    where C: 'static + Connector
+where
+    C: 'static + Connector,
 {
     fn new(database_name: String, connector: Rc<C>) -> Self {
         DatabaseSession {
@@ -87,8 +95,10 @@ impl<C> DatabaseSession<C>
     /// longer valid.
     pub fn drop(self) -> FutureResult<bool> {
         let database_name = self.database_name.to_owned();
-        Box::new(self.connector.system_connection()
-            .execute(DropDatabase::new(database_name))
+        Box::new(
+            self.connector
+                .system_connection()
+                .execute(DropDatabase::new(database_name)),
         )
     }
 
@@ -100,10 +110,13 @@ impl<C> DatabaseSession<C>
     /// To specify cursor options and/or query execution options use the
     /// `query_opt(&self, NewCursor)` function.
     pub fn query<T>(&self, query: Query) -> FutureResult<Cursor<T>>
-        where T: 'static + DeserializeOwned
+    where
+        T: 'static + DeserializeOwned,
     {
-        Box::new(self.connector.connection(&self.database_name)
-            .execute(CreateCursor::from_query(query))
+        Box::new(
+            self.connector
+                .connection(&self.database_name)
+                .execute(CreateCursor::from_query(query)),
         )
     }
 
@@ -115,10 +128,13 @@ impl<C> DatabaseSession<C>
     /// To execute a query with all options left at their defaults the
     /// `query(&self, Query)` function might be more suitable.
     pub fn query_opt<T>(&self, new_cursor: NewCursor) -> FutureResult<Cursor<T>>
-        where T: 'static + DeserializeOwned
+    where
+        T: 'static + DeserializeOwned,
     {
-        Box::new(self.connector.connection(&self.database_name)
-            .execute(CreateCursor::new(new_cursor))
+        Box::new(
+            self.connector
+                .connection(&self.database_name)
+                .execute(CreateCursor::new(new_cursor)),
         )
     }
 
@@ -127,9 +143,11 @@ impl<C> DatabaseSession<C>
     pub fn create_graph(&self, new_graph: NewGraph) -> FutureResult<GraphSession<C>> {
         let connector = self.connector.clone();
         let database_name = self.database_name.clone();
-        Box::new(self.connector.connection(&self.database_name)
-            .execute(CreateGraph::new(new_graph))
-                .map(|graph| GraphSession::new(graph, database_name, connector))
+        Box::new(
+            self.connector
+                .connection(&self.database_name)
+                .execute(CreateGraph::new(new_graph))
+                .map(|graph| GraphSession::new(graph, database_name, connector)),
         )
     }
 }
@@ -142,7 +160,8 @@ pub struct GraphSession<C> {
 }
 
 impl<C> GraphSession<C>
-    where C: 'static + Connector
+where
+    C: 'static + Connector,
 {
     fn new(graph: Graph, database_name: String, connector: Rc<C>) -> Self {
         GraphSession {

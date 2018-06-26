@@ -1,4 +1,3 @@
-
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -10,9 +9,9 @@ use rincon_core::api::connector::{Connector, Execute};
 use rincon_core::api::method::{Method, Prepare};
 use rincon_core::api::types::Entity;
 
+use super::Result;
 use edge_collection_session::EdgeCollectionSession;
 use vertex_collection_session::VertexCollectionSession;
-use super::Result;
 
 /// A session for operating with a specific graph.
 #[derive(Debug)]
@@ -24,7 +23,8 @@ pub struct GraphSession<C> {
 }
 
 impl<C> GraphSession<C>
-    where C: 'static + Connector
+where
+    C: 'static + Connector,
 {
     /// Instantiates a new `GraphSession` for the given graph entity.
     pub(crate) fn new(
@@ -43,11 +43,13 @@ impl<C> GraphSession<C>
 
     /// Executes an API method applied to the database of this session.
     fn execute<M>(&self, method: M) -> Result<<M as Method>::Result>
-        where M: 'static + Method + Prepare
+    where
+        M: 'static + Method + Prepare,
     {
         self.core.borrow_mut().run(
-            self.connector.connection(&self.database_name)
-                .execute(method)
+            self.connector
+                .connection(&self.database_name)
+                .execute(method),
         )
     }
 
@@ -99,15 +101,14 @@ impl<C> GraphSession<C>
     /// Fetches the entity of the graph represented by this session and returns
     /// a new `GraphSession` with the entity set in the session.
     pub fn fetch(self) -> Result<GraphSession<C>> {
-        self.execute(GetGraph::with_name(self.name()))
-            .map(|graph|
-                GraphSession::new(
-                    Entity::Object(graph),
-                    self.database_name,
-                    self.connector,
-                    self.core,
-                )
+        self.execute(GetGraph::with_name(self.name())).map(|graph| {
+            GraphSession::new(
+                Entity::Object(graph),
+                self.database_name,
+                self.connector,
+                self.core,
             )
+        })
     }
 
     /// Drops the graph that is represented by this session.
@@ -126,17 +127,20 @@ impl<C> GraphSession<C>
     ///
     /// It returns a new `GraphSession` representing the updated graph.
     pub fn add_vertex_collection<N>(self, collection_name: N) -> Result<GraphSession<C>>
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
-        self.execute(AddVertexCollection::new(self.name(), VertexCollection::new(collection_name)))
-            .map(|graph|
-                GraphSession::new(
-                    Entity::Object(graph),
-                    self.database_name,
-                    self.connector,
-                    self.core,
-                )
+        self.execute(AddVertexCollection::new(
+            self.name(),
+            VertexCollection::new(collection_name),
+        )).map(|graph| {
+            GraphSession::new(
+                Entity::Object(graph),
+                self.database_name,
+                self.connector,
+                self.core,
             )
+        })
     }
 
     /// Removes the vertex collection of the given name from the graph
@@ -145,17 +149,18 @@ impl<C> GraphSession<C>
     ///
     /// It returns a new `GraphSession` representing the updated graph.
     pub fn remove_vertex_collection<N>(self, collection_name: N) -> Result<GraphSession<C>>
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         self.execute(RemoveVertexCollection::new(self.name(), collection_name))
-            .map(|graph|
+            .map(|graph| {
                 GraphSession::new(
                     Entity::Object(graph),
                     self.database_name,
                     self.connector,
                     self.core,
                 )
-            )
+            })
     }
 
     /// List all vertex collections used in the graph represented by this
@@ -167,7 +172,8 @@ impl<C> GraphSession<C>
     /// Returns a new `VertexCollectionSession` for the vertex collection of the
     /// given name.
     pub fn use_vertex_collection<N>(&self, collection_name: N) -> VertexCollectionSession<C>
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         VertexCollectionSession::new(
             VertexCollection::new(collection_name),
@@ -183,33 +189,33 @@ impl<C> GraphSession<C>
     /// # Arguments
     ///
     /// * `collection_name` : The name of the edge collection
-    /// * `from` : One or many vertex collections that can contain source vertices
-    /// * `to` : One or many vertex collections that can contain target vertices
+    /// * `from` : One or many vertex collections that can contain source
+    /// vertices * `to` : One or many vertex collections that can contain
+    /// target vertices
     ///
     /// It returns a new `GraphSession` representing the updated graph.
     pub fn add_edge_definition<N, From, To>(
         self,
         collection_name: N,
         from: From,
-        to: To
+        to: To,
     ) -> Result<GraphSession<C>>
-        where
-            N: Into<String>,
-            From: IntoIterator<Item=String>,
-            To: IntoIterator<Item=String>,
+    where
+        N: Into<String>,
+        From: IntoIterator<Item = String>,
+        To: IntoIterator<Item = String>,
     {
-        self.execute(AddEdgeDefinition::new(self.name(), EdgeDefinition::new(
-            collection_name,
-            from,
-            to,
-        ))).map(|graph|
+        self.execute(AddEdgeDefinition::new(
+            self.name(),
+            EdgeDefinition::new(collection_name, from, to),
+        )).map(|graph| {
             GraphSession::new(
                 Entity::Object(graph),
                 self.database_name,
                 self.connector,
                 self.core,
             )
-        )
+        })
     }
 
     /// Removes the edge definition of the given name from the graph represented
@@ -220,17 +226,18 @@ impl<C> GraphSession<C>
     ///
     /// It returns a new `GraphSession` representing the updated graph.
     pub fn remove_edge_definition<N>(self, collection_name: N) -> Result<GraphSession<C>>
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         self.execute(RemoveEdgeDefinition::new(self.name(), collection_name))
-            .map(|graph|
+            .map(|graph| {
                 GraphSession::new(
                     Entity::Object(graph),
                     self.database_name,
                     self.connector,
                     self.core,
                 )
-            )
+            })
     }
 
     /// List all edge collections used in the graph represented by this
@@ -242,7 +249,8 @@ impl<C> GraphSession<C>
     /// Returns a new `EdgeCollectionSession` for the edge collection of the
     /// given name.
     pub fn use_edge_collection<N>(&self, collection_name: N) -> EdgeCollectionSession<C>
-        where N: Into<String>
+    where
+        N: Into<String>,
     {
         EdgeCollectionSession::new(
             EdgeCollection::new(collection_name),

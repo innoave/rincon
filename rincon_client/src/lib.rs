@@ -47,7 +47,10 @@
 //! }
 //!
 //! // create an instance of our custom struct
-//! let person = Person { name: "herbert".to_string(), age: 42 };
+//! let person = Person {
+//!     name: "herbert".to_string(),
+//!     age: 42,
+//! };
 //!
 //! // create a new document for with our custom struct as content
 //! let new_document = NewDocument::from_content(person);
@@ -127,14 +130,13 @@
 //!
 //! // chaining the method calls
 //! let document: Document<Person> = core.run(
-//!     db_conn.execute(CreateCollection::with_name("people"))
-//!         .and_then(|_people|
-//!             db_conn.execute(InsertDocument::new("people", new_document))
-//!         )
+//!     db_conn
+//!         .execute(CreateCollection::with_name("people"))
+//!         .and_then(|_people| db_conn.execute(InsertDocument::new("people", new_document)))
 //!         .and_then(|doc_header| {
 //!             let (doc_id, _, _) = doc_header.deconstruct();
 //!             db_conn.execute(GetDocument::with_id(doc_id))
-//!         })
+//!         }),
 //! )?;
 //! #
 //! #        Ok(())
@@ -153,7 +155,8 @@
 //! * `mmfiles` : enables MMFiles storage engine related attributes,
 //! * `rocksdb` : enables RocksDB storage engine related attributes,
 //! * `cluster` : enables cluster configuration related attributes,
-//! * `enterprise` : enables attributes supported only by the enterprise version of ArangoDB,
+//! * `enterprise` : enables attributes supported only by the enterprise
+//! version of ArangoDB,
 //!
 //! It is not necessary to activate any of the optional crate features if an
 //! application does not need to access the feature related attributes.
@@ -162,43 +165,45 @@
 //! [`rincon_connector`]: https://docs.rs/rincon_connector
 
 #![doc(html_root_url = "https://docs.rs/rincon_client/0.1.1")]
-
 #![warn(
-    missing_copy_implementations,
-    missing_debug_implementations,
-    missing_docs,
-    trivial_casts,
-    trivial_numeric_casts,
-    unsafe_code,
-    unstable_features,
-    unused_import_braces,
-    unused_qualifications,
+    missing_copy_implementations, missing_debug_implementations, missing_docs, trivial_casts,
+    trivial_numeric_casts, unsafe_code, unstable_features, unused_import_braces,
+    unused_qualifications
 )]
 
 extern crate serde;
-#[macro_use] extern crate serde_derive;
-#[cfg(not(test))] extern crate serde_json;
-#[cfg(test)] #[macro_use] extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
+#[cfg(not(test))]
+extern crate serde_json;
+#[cfg(test)]
+#[macro_use]
+extern crate serde_json;
 
 extern crate rincon_core;
 
-#[allow(missing_docs)] pub mod admin;
-#[allow(missing_docs)] pub mod aql;
+#[allow(missing_docs)]
+pub mod admin;
+#[allow(missing_docs)]
+pub mod aql;
 pub mod auth;
 pub mod collection;
 pub mod cursor;
 pub mod database;
-#[allow(missing_docs)] pub mod document;
-#[allow(missing_docs)] pub mod graph;
-#[allow(missing_docs)] pub mod index;
+#[allow(missing_docs)]
+pub mod document;
+#[allow(missing_docs)]
+pub mod graph;
+#[allow(missing_docs)]
+pub mod index;
 pub mod user;
 
 pub mod client {
     //! Re-export of all public types of the client API.
     //!
     //! If your application needs a lot of types from the client API you may
-    //! import them from this client module instead of digging through the various
-    //! sub-modules.
+    //! import them from this client module instead of digging through the
+    //! various sub-modules.
 
     pub use super::admin::methods::*;
     pub use super::admin::types::*;
